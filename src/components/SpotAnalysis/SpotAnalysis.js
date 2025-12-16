@@ -13,8 +13,7 @@ import {
   AlertCircle,
   Download,
   RefreshCw,
-  Brain,
-  Sparkles
+  Brain
 } from 'lucide-react';
 
 const SpotAnalysis = () => {
@@ -30,9 +29,7 @@ const SpotAnalysis = () => {
   const [selectedProperty, setSelectedProperty] = useState('');
   const [analysisProgress, setAnalysisProgress] = useState(0);
   const [aiAnalysis, setAiAnalysis] = useState({});
-  const [aiAnalyzing, setAiAnalyzing] = useState({});
   const [batchAIAnalysis, setBatchAIAnalysis] = useState(null);
-  const [batchAiAnalyzing, setBatchAiAnalyzing] = useState(false);
 
   // Filtrar y ordenar propiedades basadas en la cuenta seleccionada
   const filteredProperties = selectedAccount
@@ -422,6 +419,45 @@ const SpotAnalysis = () => {
     };
   }, [getAnalyticsData, formatGADate, processAnalyticsData, calculateImpact, parseDateTime]);
 
+  // Generar análisis de IA automáticamente
+  const generateAutomaticAIAnalysis = useCallback(async (results) => {
+    console.log('🤖 Iniciando análisis automático de IA...');
+    
+    try {
+      // Generar análisis batch general
+      const batchAnalysis = await generateBatchAIAnalysis(results);
+      setBatchAIAnalysis(batchAnalysis);
+      console.log('✅ Análisis IA general completado');
+      
+      // Generar análisis individual para cada spot
+      const aiResults = {};
+      for (let i = 0; i < results.length; i++) {
+        try {
+          const spotAnalysis = await generateAIAnalysis(results[i]);
+          aiResults[i] = spotAnalysis;
+          console.log(`✅ Análisis IA para spot ${i + 1} completado`);
+          
+          // Pausa entre análisis individuales para no sobrecargar la API
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        } catch (error) {
+          console.warn(`⚠️ Error en análisis IA para spot ${i + 1}:`, error);
+          aiResults[i] = {
+            insights: ['Error al generar análisis de IA'],
+            recommendations: ['Inténtalo nuevamente'],
+            summary: 'Error en análisis de IA'
+          };
+        }
+      }
+      
+      setAiAnalysis(aiResults);
+      console.log('🎉 Análisis automático de IA completado');
+      
+    } catch (error) {
+      console.error('❌ Error en análisis automático de IA:', error);
+      // No mostrar error al usuario, solo loggear
+    }
+  }, []);
+
   // Realizar análisis de impacto
   const performAnalysis = useCallback(async () => {
     if (!selectedProperty || spotsData.length === 0) {
@@ -431,6 +467,8 @@ const SpotAnalysis = () => {
 
     setAnalyzing(true);
     setAnalysisProgress(0);
+    setAiAnalysis({});
+    setBatchAIAnalysis(null);
 
     try {
       const results = [];
@@ -450,6 +488,9 @@ const SpotAnalysis = () => {
       setAnalysisResults(results);
       console.log('📈 Análisis completado:', results);
       
+      // Ejecutar análisis de IA automáticamente después del análisis de spots
+      await generateAutomaticAIAnalysis(results);
+      
     } catch (error) {
       console.error('❌ Error en el análisis:', error);
       alert('Error al realizar el análisis. Por favor, inténtalo nuevamente.');
@@ -457,54 +498,7 @@ const SpotAnalysis = () => {
       setAnalyzing(false);
       setAnalysisProgress(0);
     }
-  }, [spotsData, selectedProperty, analyzeSpotImpact]);
-
-  // Generar análisis de IA para un spot específico
-  const generateSpotAIAnalysis = useCallback(async (spotIndex) => {
-    if (!analysisResults || !analysisResults[spotIndex]) return;
-
-    setAiAnalyzing(prev => ({ ...prev, [spotIndex]: true }));
-
-    try {
-      const spotData = analysisResults[spotIndex];
-      const analysis = await generateAIAnalysis(spotData);
-      
-      setAiAnalysis(prev => ({ ...prev, [spotIndex]: analysis }));
-    } catch (error) {
-      console.error('❌ Error generando análisis de IA para spot:', error);
-      setAiAnalysis(prev => ({
-        ...prev,
-        [spotIndex]: {
-          insights: ['Error al generar análisis de IA'],
-          recommendations: ['Inténtalo nuevamente'],
-          summary: 'Error en análisis de IA'
-        }
-      }));
-    } finally {
-      setAiAnalyzing(prev => ({ ...prev, [spotIndex]: false }));
-    }
-  }, [analysisResults]);
-
-  // Generar análisis de IA para todos los spots
-  const generateBatchAIAnalysis = useCallback(async () => {
-    if (!analysisResults || analysisResults.length === 0) return;
-
-    setBatchAiAnalyzing(true);
-
-    try {
-      const analysis = await generateBatchAIAnalysis(analysisResults);
-      setBatchAIAnalysis(analysis);
-    } catch (error) {
-      console.error('❌ Error generando análisis batch de IA:', error);
-      setBatchAIAnalysis({
-        insights: ['Error al generar análisis general'],
-        recommendations: ['Verifica la configuración de la API key'],
-        summary: 'Error en análisis general'
-      });
-    } finally {
-      setBatchAiAnalyzing(false);
-    }
-  }, [analysisResults]);
+  }, [spotsData, selectedProperty, analyzeSpotImpact, generateAutomaticAIAnalysis]);
 
   // Exportar resultados
   const exportResults = () => {
@@ -719,19 +713,10 @@ const SpotAnalysis = () => {
       {analysisResults && (
         <div className="bg-white shadow rounded-lg p-6">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-medium text-gray-900">Resultados del Análisis</h2>
-            <button
-              onClick={generateBatchAIAnalysis}
-              disabled={batchAiAnalyzing}
-              className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 disabled:opacity-50"
-            >
-              {batchAiAnalyzing ? (
-                <RefreshCw className="h-4 w-4 mr-1 animate-spin" />
-              ) : (
-                <Sparkles className="h-4 w-4 mr-1" />
-              )}
-              {batchAiAnalyzing ? 'Analizando...' : 'Análisis IA General'}
-            </button>
+            <div>
+              <h2 className="text-lg font-medium text-gray-900">Resultados del Análisis</h2>
+              <p className="text-sm text-gray-600">Análisis automático con IA incluido</p>
+            </div>
           </div>
 
           {/* Análisis de IA General */}
@@ -784,18 +769,6 @@ const SpotAnalysis = () => {
                         Sin Impacto Significativo
                       </span>
                     )}
-                    <button
-                      onClick={() => generateSpotAIAnalysis(index)}
-                      disabled={aiAnalyzing[index]}
-                      className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800 hover:bg-purple-200 disabled:opacity-50"
-                    >
-                      {aiAnalyzing[index] ? (
-                        <RefreshCw className="h-3 w-3 mr-1 animate-spin" />
-                      ) : (
-                        <Brain className="h-3 w-3 mr-1" />
-                      )}
-                      {aiAnalyzing[index] ? 'IA...' : 'IA'}
-                    </button>
                   </div>
                 </div>
                 

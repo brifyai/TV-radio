@@ -103,7 +103,34 @@ exports.handler = async (event, context) => {
     // Endpoint para obtener datos de analytics de una propiedad
     if (event.httpMethod === 'POST' && path.startsWith('/api/analytics/data/')) {
       const propertyId = path.split('/').pop();
-      const { metrics, dimensions, dateRange } = JSON.parse(event.body);
+      
+      // Verificar que event.body existe y no está vacío
+      if (!event.body) {
+        return {
+          statusCode: 400,
+          headers,
+          body: JSON.stringify({
+            error: 'Cuerpo de la solicitud requerido',
+            details: 'Se requiere enviar métricas, dimensiones y rango de fechas en el cuerpo'
+          })
+        };
+      }
+      
+      let requestData;
+      try {
+        requestData = JSON.parse(event.body);
+      } catch (parseError) {
+        return {
+          statusCode: 400,
+          headers,
+          body: JSON.stringify({
+            error: 'JSON inválido en el cuerpo de la solicitud',
+            details: parseError.message
+          })
+        };
+      }
+      
+      const { metrics, dimensions, dateRange } = requestData;
       
       console.log(`🔍 Obteniendo datos de analytics para propiedad: ${propertyId}`);
       console.log(`🔍 Métricas solicitadas:`, metrics);
