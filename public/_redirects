@@ -1,0 +1,30 @@
+# Netlify redirects for SPA
+# API routes
+/netlify/functions/*  200
+/api/*                200
+
+# Static assets - serve directly
+/static/*             /static/:splat    200
+/assets/*             /assets/:splat    200
+
+# Specific file types - serve directly
+/*.js                 /:splat.js        200
+/*.css                /:splat.css       200
+/*.json               /:splat.json      200
+/*.map                /:splat.map       200
+/*.ico                /:splat.ico       200
+/*.png                /:splat.png       200
+/*.svg                /:splat.svg       200
+/*.jpg                /:splat.jpg       200
+/*.jpeg               /:splat.jpeg      200
+/*.gif                /:splat.gif       200
+/*.woff               /:splat.woff      200
+/*.woff2              /:splat.woff2     200
+/*.ttf                /:splat.ttf       200
+
+# Specific files
+/manifest.json        /manifest.json   200
+/favicon.ico          /favicon.ico     200
+
+# SPA fallback - all other routes to index.html
+/*                    /index.html   200
