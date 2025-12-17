@@ -14,6 +14,7 @@ import Properties from './components/Properties/Properties';
 import Analytics from './components/Analytics/Analytics';
 import SpotAnalysis from './components/SpotAnalysis/SpotAnalysis';
 import FrasesRadio from './components/FrasesRadio/FrasesRadio';
+import Settings from './components/Settings/Settings';
 import Layout from './components/Layout/Layout';
 import SimpleLoadingSpinner from './components/UI/SimpleLoadingSpinner';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -115,6 +116,7 @@ function AppContent() {
               <Route path="/analytics/:propertyId" element={<Analytics />} />
               <Route path="/spot-analysis" element={<SpotAnalysis />} />
               <Route path="/frases-radio" element={<FrasesRadio />} />
+              <Route path="/settings" element={<Settings />} />
               <Route path="*" element={<Navigate to="/dashboard" replace />} />
             </Route>
           )}
