@@ -361,7 +361,7 @@ const Dashboard = () => {
                   <BarChart3 className="h-6 w-6 text-white" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-gray-900">Análisis de Spots</h3>
+                  <h3 className="text-lg font-semibold text-gray-900">Spot TV</h3>
                   <p className="text-sm text-gray-600">Analizar el impacto de tus campañas publicitarias</p>
                 </div>
                 <ExternalLink className="h-5 w-5 text-gray-400 group-hover:text-purple-600 transition-all" />

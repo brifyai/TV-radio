@@ -66,7 +66,7 @@ const Layout = () => {
   const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: Home, current: location.pathname === '/dashboard' },
     { name: 'Cuentas', href: '/accounts', icon: Users, current: location.pathname === '/accounts' },
-    { name: 'Análisis de Spots', href: '/spot-analysis', icon: TrendingUp, current: location.pathname === '/spot-analysis' },
+    { name: 'Spot TV', href: '/spot-analysis', icon: TrendingUp, current: location.pathname === '/spot-analysis' },
     { name: 'Frases Radio', href: '/frases-radio', icon: Radio, current: location.pathname === '/frases-radio' },
   ];
 
