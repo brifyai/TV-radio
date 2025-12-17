@@ -374,7 +374,7 @@ const SpotAnalysis = () => {
     return totals;
   }, []);
 
-  // Calcular impacto - CONVERTIDO A useCallback
+  // Calcular impacto con vinculación directa - CONVERTIDO A useCallback
   const calculateImpact = useCallback((spot, previousDay, previousWeek) => {
     const impact = {};
     
@@ -387,12 +387,16 @@ const SpotAnalysis = () => {
       const increase = spotValue - avgBaseline;
       const percentageChange = avgBaseline > 0 ? (increase / avgBaseline) * 100 : 0;
       
+      // Vinculación directa: requiere aumento significativo Y correlación temporal
+      const hasDirectCorrelation = percentageChange > 15 && spotValue > avgBaseline * 1.15;
+      
       impact[metric] = {
         value: spotValue,
         baseline: avgBaseline,
         increase: increase,
         percentageChange: percentageChange,
-        significant: Math.abs(percentageChange) > 10 // Considerar significativo si > 10%
+        significant: Math.abs(percentageChange) > 10, // Para compatibilidad con métricas generales
+        directCorrelation: hasDirectCorrelation // Nueva métrica para vinculación directa
       };
     });
     
@@ -682,9 +686,9 @@ const SpotAnalysis = () => {
           <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Spots Exitosos</p>
+                <p className="text-sm font-medium text-gray-600">Spots con Vinculación Directa</p>
                 <p className="text-3xl font-bold text-purple-600">
-                  {analysisResults.filter(r => r.impact.activeUsers.significant).length}
+                  {analysisResults.filter(r => r.impact.activeUsers.directCorrelation).length}
                 </p>
               </div>
               <div className="p-3 bg-purple-100 rounded-full">
@@ -756,14 +760,14 @@ const SpotAnalysis = () => {
                     </p>
                   </div>
                   <div className="flex items-center space-x-2">
-                    {result?.impact?.activeUsers?.significant ? (
+                    {result?.impact?.activeUsers?.directCorrelation ? (
                       <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
                         <TrendingUp className="h-3 w-3 mr-1" />
-                        Impacto Detectado
+                        Vinculación Directa
                       </span>
                     ) : (
                       <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                        Sin Impacto Significativo
+                        Sin Vinculación Directa
                       </span>
                     )}
                   </div>
@@ -960,14 +964,14 @@ const SpotAnalysis = () => {
                     </p>
                   </div>
                   <div className="flex items-center space-x-2">
-                    {result?.impact?.activeUsers?.significant ? (
+                    {result?.impact?.activeUsers?.directCorrelation ? (
                       <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
                         <TrendingUp className="h-3 w-3 mr-1" />
-                        Impacto Detectado
+                        Vinculación Directa
                       </span>
                     ) : (
                       <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                        Sin Impacto Significativo
+                        Sin Vinculación Directa
                       </span>
                     )}
                   </div>

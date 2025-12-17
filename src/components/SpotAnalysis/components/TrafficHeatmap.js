@@ -147,23 +147,23 @@ const TrafficHeatmap = ({ analysisResults }) => {
         </div>
       </div>
 
-      {/* Heatmap Grid - Versión compacta */}
-      <div className="mb-4">
+      {/* Heatmap Grid - Versión ultra compacta */}
+      <div className="mb-3">
         <div className="grid grid-cols-8 gap-px">
           {/* Header */}
-          <div className="text-xs font-medium text-gray-500 p-1"></div>
+          <div className="text-xs font-medium text-gray-500 p-0.5"></div>
           {['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'].map((day) => (
-            <div key={day} className="text-xs font-medium text-gray-500 p-1 text-center">
+            <div key={day} className="text-xs font-medium text-gray-500 p-0.5 text-center">
               {day}
             </div>
           ))}
           
-          {/* Heatmap cells - Solo horas principales */}
-          {Array.from({ length: 12 }, (_, hourIndex) => {
-            const hour = hourIndex * 2; // Solo horas pares: 0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22
+          {/* Heatmap cells - Solo 8 horas principales */}
+          {Array.from({ length: 8 }, (_, hourIndex) => {
+            const hour = hourIndex * 3; // Horas: 0, 3, 6, 9, 12, 15, 18, 21
             return (
               <React.Fragment key={hour}>
-                <div className="text-xs font-medium text-gray-500 p-1 text-center">
+                <div className="text-xs font-medium text-gray-500 p-0.5 text-center">
                   {hour}
                 </div>
                 {['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'].map((day, dayIndex) => {
@@ -183,7 +183,7 @@ const TrafficHeatmap = ({ analysisResults }) => {
                           animate={{ scale: 1 }}
                           className="absolute inset-0 border-2 border-yellow-400 rounded"
                         >
-                          <div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-yellow-400 rounded-full"></div>
+                          <div className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 bg-yellow-400 rounded-full"></div>
                         </motion.div>
                       )}
                       
@@ -200,24 +200,24 @@ const TrafficHeatmap = ({ analysisResults }) => {
         </div>
       </div>
 
-      {/* Gráfico de barras por hora - Versión compacta */}
-      <div className="h-32">
-        <h4 className="text-xs font-medium text-gray-700 mb-2">Promedio de Tráfico por Hora</h4>
+      {/* Gráfico de barras por hora - Versión más grande */}
+      <div className="h-56">
+        <h4 className="text-sm font-medium text-gray-700 mb-3">Promedio de Tráfico por Hora</h4>
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={hourlyData}>
             <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
             <XAxis
               dataKey="hour"
-              tick={{ fontSize: 8, fill: '#6b7280' }}
+              tick={{ fontSize: 10, fill: '#6b7280' }}
               axisLine={{ stroke: '#e5e7eb' }}
               interval={1}
             />
             <YAxis
-              tick={{ fontSize: 8, fill: '#6b7280' }}
+              tick={{ fontSize: 10, fill: '#6b7280' }}
               axisLine={{ stroke: '#e5e7eb' }}
             />
             <Tooltip content={<CustomTooltip />} />
-            <Bar dataKey="intensity" radius={[1, 1, 0, 0]}>
+            <Bar dataKey="intensity" radius={[2, 2, 0, 0]}>
               {hourlyData.map((entry, index) => (
                 <Cell
                   key={`cell-${index}`}
