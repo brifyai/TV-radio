@@ -49,7 +49,7 @@ const FrasesRadio = () => {
   const [batchAIAnalysis, setBatchAIAnalysis] = useState(null);
   const [viewMode, setViewMode] = useState('modern'); // 'modern' o 'classic'
   const [temporalAnalysis, setTemporalAnalysis] = useState(null);
-  const [temporalBaseline, setTemporalBaseline] = useState(null);
+  const [temporalReference, setTemporalReference] = useState(null);
   const [conversionAnalysis, setConversionAnalysis] = useState(null);
   const [controlGroupAnalysis, setControlGroupAnalysis] = useState(null);
   const [predictiveAnalysis, setPredictiveAnalysis] = useState(null);
@@ -370,13 +370,13 @@ const FrasesRadio = () => {
       const prevDayValue = previousDay[metric] || 0;
       const prevWeekValue = previousWeek[metric] || 0;
       
-      const avgBaseline = (prevDayValue + prevWeekValue) / 2;
-      const increase = fraseValue - avgBaseline;
-      const percentageChange = avgBaseline > 0 ? (increase / avgBaseline) * 100 : 0;
+      const avgReference = (prevDayValue + prevWeekValue) / 2;
+      const increase = fraseValue - avgReference;
+      const percentageChange = avgReference > 0 ? (increase / avgReference) * 100 : 0;
       
       impact[metric] = {
         value: fraseValue,
-        baseline: avgBaseline,
+        reference: avgReference,
         increase: increase,
         percentageChange: percentageChange,
         significant: Math.abs(percentageChange) > 10 // Considerar significativo si > 10%
@@ -496,7 +496,7 @@ const FrasesRadio = () => {
     setAiAnalysis({});
     setBatchAIAnalysis(null);
     setTemporalAnalysis(null);
-    setTemporalBaseline(null);
+    setTemporalReference(null);
     setConversionAnalysis(null);
     setControlGroupAnalysis(null);
     setPredictiveAnalysis(null);
@@ -536,9 +536,9 @@ const FrasesRadio = () => {
             fraseDateTime
           );
           
-          // Calcular baseline robusto
-          const robustBaseline = temporalAnalysisService.calculateRobustBaseline(fraseDateTime, historicalData);
-          setTemporalBaseline(robustBaseline);
+          // Calcular referencia robusta
+          const robustReference = temporalAnalysisService.calculateRobustReference(fraseDateTime, historicalData);
+          setTemporalReference(robustReference);
           
           // Realizar análisis temporal para cada frase
           const temporalResults = {};
@@ -547,7 +547,7 @@ const FrasesRadio = () => {
             const temporalImpact = temporalAnalysisService.analyzeTemporalImpact(
               fraseResult.frase,
               fraseResult.metrics,
-              robustBaseline
+              robustReference
             );
             temporalResults[i] = temporalImpact;
           }
@@ -562,7 +562,7 @@ const FrasesRadio = () => {
       }
       
       // FASE 4: Análisis predictivo con IA
-      if (results.length > 0 && temporalBaseline) {
+      if (results.length > 0 && temporalReference) {
         console.log('🔮 Iniciando análisis predictivo con IA...');
         setAnalysisProgress(95);
         
@@ -597,7 +597,7 @@ const FrasesRadio = () => {
       setAnalyzing(false);
       setAnalysisProgress(0);
     }
-  }, [frasesData, selectedProperty, analyzeFraseImpact, generateAutomaticAIAnalysis, temporalAnalysisService, predictiveAnalyticsService, setTemporalAnalysis, setTemporalBaseline, setPredictiveAnalysis]);
+  }, [frasesData, selectedProperty, analyzeFraseImpact, generateAutomaticAIAnalysis, temporalAnalysisService, predictiveAnalyticsService, setTemporalAnalysis, setTemporalReference, setPredictiveAnalysis]);
 
   // Exportar resultados
   const exportResults = () => {
@@ -703,10 +703,10 @@ const FrasesRadio = () => {
       )}
 
       {/* Dashboard de Análisis Temporal (FASE 2) */}
-      {temporalAnalysis && temporalBaseline && (
+      {temporalAnalysis && temporalReference && (
         <TemporalAnalysisDashboard
           temporalImpact={temporalAnalysis}
-          baseline={temporalBaseline}
+          baseline={temporalReference}
           spotData={frasesData}
         />
       )}
@@ -1166,14 +1166,6 @@ const FrasesRadio = () => {
             </p>
           </div>
           <div className="flex items-center space-x-4">
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => setViewMode(viewMode === 'modern' ? 'classic' : 'modern')}
-              className="px-4 py-2 bg-white/20 rounded-lg backdrop-blur-sm hover:bg-white/30 transition-all"
-            >
-              Vista Clásica
-            </motion.button>
           </div>
         </div>
       </motion.div>

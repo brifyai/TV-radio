@@ -90,20 +90,20 @@ const ImpactTimeline = ({ spotData, analysisResults }) => {
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={timelineData}>
             <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-            <XAxis 
-              dataKey="time" 
+            <XAxis
+              dataKey="time"
               tick={{ fontSize: 12, fill: '#6b7280' }}
               axisLine={{ stroke: '#e5e7eb' }}
             />
-            <YAxis 
+            <YAxis
               tick={{ fontSize: 12, fill: '#6b7280' }}
               axisLine={{ stroke: '#e5e7eb' }}
             />
             <Tooltip content={<CustomTooltip />} />
-            <Line 
-              type="monotone" 
-              dataKey="impact" 
-              stroke="url(#gradient)" 
+            <Line
+              type="monotone"
+              dataKey="impact"
+              stroke="url(#gradient)"
               strokeWidth={3}
               dot={{ fill: '#3B82F6', strokeWidth: 2, r: 6 }}
               activeDot={{ r: 8, stroke: '#3B82F6', strokeWidth: 2, fill: '#fff' }}
@@ -120,6 +120,67 @@ const ImpactTimeline = ({ spotData, analysisResults }) => {
           </LineChart>
         </ResponsiveContainer>
       </div>
+
+      {/* Resumen de Impacto */}
+      {analysisResults && analysisResults.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border border-blue-100"
+        >
+          <div className="flex items-start space-x-3">
+            <div className="flex-shrink-0">
+              <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+              </div>
+            </div>
+            <div className="flex-1">
+              <h4 className="text-sm font-semibold text-gray-900 mb-2">Resumen de Impacto</h4>
+              <div className="space-y-2">
+                {(() => {
+                  const totalSpots = analysisResults.length;
+                  const avgImpact = analysisResults.reduce((sum, result) =>
+                    sum + (result.impact?.activeUsers?.percentageChange || 0), 0) / totalSpots;
+                  const positiveImpacts = analysisResults.filter(result =>
+                    (result.impact?.activeUsers?.percentageChange || 0) > 0).length;
+                  const maxImpact = Math.max(...analysisResults.map(result =>
+                    result.impact?.activeUsers?.percentageChange || 0));
+                  
+                  return (
+                    <>
+                      <p className="text-sm text-gray-700">
+                        <span className="font-medium">{totalSpots}</span> spots analizados con un impacto promedio de{' '}
+                        <span className={`font-semibold ${avgImpact >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                          {avgImpact >= 0 ? '+' : ''}{avgImpact.toFixed(1)}%
+                        </span>{' '}
+                        en usuarios activos.
+                      </p>
+                      <p className="text-sm text-gray-700">
+                        <span className="font-medium">{positiveImpacts}</span> de {totalSpots} spots ({Math.round((positiveImpacts/totalSpots)*100)}%)
+                        generaron impacto positivo, con un máximo de{' '}
+                        <span className="font-semibold text-green-600">
+                          +{maxImpact.toFixed(1)}%
+                        </span>.
+                      </p>
+                      <p className="text-sm text-gray-600 italic">
+                        {avgImpact > 10
+                          ? "Los resultados muestran un impacto significativo y positivo en el tráfico."
+                          : avgImpact > 0
+                          ? "Se observa un impacto moderado pero consistente en el comportamiento del usuario."
+                          : "El impacto es mínimo, considera revisar la estrategia de contenido o timing."
+                        }
+                      </p>
+                    </>
+                  );
+                })()}
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      )}
 
       {/* Estadísticas rápidas */}
       <div className="grid grid-cols-4 gap-4 mt-6">

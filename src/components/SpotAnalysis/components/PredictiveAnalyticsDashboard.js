@@ -236,7 +236,7 @@ const PredictiveAnalyticsDashboard = ({ predictiveAnalysis }) => {
               <Tooltip 
                 formatter={(value, name) => [
                   typeof value === 'number' ? value.toLocaleString() : value,
-                  name === 'predicted' ? 'Predicho' : 'Baseline'
+                  name === 'predicted' ? 'Predicho' : 'Referencia'
                 ]}
               />
               <Area

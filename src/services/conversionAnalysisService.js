@@ -81,7 +81,7 @@ export class ConversionAnalysisService extends TemporalAnalysisService {
   calculateFunnelStage(stage, spotData, conversionData, baselineData, stageIndex) {
     const baseMetrics = this.getStageBaseMetrics(stage, conversionData);
     const spotMetrics = this.getSpotStageMetrics(stage, spotData, conversionData);
-    const baselineMetrics = this.getBaselineStageMetrics(stage, baselineData);
+    const baselineMetrics = this.getReferenceStageMetrics(stage, baselineData);
     
     // Calcular impacto del spot
     const impact = this.calculateStageImpact(spotMetrics, baselineMetrics);
@@ -159,8 +159,8 @@ export class ConversionAnalysisService extends TemporalAnalysisService {
     };
   }
 
-  // Obtener métricas de baseline para cada etapa
-  getBaselineStageMetrics(stage, baselineData) {
+  // Obtener métricas de referencia para cada etapa
+  getReferenceStageMetrics(stage, baselineData) {
     if (!baselineData || !baselineData.immediate) {
       return this.getEmptyStageMetrics();
     }

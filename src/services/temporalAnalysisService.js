@@ -35,14 +35,14 @@ export class TemporalAnalysisService {
    * Calcular baseline robusto usando 30 días de historial
    * @param {Date} spotDateTime - Fecha y hora del spot
    * @param {Array} historicalData - Datos históricos de Google Analytics
-   * @returns {Object} Baseline robusto con múltiples períodos
+   * @returns {Object} Referencia robusta con múltiples períodos
    */
-  calculateRobustBaseline(spotDateTime, historicalData) {
+  calculateRobustReference(spotDateTime, historicalData) {
     const baseline = {
-      immediate: this.calculateBaselineForWindow(spotDateTime, this.timeWindows.immediate, historicalData),
-      shortTerm: this.calculateBaselineForWindow(spotDateTime, this.timeWindows.shortTerm, historicalData),
-      mediumTerm: this.calculateBaselineForWindow(spotDateTime, this.timeWindows.mediumTerm, historicalData),
-      longTerm: this.calculateBaselineForWindow(spotDateTime, this.timeWindows.longTerm, historicalData)
+      immediate: this.calculateReferenceForWindow(spotDateTime, this.timeWindows.immediate, historicalData),
+      shortTerm: this.calculateReferenceForWindow(spotDateTime, this.timeWindows.shortTerm, historicalData),
+      mediumTerm: this.calculateReferenceForWindow(spotDateTime, this.timeWindows.mediumTerm, historicalData),
+      longTerm: this.calculateReferenceForWindow(spotDateTime, this.timeWindows.longTerm, historicalData)
     };
 
     return baseline;
@@ -51,7 +51,7 @@ export class TemporalAnalysisService {
   /**
    * Calcular baseline para una ventana de tiempo específica
    */
-  calculateBaselineForWindow(spotDateTime, timeWindow, historicalData) {
+  calculateReferenceForWindow(spotDateTime, timeWindow, historicalData) {
     const spotHour = spotDateTime.getHours();
     const spotDayOfWeek = spotDateTime.getDay();
     const spotDayOfMonth = spotDateTime.getDate();
@@ -107,7 +107,7 @@ export class TemporalAnalysisService {
    * Analizar impacto en las 4 ventanas de tiempo
    * @param {Object} spotData - Datos del spot
    * @param {Object} analyticsData - Datos de Google Analytics
-   * @param {Object} baseline - Baseline robusto
+   * @param {Object} baseline - Referencia robusta
    * @returns {Object} Análisis de impacto por ventana temporal
    */
   analyzeTemporalImpact(spotData, analyticsData, baseline) {
@@ -124,8 +124,8 @@ export class TemporalAnalysisService {
       // Calcular métricas de la ventana
       const windowMetrics = this.calculateWindowMetrics(windowData);
       
-      // Comparar con baseline
-      const comparison = this.compareWithBaseline(windowMetrics, baseline[windowKey]);
+      // Comparar con referencia
+      const comparison = this.compareWithReference(windowMetrics, baseline[windowKey]);
       
       impact[windowKey] = {
         ...windowConfig,
@@ -194,7 +194,7 @@ export class TemporalAnalysisService {
   /**
    * Comparar métricas de ventana con baseline
    */
-  compareWithBaseline(windowMetrics, baseline) {
+  compareWithReference(windowMetrics, baseline) {
     const comparison = {};
     
     Object.keys(windowMetrics).forEach(metric => {
