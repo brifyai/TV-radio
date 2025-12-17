@@ -281,9 +281,7 @@ const Layout = () => {
                   </button>
                 </div>
                 
-                <h1 className="text-2xl font-semibold text-gray-900">
-                  {navigation.find(item => item.current)?.name || 'Dashboard'}
-                </h1>
+                {/* Título eliminado para limpiar la interfaz */}
               </div>
               
               <div className="flex items-center space-x-4">
