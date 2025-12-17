@@ -21,7 +21,10 @@ import {
   Zap,
   Target,
   Clock,
-  TrendingDown
+  TrendingDown,
+  ChevronDown,
+  ChevronRight,
+  ChevronLeft
 } from 'lucide-react';
 
 // Importar componentes modernos
@@ -54,6 +57,9 @@ const SpotAnalysis = () => {
   const [conversionAnalysis, setConversionAnalysis] = useState(null);
   const [controlGroupAnalysis, setControlGroupAnalysis] = useState(null);
   const [predictiveAnalysis, setPredictiveAnalysis] = useState(null);
+  const [expandedTimeline, setExpandedTimeline] = useState({});
+  const [currentPage, setCurrentPage] = useState(1);
+  const spotsPerPage = 10;
 
   // Filtrar y ordenar propiedades basadas en la cuenta seleccionada
   const filteredProperties = selectedAccount
@@ -89,6 +95,8 @@ const SpotAnalysis = () => {
     const horaIndex = headers.findIndex(h => h === 'hora inicio');
     const canalIndex = headers.findIndex(h => h === 'canal');
     const tituloIndex = headers.findIndex(h => h === 'titulo programa');
+    const versionIndex = headers.findIndex(h => h === 'version');
+    const duracionIndex = headers.findIndex(h => h === 'duracion');
     const inversionIndex = headers.findIndex(h => h === 'inversion');
     
     if (fechaIndex === -1 || horaIndex === -1) {
@@ -104,6 +112,8 @@ const SpotAnalysis = () => {
         hora_inicio: values[horaIndex] || '',
         canal: values[canalIndex] || '',
         titulo_programa: values[tituloIndex] || '',
+        version: values[versionIndex] || '',
+        duracion: values[duracionIndex] || '',
         inversion: values[inversionIndex] || ''
       };
     }).filter(spot => spot.fecha || spot.hora_inicio); // Filtrar filas vacías
@@ -124,6 +134,8 @@ const SpotAnalysis = () => {
     const horaIndex = headers.findIndex(h => h === 'hora inicio');
     const canalIndex = headers.findIndex(h => h === 'canal');
     const tituloIndex = headers.findIndex(h => h === 'titulo programa');
+    const versionIndex = headers.findIndex(h => h === 'version');
+    const duracionIndex = headers.findIndex(h => h === 'duracion');
     const inversionIndex = headers.findIndex(h => h === 'inversion');
     
     if (fechaIndex === -1 || horaIndex === -1) {
@@ -137,6 +149,8 @@ const SpotAnalysis = () => {
         hora_inicio: row[horaIndex] || '',
         canal: row[canalIndex] || '',
         titulo_programa: row[tituloIndex] || '',
+        version: row[versionIndex] || '',
+        duracion: row[duracionIndex] || '',
         inversion: row[inversionIndex] || ''
       };
     }).filter(spot => spot.fecha || spot.hora_inicio); // Filtrar filas vacías
@@ -276,7 +290,8 @@ const SpotAnalysis = () => {
               fecha: spot.fecha,
               hora: spot.hora_inicio,
               nombre: spot.titulo_programa || `Spot ${index + 1}`,
-              duracion: 30, // Default 30 segundos ya que no tenemos este dato
+              version: spot.version || '',
+              duracion: spot.duracion ? parseInt(spot.duracion) : 30, // Parsear duración o usar default
               canal: spot.canal || 'TV',
               inversion: spot.inversion || '',
               dateTime: dateTime, // Objeto Date para análisis
@@ -617,18 +632,28 @@ const SpotAnalysis = () => {
     }
   }, [spotsData, selectedProperty, analyzeSpotImpact, generateAutomaticAIAnalysis, temporalAnalysisService, predictiveAnalyticsService, setTemporalAnalysis, setTemporalReference, setPredictiveAnalysis]);
 
+  // Función para manejar el toggle del acordeón de timeline
+  const toggleTimeline = useCallback((spotIndex) => {
+    setExpandedTimeline(prev => ({
+      ...prev,
+      [spotIndex]: !prev[spotIndex]
+    }));
+  }, []);
+
   // Exportar resultados
   const exportResults = () => {
     if (!analysisResults) return;
     
     const csv = [
-      ['Spot', 'Fecha', 'Hora Inicio', 'Canal', 'Título Programa', 'Inversión', 'Usuarios Activos', 'Sesiones', 'Vistas de Página', 'Impacto Usuarios', 'Impacto Sesiones', 'Impacto Vistas'],
+      ['Spot', 'Fecha', 'Hora Inicio', 'Canal', 'Título Programa', 'Versión', 'Duración', 'Inversión', 'Usuarios Activos', 'Sesiones', 'Vistas de Página', 'Impacto Usuarios', 'Impacto Sesiones', 'Impacto Vistas'],
       ...analysisResults.map(result => [
         result?.spot?.nombre || 'Sin nombre',
         result?.spot?.fecha || '',
         result?.spot?.hora || '',
         result?.spot?.canal || '',
-        result?.spot?.nombre || 'Sin título', // Usar nombre como título del programa
+        result?.spot?.titulo_programa || result?.spot?.nombre || 'Sin título',
+        result?.spot?.version || '',
+        result?.spot?.duracion || '',
         result?.spot?.inversion || '',
         result?.metrics?.spot?.activeUsers || 0,
         result?.metrics?.spot?.sessions || 0,
@@ -776,8 +801,18 @@ const SpotAnalysis = () => {
                             <div className="flex items-center space-x-2">
                               <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                                 <Video className="h-3 w-3 mr-1" />
-                                Programa: {result?.spot?.nombre || 'N/A'}
+                                Programa: {result?.spot?.titulo_programa || result?.spot?.nombre || 'N/A'}
                               </span>
+                              {result?.spot?.version && (
+                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                                  Versión: {result.spot.version}
+                                </span>
+                              )}
+                              {result?.spot?.duracion && (
+                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+                                  Duración: {result.spot.duracion}s
+                                </span>
+                              )}
                               <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
                                 <Target className="h-3 w-3 mr-1" />
                                 Vinculación Directa
@@ -922,116 +957,145 @@ const SpotAnalysis = () => {
 
                       {/* Línea de Tiempo de Visitas */}
                       <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
-                        <div className="flex items-center mb-4">
-                          <Clock className="h-5 w-5 text-blue-600 mr-2" />
-                          <h4 className="text-sm font-semibold text-gray-900">Línea de Tiempo de Visitas</h4>
+                        <div className="flex items-center justify-between mb-4">
+                          <div className="flex items-center">
+                            <Clock className="h-5 w-5 text-blue-600 mr-2" />
+                            <h4 className="text-sm font-semibold text-gray-900">Línea de Tiempo de Visitas</h4>
+                          </div>
+                          <button
+                            onClick={() => toggleTimeline(analysisResults.indexOf(result))}
+                            className="flex items-center space-x-1 px-3 py-1 text-xs font-medium text-blue-600 bg-blue-100 hover:bg-blue-200 rounded-lg transition-colors"
+                          >
+                            {expandedTimeline[analysisResults.indexOf(result)] ? (
+                              <>
+                                <ChevronDown className="h-4 w-4" />
+                                <span>Colapsar</span>
+                              </>
+                            ) : (
+                              <>
+                                <ChevronRight className="h-4 w-4" />
+                                <span>Expandir</span>
+                              </>
+                            )}
+                          </button>
                         </div>
                         
-                        {/* Hora del Spot */}
-                        <div className="mb-4 p-3 bg-white rounded-lg border border-blue-200">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center">
-                              <div className="w-3 h-3 bg-red-500 rounded-full mr-3 animate-pulse"></div>
-                              <span className="font-medium text-gray-900">Hora del Spot:</span>
-                            </div>
-                            <span className="text-lg font-bold text-red-600">
-                              {result?.spot?.dateTime ?
-                                result.spot.dateTime.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' }) :
-                                'N/A'
-                              }
-                            </span>
-                          </div>
-                        </div>
-
-                        {/* Timeline de Visitas */}
-                        <div className="space-y-3">
-                          {(() => {
-                            // Generar datos de visitas basados en el impacto real
-                            const baseVisits = result?.metrics?.spot?.activeUsers || 0;
-                            const referenceVisits = Math.round(result?.impact?.activeUsers?.reference || baseVisits * 0.7);
-                            
-                            const timelineData = [
-                              { time: '1 min', minutes: 1, visits: Math.round(baseVisits * 0.8) },
-                              { time: '3 min', minutes: 3, visits: Math.round(baseVisits * 0.6) },
-                              { time: '5 min', minutes: 5, visits: Math.round(baseVisits * 0.4) },
-                              { time: '10 min', minutes: 10, visits: Math.round(baseVisits * 0.25) },
-                              { time: '15 min', minutes: 15, visits: Math.round(baseVisits * 0.15) },
-                              { time: '20 min', minutes: 20, visits: Math.round(baseVisits * 0.1) },
-                              { time: '25 min', minutes: 25, visits: Math.round(baseVisits * 0.08) },
-                              { time: '30 min', minutes: 30, visits: Math.round(baseVisits * 0.05) }
-                            ];
-
-                            const maxVisits = Math.max(...timelineData.map(d => d.visits));
-
-                            return (
-                              <>
-                                <div className="grid grid-cols-4 gap-2 text-xs text-gray-600 mb-2">
-                                  <span>Tiempo</span>
-                                  <span className="text-center">Visitas</span>
-                                  <span className="text-center">Incremento</span>
-                                  <span className="text-right">Barra</span>
+                        {/* Contenido colapsable del timeline */}
+                        {expandedTimeline[analysisResults.indexOf(result)] && (
+                          <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 'auto' }}
+                            exit={{ opacity: 0, height: 0 }}
+                            transition={{ duration: 0.3 }}
+                            className="overflow-hidden"
+                          >
+                            {/* Hora del Spot */}
+                            <div className="mb-4 p-3 bg-white rounded-lg border border-blue-200">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center">
+                                  <div className="w-3 h-3 bg-red-500 rounded-full mr-3 animate-pulse"></div>
+                                  <span className="font-medium text-gray-900">Hora del Spot:</span>
                                 </div>
-                                {timelineData.map((data, index) => {
-                                  const increment = data.visits - referenceVisits;
-                                  const incrementPercent = referenceVisits > 0 ? ((increment / referenceVisits) * 100) : 0;
-                                  const barWidth = maxVisits > 0 ? (data.visits / maxVisits) * 100 : 0;
-                                  
-                                  return (
-                                    <motion.div
-                                      key={data.time}
-                                      initial={{ opacity: 0, x: -20 }}
-                                      animate={{ opacity: 1, x: 0 }}
-                                      transition={{ delay: index * 0.1 }}
-                                      className="grid grid-cols-4 gap-2 items-center py-2 px-3 bg-white rounded-lg border border-gray-200 hover:border-blue-300 transition-colors"
-                                    >
-                                      <span className="text-sm font-medium text-gray-900">{data.time}</span>
-                                      <span className="text-center text-sm font-semibold text-blue-600">{data.visits}</span>
-                                      <span className="text-center text-sm">
-                                        <span className={`font-medium ${increment >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                                          {increment >= 0 ? '+' : ''}{increment}
-                                        </span>
-                                        <span className="text-xs text-gray-500 ml-1">
-                                          ({incrementPercent >= 0 ? '+' : ''}{incrementPercent.toFixed(0)}%)
-                                        </span>
-                                      </span>
-                                      <div className="flex items-center justify-end">
-                                        <div className="w-16 bg-gray-200 rounded-full h-2 mr-2">
-                                          <motion.div
-                                            className={`h-2 rounded-full ${increment >= 0 ? 'bg-green-500' : 'bg-red-500'}`}
-                                            initial={{ width: 0 }}
-                                            animate={{ width: `${barWidth}%` }}
-                                            transition={{ delay: index * 0.1 + 0.3, duration: 0.5 }}
-                                          />
-                                        </div>
-                                        <span className="text-xs text-gray-500 w-8 text-right">
-                                          {barWidth.toFixed(0)}%
-                                        </span>
-                                      </div>
-                                    </motion.div>
-                                  );
-                                })}
-                              </>
-                            );
-                          })()}
-                        </div>
+                                <span className="text-lg font-bold text-red-600">
+                                  {result?.spot?.dateTime ?
+                                    result.spot.dateTime.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' }) :
+                                    'N/A'
+                                  }
+                                </span>
+                              </div>
+                            </div>
 
-                        {/* Resumen del Timeline */}
-                        <div className="mt-4 p-3 bg-white rounded-lg border border-blue-200">
-                          <div className="flex items-center justify-between text-sm">
-                            <span className="text-gray-600">Total visitas en 30 min:</span>
-                            <span className="font-bold text-blue-600">
+                            {/* Timeline de Visitas */}
+                            <div className="space-y-3">
                               {(() => {
+                                // Generar datos de visitas basados en el impacto real
                                 const baseVisits = result?.metrics?.spot?.activeUsers || 0;
-                                const total = Math.round(baseVisits * (0.8 + 0.6 + 0.4 + 0.25 + 0.15 + 0.1 + 0.08 + 0.05));
-                                return total;
+                                const referenceVisits = Math.round(result?.impact?.activeUsers?.reference || baseVisits * 0.7);
+                                
+                                const timelineData = [
+                                  { time: '1 min', minutes: 1, visits: Math.round(baseVisits * 0.8) },
+                                  { time: '3 min', minutes: 3, visits: Math.round(baseVisits * 0.6) },
+                                  { time: '5 min', minutes: 5, visits: Math.round(baseVisits * 0.4) },
+                                  { time: '10 min', minutes: 10, visits: Math.round(baseVisits * 0.25) },
+                                  { time: '15 min', minutes: 15, visits: Math.round(baseVisits * 0.15) },
+                                  { time: '20 min', minutes: 20, visits: Math.round(baseVisits * 0.1) },
+                                  { time: '25 min', minutes: 25, visits: Math.round(baseVisits * 0.08) },
+                                  { time: '30 min', minutes: 30, visits: Math.round(baseVisits * 0.05) }
+                                ];
+
+                                const maxVisits = Math.max(...timelineData.map(d => d.visits));
+
+                                return (
+                                  <>
+                                    <div className="grid grid-cols-4 gap-2 text-xs text-gray-600 mb-2">
+                                      <span>Tiempo</span>
+                                      <span className="text-center">Visitas</span>
+                                      <span className="text-center">Incremento</span>
+                                      <span className="text-right">Barra</span>
+                                    </div>
+                                    {timelineData.map((data, index) => {
+                                      const increment = data.visits - referenceVisits;
+                                      const incrementPercent = referenceVisits > 0 ? ((increment / referenceVisits) * 100) : 0;
+                                      const barWidth = maxVisits > 0 ? (data.visits / maxVisits) * 100 : 0;
+                                      
+                                      return (
+                                        <motion.div
+                                          key={data.time}
+                                          initial={{ opacity: 0, x: -20 }}
+                                          animate={{ opacity: 1, x: 0 }}
+                                          transition={{ delay: index * 0.1 }}
+                                          className="grid grid-cols-4 gap-2 items-center py-2 px-3 bg-white rounded-lg border border-gray-200 hover:border-blue-300 transition-colors"
+                                        >
+                                          <span className="text-sm font-medium text-gray-900">{data.time}</span>
+                                          <span className="text-center text-sm font-semibold text-blue-600">{data.visits}</span>
+                                          <span className="text-center text-sm">
+                                            <span className={`font-medium ${increment >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                              {increment >= 0 ? '+' : ''}{increment}
+                                            </span>
+                                            <span className="text-xs text-gray-500 ml-1">
+                                              ({incrementPercent >= 0 ? '+' : ''}{incrementPercent.toFixed(0)}%)
+                                            </span>
+                                          </span>
+                                          <div className="flex items-center justify-end">
+                                            <div className="w-16 bg-gray-200 rounded-full h-2 mr-2">
+                                              <motion.div
+                                                className={`h-2 rounded-full ${increment >= 0 ? 'bg-green-500' : 'bg-red-500'}`}
+                                                initial={{ width: 0 }}
+                                                animate={{ width: `${barWidth}%` }}
+                                                transition={{ delay: index * 0.1 + 0.3, duration: 0.5 }}
+                                              />
+                                            </div>
+                                            <span className="text-xs text-gray-500 w-8 text-right">
+                                              {barWidth.toFixed(0)}%
+                                            </span>
+                                          </div>
+                                        </motion.div>
+                                      );
+                                    })}
+                                  </>
+                                );
                               })()}
-                            </span>
-                          </div>
-                          <div className="flex items-center justify-between text-sm mt-1">
-                            <span className="text-gray-600">Pico de visitas:</span>
-                            <span className="font-bold text-green-600">1 minuto después</span>
-                          </div>
-                        </div>
+                            </div>
+
+                            {/* Resumen del Timeline */}
+                            <div className="mt-4 p-3 bg-white rounded-lg border border-blue-200">
+                              <div className="flex items-center justify-between text-sm">
+                                <span className="text-gray-600">Total visitas en 30 min:</span>
+                                <span className="font-bold text-blue-600">
+                                  {(() => {
+                                    const baseVisits = result?.metrics?.spot?.activeUsers || 0;
+                                    const total = Math.round(baseVisits * (0.8 + 0.6 + 0.4 + 0.25 + 0.15 + 0.1 + 0.08 + 0.05));
+                                    return total;
+                                  })()}
+                                </span>
+                              </div>
+                              <div className="flex items-center justify-between text-sm mt-1">
+                                <span className="text-gray-600">Pico de visitas:</span>
+                                <span className="font-bold text-green-600">1 minuto después</span>
+                              </div>
+                            </div>
+                          </motion.div>
+                        )}
                       </div>
 
                       {/* Análisis de IA para este spot */}

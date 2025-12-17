@@ -29,7 +29,7 @@ Analiza el siguiente spot de TV y su impacto en las métricas web:
 **DATOS DEL SPOT:**
 - Nombre: ${spotData.spot.nombre}
 - Fecha: ${spotData.spot.fecha}
-- Hora: ${spotData.spot.hora}
+- Hora: ${spotData.spot.dateTime ? spotData.spot.dateTime.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' }) : spotData.spot.hora}
 - Canal: ${spotData.spot.canal}
 - Duración: ${spotData.spot.duracion} segundos
 
