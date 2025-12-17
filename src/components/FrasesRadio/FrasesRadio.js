@@ -1159,7 +1159,7 @@ const FrasesRadio = () => {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold mb-2">
-              🎙️ Análisis de Impacto de Frases Radio
+              Análisis de Impacto de Frases Radio
             </h1>
             <p className="text-purple-100">
               Plataforma inteligente de análisis con IA • Dashboard moderno
