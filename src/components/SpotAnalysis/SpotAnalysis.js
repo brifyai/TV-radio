@@ -788,16 +788,23 @@ const SpotAnalysis = () => {
               </div>
 
               <div className="space-y-6">
-                {analysisResults
-                  .filter(result => result.impact.activeUsers.directCorrelation)
-                  .map((result, index) => (
-                    <motion.div
-                      key={index}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.1 }}
-                      className="border border-green-200 rounded-lg p-6 bg-gradient-to-r from-green-50 to-emerald-50"
-                    >
+                {(() => {
+                  const directCorrelationResults = analysisResults.filter(result => result.impact.activeUsers.directCorrelation);
+                  const totalPages = Math.ceil(directCorrelationResults.length / spotsPerPage);
+                  const startIndex = (currentPage - 1) * spotsPerPage;
+                  const endIndex = startIndex + spotsPerPage;
+                  const currentPageResults = directCorrelationResults.slice(startIndex, endIndex);
+                  
+                  return (
+                    <>
+                      {currentPageResults.map((result, index) => (
+                        <motion.div
+                          key={`${result?.spot?.id || index}-${startIndex + index}`}
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: index * 0.1 }}
+                          className="border border-green-200 rounded-lg p-6 bg-gradient-to-r from-green-50 to-emerald-50"
+                        >
                       {/* Header del spot */}
                       <div className="flex items-center justify-between mb-4">
                         <div className="flex-1">
@@ -1140,8 +1147,61 @@ const SpotAnalysis = () => {
                       )}
                     </motion.div>
                   ))}
-              </div>
-
+                  
+                  {/* Controles de paginación */}
+                  {totalPages > 1 && (
+                    <div className="flex items-center justify-center space-x-4 mt-8 pt-6 border-t border-gray-200">
+                      <button
+                        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                        disabled={currentPage === 1}
+                        className="flex items-center px-4 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <ChevronLeft className="h-4 w-4 mr-1" />
+                        Anterior
+                      </button>
+                      
+                      <div className="flex items-center space-x-2">
+                        {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+                          let pageNum;
+                          if (totalPages <= 5) {
+                            pageNum = i + 1;
+                          } else if (currentPage <= 3) {
+                            pageNum = i + 1;
+                          } else if (currentPage >= totalPages - 2) {
+                            pageNum = totalPages - 4 + i;
+                          } else {
+                            pageNum = currentPage - 2 + i;
+                          }
+                          
+                          return (
+                            <button
+                              key={pageNum}
+                              onClick={() => setCurrentPage(pageNum)}
+                              className={`px-3 py-2 text-sm font-medium rounded-lg ${
+                                currentPage === pageNum
+                                  ? 'bg-blue-600 text-white'
+                                  : 'text-gray-700 bg-white border border-gray-300 hover:bg-gray-50'
+                              }`}
+                            >
+                              {pageNum}
+                            </button>
+                          );
+                        })}
+                      </div>
+                      
+                      <button
+                        onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                        disabled={currentPage === totalPages}
+                        className="flex items-center px-4 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        Siguiente
+                        <ChevronRight className="h-4 w-4 ml-1" />
+                      </button>
+                    </div>
+                  )}
+                </>
+              )}
+              
               {/* Resumen de vinculación directa */}
               <div className="mt-6 p-4 bg-gradient-to-r from-green-100 to-emerald-100 rounded-lg border border-green-200">
                 <div className="flex items-center justify-between">
