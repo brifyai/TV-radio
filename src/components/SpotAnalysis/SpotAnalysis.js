@@ -1037,10 +1037,10 @@ const SpotAnalysis = () => {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold mb-2">
-              🚀 Análisis de Impacto de Spots TV
+              Análisis de Impacto de Spots TV
             </h1>
             <p className="text-blue-100">
-              Plataforma inteligente de análisis con IA • Dashboard moderno
+              Plataforma inteligente de análisis con IA
             </p>
           </div>
           <div className="flex items-center space-x-4">
