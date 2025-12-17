@@ -196,7 +196,7 @@ const SmartInsights = ({ analysisResults, batchAIAnalysis }) => {
                 {batchAIAnalysis.insights?.slice(0, 2).map((insight, i) => (
                   <li key={i} className="flex items-start space-x-2">
                     <span className="text-purple-500 mt-1">•</span>
-                    <span>{insight}</span>
+                    <span>{typeof insight === 'string' ? insight : JSON.stringify(insight)}</span>
                   </li>
                 ))}
               </ul>
@@ -207,7 +207,7 @@ const SmartInsights = ({ analysisResults, batchAIAnalysis }) => {
                 {batchAIAnalysis.recommendations?.slice(0, 2).map((rec, i) => (
                   <li key={i} className="flex items-start space-x-2">
                     <span className="text-purple-500 mt-1">•</span>
-                    <span>{rec}</span>
+                    <span>{typeof rec === 'string' ? rec : JSON.stringify(rec)}</span>
                   </li>
                 ))}
               </ul>
