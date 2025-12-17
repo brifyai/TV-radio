@@ -116,8 +116,10 @@ export const GoogleAnalyticsProvider = ({ children }) => {
 
       if (!userProfile?.google_refresh_token) {
         console.warn('⚠️ No refresh token available, user needs to reauthenticate');
+        // Ocultar mensaje de error de sesión expirada - solo loggear
         const errorMessage = 'Tu sesión de Google Analytics ha expirado. Por favor, vuelve a conectar tu cuenta.';
-        setError(errorMessage);
+        console.log('🔒 Mensaje de error ocultado:', errorMessage);
+        // setError(errorMessage); // COMENTADO para ocultar el mensaje
         setErrorType('session_expired');
         setIsConnected(false);
         return;
@@ -145,8 +147,10 @@ export const GoogleAnalyticsProvider = ({ children }) => {
       await loadAccountsAndProperties(true); // Load accounts first, properties in background
     } catch (err) {
       console.error('Error refreshing Google token:', err);
+      // Ocultar mensaje de error de sesión expirada - solo loggear
       const errorMessage = 'Tu sesión de Google Analytics ha expirado. Por favor, vuelve a conectar tu cuenta.';
-      setError(errorMessage);
+      console.log('🔒 Mensaje de error ocultado:', errorMessage);
+      // setError(errorMessage); // COMENTADO para ocultar el mensaje
       setErrorType('session_expired');
       setIsConnected(false);
     } finally {
