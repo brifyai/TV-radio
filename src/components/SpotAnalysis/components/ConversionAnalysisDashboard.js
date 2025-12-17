@@ -129,13 +129,30 @@ const ConversionAnalysisDashboard = ({ conversionAnalysis, controlGroupAnalysis,
             <ArrowDown className="h-4 w-4 text-red-500 mr-1" />
           )}
           <span className={`text-sm font-medium ${change >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-            {change >= 0 ? '+' : ''}{change.toFixed(1)}%
+            {change >= 0 ? '+' : ''}{typeof change === 'number' ? change.toFixed(1) : '0'}%
           </span>
           <span className="text-sm text-gray-500 ml-1">vs baseline</span>
         </div>
       )}
     </motion.div>
   );
+
+  // Verificar que tenemos datos válidos
+  if (!conversionAnalysis && !controlGroupAnalysis) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-white rounded-xl shadow-lg p-6 border border-gray-100"
+      >
+        <div className="text-center py-8">
+          <Target className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">Análisis de Conversiones y ROI</h3>
+          <p className="text-gray-600">No hay datos de análisis de conversiones disponibles</p>
+        </div>
+      </motion.div>
+    );
+  }
 
   return (
     <motion.div
@@ -215,32 +232,36 @@ const ConversionAnalysisDashboard = ({ conversionAnalysis, controlGroupAnalysis,
 
           {/* Métricas del embudo */}
           <div className="space-y-4">
-            {generateFunnelData().map((stage, index) => (
-              <motion.div
-                key={stage.name}
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.1 }}
-                className="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
-              >
-                <div className="flex items-center space-x-3">
-                  <div 
-                    className="w-4 h-4 rounded-full"
-                    style={{ backgroundColor: stage.fill }}
-                  />
-                  <div>
-                    <p className="font-medium text-gray-900">{stage.name}</p>
-                    <p className="text-sm text-gray-600">{stage.value.toLocaleString()} usuarios</p>
+            {generateFunnelData().map((stage, index) => {
+              if (!stage || !stage.name) return null;
+              
+              return (
+                <motion.div
+                  key={stage.name}
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  className="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
+                >
+                  <div className="flex items-center space-x-3">
+                    <div
+                      className="w-4 h-4 rounded-full"
+                      style={{ backgroundColor: stage.fill }}
+                    />
+                    <div>
+                      <p className="font-medium text-gray-900">{stage.name}</p>
+                      <p className="text-sm text-gray-600">{(stage.value || 0).toLocaleString()} usuarios</p>
+                    </div>
                   </div>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm font-medium text-gray-900">{stage.rate.toFixed(2)}%</p>
-                  {stage.dropOff > 0 && (
-                    <p className="text-xs text-red-600">-{stage.dropOff.toFixed(1)}% drop-off</p>
-                  )}
-                </div>
-              </motion.div>
-            ))}
+                  <div className="text-right">
+                    <p className="text-sm font-medium text-gray-900">{(stage.rate || 0).toFixed(2)}%</p>
+                    {(stage.dropOff || 0) > 0 && (
+                      <p className="text-xs text-red-600">-{(stage.dropOff || 0).toFixed(1)}% drop-off</p>
+                    )}
+                  </div>
+                </motion.div>
+              );
+            })}
           </div>
         </div>
       </div>
@@ -286,9 +307,9 @@ const ConversionAnalysisDashboard = ({ conversionAnalysis, controlGroupAnalysis,
               <div className="text-center">
                 <p className="text-sm font-medium text-gray-600">{metric.metric}</p>
                 <p className="text-2xl font-bold" style={{ color: metric.color }}>
-                  {metric.metric === 'Revenue' || metric.metric === 'Profit' 
-                    ? `$${metric.value.toFixed(0)}K` 
-                    : metric.value
+                  {metric.metric === 'Revenue' || metric.metric === 'Profit'
+                    ? `$${(metric.value || 0).toFixed(0)}K`
+                    : (metric.value || 0)
                   }
                 </p>
               </div>
@@ -308,10 +329,10 @@ const ConversionAnalysisDashboard = ({ conversionAnalysis, controlGroupAnalysis,
                 <h5 className="font-medium text-yellow-800">Mayor Drop-off</h5>
               </div>
               <p className="text-sm text-yellow-700">
-                <span className="font-medium">{conversionAnalysis.funnel.dropOffAnalysis.biggestDrop.stage}</span>
+                <span className="font-medium">{conversionAnalysis.funnel.dropOffAnalysis.biggestDrop?.stage || 'N/A'}</span>
               </p>
               <p className="text-sm text-yellow-600">
-                {conversionAnalysis.funnel.dropOffAnalysis.biggestDrop.rate}% de pérdida
+                {conversionAnalysis.funnel.dropOffAnalysis.biggestDrop?.rate || 0}% de pérdida
               </p>
             </div>
 
@@ -321,7 +342,7 @@ const ConversionAnalysisDashboard = ({ conversionAnalysis, controlGroupAnalysis,
                 <h5 className="font-medium text-red-800">Drop-off Total</h5>
               </div>
               <p className="text-2xl font-bold text-red-600">
-                {conversionAnalysis.funnel.dropOffAnalysis.totalDropOff}%
+                {conversionAnalysis.funnel.dropOffAnalysis.totalDropOff || 0}%
               </p>
               <p className="text-sm text-red-600">Pérdida total en el embudo</p>
             </div>
@@ -357,17 +378,21 @@ const ConversionAnalysisDashboard = ({ conversionAnalysis, controlGroupAnalysis,
             <h4 className="font-semibold text-purple-900">Significancia Estadística</h4>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {Object.entries(controlGroupAnalysis.statisticalSignificance).map(([stage, sig]) => (
-              <div key={stage} className="text-center">
-                <p className="text-sm font-medium text-purple-700">{getStageDisplayName(stage)}</p>
-                <p className={`text-lg font-bold ${sig.isSignificant ? 'text-green-600' : 'text-red-600'}`}>
-                  p = {sig.pValue.toFixed(3)}
-                </p>
-                <p className="text-xs text-purple-600">
-                  {sig.isSignificant ? 'Significativo' : 'No significativo'}
-                </p>
-              </div>
-            ))}
+            {Object.entries(controlGroupAnalysis.statisticalSignificance).map(([stage, sig]) => {
+              if (!sig) return null;
+              
+              return (
+                <div key={stage} className="text-center">
+                  <p className="text-sm font-medium text-purple-700">{getStageDisplayName(stage)}</p>
+                  <p className={`text-lg font-bold ${sig.isSignificant ? 'text-green-600' : 'text-red-600'}`}>
+                    p = {(sig.pValue || 0).toFixed(3)}
+                  </p>
+                  <p className="text-xs text-purple-600">
+                    {sig.isSignificant ? 'Significativo' : 'No significativo'}
+                  </p>
+                </div>
+              );
+            })}
           </div>
         </div>
       )}
