@@ -73,14 +73,18 @@ class UserSettingsService {
         auto_backup: true
       };
 
+      // Usar upsert en lugar de insert para manejar duplicados
       const { data, error } = await supabase
         .from('user_settings')
-        .insert(defaultSettings)
+        .upsert(defaultSettings, {
+          onConflict: 'user_id',
+          ignoreDuplicates: false
+        })
         .select()
         .single();
 
       if (error) {
-        console.error('Error creating default settings:', error);
+        console.error('Error creating/updating default settings:', error);
         throw error;
       }
 
