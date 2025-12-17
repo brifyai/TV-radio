@@ -336,10 +336,10 @@ const Layout = () => {
           </div>
         </header>
 
-        {/* Main content area */}
+{/* Main content area */}
         <main className="flex-1">
           <div className="py-6">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="px-4 sm:px-6 lg:px-8">
               {/* Google Analytics Error Alert */}
               {gaError && (
                 <div className="mb-6 bg-danger-50 border border-danger-200 rounded-md p-4">
