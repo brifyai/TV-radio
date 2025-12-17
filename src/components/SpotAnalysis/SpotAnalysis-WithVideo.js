@@ -1006,7 +1006,7 @@ const SpotAnalysis = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <ImpactTimeline spotData={spotsData} analysisResults={analysisResults} />
             <ConfidenceMeter analysisData={analysisResults} />
-            <SmartInsights analysisResults={analysisResults} batchAIAnalysis={batchAIAnalysis} />
+            <SmartInsights analysisResults={analysisResults} batchAIAnalysis={batchAIAnalysis} videoAnalysis={videoAnalysis} />
             <TrafficHeatmap analysisResults={analysisResults} />
           </div>
           
