@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../../contexts/AuthContext';
 import { useGoogleAnalytics } from '../../contexts/GoogleAnalyticsContext';
 import userSettingsService from '../../services/userSettingsService';
+import { supabase } from '../../config/supabase';
 import {
   User,
   Bell,
@@ -20,8 +21,8 @@ import {
   Lock,
   Check,
   AlertTriangle,
-  Info,
-  Loader2
+  Loader2,
+  Camera
 } from 'lucide-react';
 
 const Settings = () => {
@@ -35,13 +36,20 @@ const Settings = () => {
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState(null);
   
+  // Estados para avatar
+  const [avatarFile, setAvatarFile] = useState(null);
+  const [avatarPreview, setAvatarPreview] = useState(null);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const fileInputRef = useRef(null);
+  
   // Estados para configuraciones de usuario
   const [profileData, setProfileData] = useState({
     fullName: user?.user_metadata?.full_name || '',
     email: user?.email || '',
     phone: '',
     company: '',
-    bio: ''
+    bio: '',
+    avatar_url: user?.user_metadata?.avatar_url || null
   });
 
   // Estados para configuraciones de notificaciones
@@ -81,7 +89,7 @@ const Settings = () => {
   // Cargar configuraciones al montar el componente
   useEffect(() => {
     loadUserSettings();
-  }, []);
+  }, [loadUserSettings]);
 
   const loadUserSettings = async () => {
     try {
@@ -97,7 +105,8 @@ const Settings = () => {
           email: user?.email || '',
           phone: settings.phone || '',
           company: settings.company || '',
-          bio: settings.bio || ''
+          bio: settings.bio || '',
+          avatar_url: settings.avatar_url || user?.user_metadata?.avatar_url || null
         });
 
         setNotifications({
@@ -140,10 +149,120 @@ const Settings = () => {
         email: user?.email || '',
         phone: '',
         company: '',
-        bio: ''
+        bio: '',
+        avatar_url: user?.user_metadata?.avatar_url || null
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Funciones para manejo de avatar
+  const handleAvatarClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleAvatarChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // Validar tipo de archivo
+      if (!file.type.startsWith('image/')) {
+        setError('Por favor selecciona un archivo de imagen válido.');
+        return;
+      }
+
+      // Validar tamaño (máximo 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        setError('La imagen debe ser menor a 5MB.');
+        return;
+      }
+
+      setAvatarFile(file);
+      
+      // Crear preview
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setAvatarPreview(e.target.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const uploadAvatar = async () => {
+    if (!avatarFile || !user) return;
+
+    try {
+      setUploadingAvatar(true);
+      setError(null);
+
+      // Crear nombre único para el archivo
+      const fileExt = avatarFile.name.split('.').pop();
+      const fileName = `${user.id}/avatar.${fileExt}`;
+
+      // Subir archivo a Supabase Storage
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(fileName, avatarFile, {
+          cacheControl: '3600',
+          upsert: true
+        });
+
+      if (uploadError) {
+        throw uploadError;
+      }
+
+      // Obtener URL pública
+      const { data: urlData } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(fileName);
+
+      const avatarUrl = urlData.publicUrl;
+
+      // Actualizar avatar en la base de datos
+      const { error: updateError } = await supabase
+        .from('user_settings')
+        .upsert({
+          user_id: user.id,
+          avatar_url: avatarUrl,
+          updated_at: new Date().toISOString()
+        });
+
+      if (updateError) {
+        throw updateError;
+      }
+
+      // Actualizar metadata del usuario en auth
+      const { error: authError } = await supabase.auth.updateUser({
+        data: { avatar_url: avatarUrl }
+      });
+
+      if (authError) {
+        console.warn('Error updating auth metadata:', authError);
+      }
+
+      // Actualizar estado local
+      setProfileData(prev => ({
+        ...prev,
+        avatar_url: avatarUrl
+      }));
+
+      setAvatarFile(null);
+      setAvatarPreview(null);
+      
+      alert('Avatar actualizado exitosamente');
+    } catch (error) {
+      console.error('Error uploading avatar:', error);
+      setError('Error al subir la imagen. Por favor, inténtalo de nuevo.');
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
+
+  const cancelAvatarChange = () => {
+    setAvatarFile(null);
+    setAvatarPreview(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
     }
   };
 
@@ -167,6 +286,7 @@ const Settings = () => {
         phone: profileData.phone,
         company: profileData.company,
         bio: profileData.bio,
+        avatar_url: profileData.avatar_url,
         
         // Notificaciones
         notifications_email: notifications.email,
@@ -299,9 +419,10 @@ const Settings = () => {
         
         <div className="flex items-center space-x-6 mb-6">
           <div className="relative">
-            {user?.user_metadata?.avatar_url ? (
+            {/* Avatar con preview */}
+            {(avatarPreview || profileData.avatar_url) ? (
               <img
-                src={user.user_metadata.avatar_url}
+                src={avatarPreview || profileData.avatar_url}
                 alt="Avatar"
                 className="h-20 w-20 rounded-full object-cover"
               />
@@ -312,18 +433,77 @@ const Settings = () => {
                 </span>
               </div>
             )}
-            <button className="absolute bottom-0 right-0 bg-blue-500 text-white rounded-full p-1.5 hover:bg-blue-600 transition-colors">
-              <Upload className="h-3 w-3" />
+            
+            {/* Botón de cámara */}
+            <button
+              onClick={handleAvatarClick}
+              disabled={uploadingAvatar}
+              className="absolute bottom-0 right-0 bg-blue-500 text-white rounded-full p-1.5 hover:bg-blue-600 transition-colors disabled:opacity-50"
+            >
+              {uploadingAvatar ? (
+                <Loader2 className="h-3 w-3 animate-spin" />
+              ) : (
+                <Camera className="h-3 w-3" />
+              )}
             </button>
+
+            {/* Input de archivo oculto */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleAvatarChange}
+              className="hidden"
+            />
           </div>
           <div>
             <h4 className="font-medium text-gray-900">{profileData.fullName || 'Sin nombre'}</h4>
             <p className="text-sm text-gray-500">{profileData.email}</p>
-            <button className="text-sm text-blue-600 hover:text-blue-700 mt-1">
+            <button
+              onClick={handleAvatarClick}
+              disabled={uploadingAvatar}
+              className="text-sm text-blue-600 hover:text-blue-700 mt-1 disabled:opacity-50"
+            >
               Cambiar foto de perfil
             </button>
           </div>
         </div>
+
+        {/* Preview y controles de avatar */}
+        {avatarFile && (
+          <div className="bg-gray-50 rounded-lg p-4 mb-4">
+            <h4 className="text-sm font-medium text-gray-900 mb-2">Vista previa</h4>
+            <div className="flex items-center space-x-4">
+              <img
+                src={avatarPreview}
+                alt="Preview"
+                className="h-16 w-16 rounded-full object-cover"
+              />
+              <div className="flex-1">
+                <p className="text-sm text-gray-600">{avatarFile.name}</p>
+                <p className="text-xs text-gray-500">
+                  {(avatarFile.size / 1024 / 1024).toFixed(2)} MB
+                </p>
+              </div>
+              <div className="flex space-x-2">
+                <button
+                  onClick={uploadAvatar}
+                  disabled={uploadingAvatar}
+                  className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 disabled:opacity-50"
+                >
+                  {uploadingAvatar ? 'Subiendo...' : 'Confirmar'}
+                </button>
+                <button
+                  onClick={cancelAvatarChange}
+                  disabled={uploadingAvatar}
+                  className="px-3 py-1 bg-gray-300 text-gray-700 text-sm rounded hover:bg-gray-400 disabled:opacity-50"
+                >
+                  Cancelar
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
