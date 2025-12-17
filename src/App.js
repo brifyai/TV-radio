@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from 'react-query';
 import { supabase } from './config/supabase';
 import { AuthProvider } from './contexts/AuthContext';
@@ -62,6 +62,13 @@ function App() {
         }
         setSession(session);
         setLoading(false);
+        
+        // Persist session state for navigation
+        if (session) {
+          sessionStorage.setItem('supabase.auth.token', JSON.stringify(session));
+        } else {
+          sessionStorage.removeItem('supabase.auth.token');
+        }
       } catch (error) {
         console.warn('Error in getInitialSession:', error);
         setLoading(false);
@@ -76,6 +83,15 @@ function App() {
         try {
           setSession(session);
           setLoading(false);
+          
+          // Persist session state for navigation
+          if (session) {
+            sessionStorage.setItem('supabase.auth.token', JSON.stringify(session));
+          } else {
+            sessionStorage.removeItem('supabase.auth.token');
+          }
+          
+          console.log('🔄 Auth state changed:', event, session?.user?.email);
         } catch (error) {
           console.warn('Error in auth state change:', error);
           setLoading(false);
@@ -83,7 +99,34 @@ function App() {
       }
     );
 
-    return () => subscription.unsubscribe();
+    // Handle browser navigation (back/forward buttons)
+    const handlePopState = () => {
+      console.log('🔙 Browser navigation detected');
+      
+      // Try to restore session from storage
+      const storedSession = sessionStorage.getItem('supabase.auth.token');
+      if (storedSession) {
+        try {
+          const parsedSession = JSON.parse(storedSession);
+          setSession(parsedSession);
+          setLoading(false);
+          console.log('✅ Session restored from storage');
+        } catch (error) {
+          console.warn('Error parsing stored session:', error);
+          sessionStorage.removeItem('supabase.auth.token');
+        }
+      } else {
+        // No stored session, verify with Supabase
+        getInitialSession();
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+
+    return () => {
+      subscription.unsubscribe();
+      window.removeEventListener('popstate', handlePopState);
+    };
   }, []);
 
   if (loading) {
