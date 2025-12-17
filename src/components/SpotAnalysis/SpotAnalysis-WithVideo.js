@@ -27,7 +27,8 @@ import {
   ChevronRight,
   ChevronLeft,
   Play,
-  FileVideo
+  FileVideo,
+  Sparkles
 } from 'lucide-react';
 
 // Importar componentes modernos
@@ -64,6 +65,11 @@ const SpotAnalysis = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const spotsPerPage = 10;
 
+  // Estados para análisis de video
+  const [videoAnalysis, setVideoAnalysis] = useState(null);
+  const [analyzingVideo, setAnalyzingVideo] = useState(false);
+  const [videoAnalysisProgress, setVideoAnalysisProgress] = useState(0);
+
   // Filtrar y ordenar propiedades basadas en la cuenta seleccionada
   const filteredProperties = selectedAccount
     ? properties
@@ -78,6 +84,9 @@ const SpotAnalysis = () => {
 
   // Instancia del servicio de análisis temporal
   const temporalAnalysisService = new TemporalAnalysisService();
+
+  // Instancia del servicio de análisis de video
+  const videoAnalysisService = new ChutesVideoAnalysisService();
 
   // Parsear CSV mejorado - LEE fecha, hora inicio, Canal, Titulo Programa, inversion
   const parseCSV = useCallback((content) => {
@@ -384,9 +393,88 @@ const SpotAnalysis = () => {
       return;
     }
 
+    // Validar tamaño máximo (100MB)
+    const MAX_SIZE = 100 * 1024 * 1024; // 100MB en bytes
+    if (file.size > MAX_SIZE) {
+      alert('El video excede el tamaño máximo permitido de 100MB');
+      return;
+    }
+
     setVideoFile(file);
     console.log('🎥 Video cargado:', file.name);
   }, []);
+
+  // Analizar video con chutes.ai
+  const analyzeVideoWithAI = useCallback(async () => {
+    if (!videoFile) {
+      alert('Por favor, selecciona un video primero');
+      return;
+    }
+
+    // Obtener datos del primer spot para el contexto
+    const spotData = spotsData.length > 0 ? spotsData[0] : {
+      fecha: new Date().toISOString().split('T')[0],
+      hora: new Date().toTimeString().split(' ')[0],
+      canal: 'TV',
+      titulo_programa: 'Video Analizado',
+      tipo_comercial: 'Comercial',
+      version: '1.0',
+      duracion: 30
+    };
+
+    setAnalyzingVideo(true);
+    setVideoAnalysisProgress(0);
+    setVideoAnalysis(null);
+
+    try {
+      console.log('🎬 Iniciando análisis de video con chutes.ai...');
+      
+      // Simular progreso
+      const progressInterval = setInterval(() => {
+        setVideoAnalysisProgress(prev => {
+          if (prev >= 90) {
+            clearInterval(progressInterval);
+            return 90;
+          }
+          return prev + 10;
+        });
+      }, 1000);
+
+      // Realizar análisis de video
+      const result = await videoAnalysisService.analyzeVideo(videoFile, spotData);
+      
+      clearInterval(progressInterval);
+      setVideoAnalysisProgress(100);
+      
+      if (result.success) {
+        // Parsear la respuesta JSON
+        const parsedAnalysis = videoAnalysisService.parseAnalysisResponse(result.analysis);
+        setVideoAnalysis({
+          ...parsedAnalysis,
+          rawResponse: result.analysis,
+          model: result.model,
+          tokensUsed: result.tokensUsed,
+          timestamp: result.timestamp,
+          cost: videoAnalysisService.getEstimatedCost(videoFile.size / (1024 * 1024)) // MB to cost
+        });
+        console.log('✅ Análisis de video completado:', parsedAnalysis);
+      } else {
+        throw new Error(result.error || 'Error desconocido en el análisis');
+      }
+      
+    } catch (error) {
+      console.error('❌ Error en análisis de video:', error);
+      alert(`Error al analizar el video: ${error.message}`);
+      setVideoAnalysis({
+        error: true,
+        resumen_ejecutivo: 'Error al procesar el video',
+        mensaje_error: error.message
+      });
+    } finally {
+      setAnalyzingVideo(false);
+      setTimeout(() => setVideoAnalysisProgress(0), 2000);
+    }
+  }, [videoFile, spotsData, videoAnalysisService]);
 
   // Parsear fecha y hora (mantener para compatibilidad) - CONVERTIDO A useCallback
   const parseDateTime = useCallback((fecha, hora) => {
@@ -765,6 +853,149 @@ const SpotAnalysis = () => {
               </div>
             </div>
           </div>
+        </motion.div>
+      )}
+
+      {/* Análisis de Video */}
+      {videoAnalysis && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-white rounded-xl shadow-lg p-6 border border-gray-100"
+        >
+          <div className="flex items-center mb-6">
+            <div className="p-3 bg-gradient-to-r from-purple-500 to-pink-600 rounded-xl mr-4">
+              <Sparkles className="h-6 w-6 text-white" />
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900">
+                Análisis de Video con IA
+              </h2>
+              <p className="text-gray-600 mt-1">
+                Análisis visual avanzado del spot usando Qwen2.5-VL-72B-Instruct
+              </p>
+            </div>
+          </div>
+
+          {videoAnalysis.error ? (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+              <div className="flex items-center">
+                <AlertCircle className="h-5 w-5 text-red-500 mr-2" />
+                <span className="text-red-700">{videoAnalysis.mensaje_error}</span>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {/* Resumen Ejecutivo */}
+              {videoAnalysis.resumen_ejecutivo && (
+                <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-4 border border-blue-200">
+                  <h3 className="font-semibold text-gray-900 mb-2">Resumen Ejecutivo</h3>
+                  <p className="text-gray-700">{videoAnalysis.resumen_ejecutivo}</p>
+                </div>
+              )}
+
+              {/* Contenido Visual y Auditivo */}
+              {videoAnalysis.contenido_visual && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="bg-green-50 rounded-lg p-4 border border-green-200">
+                    <h4 className="font-semibold text-green-900 mb-3">Contenido Visual</h4>
+                    <div className="space-y-2 text-sm">
+                      {videoAnalysis.contenido_visual.escenas_principales && (
+                        <div>
+                          <span className="font-medium text-green-800">Escenas Principales:</span>
+                          <ul className="list-disc list-inside text-green-700 ml-2">
+                            {videoAnalysis.contenido_visual.escenas_principales.map((escena, i) => (
+                              <li key={i}>{escena}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      {videoAnalysis.contenido_visual.colores_dominantes && (
+                        <div>
+                          <span className="font-medium text-green-800">Colores Dominantes:</span>
+                          <span className="text-green-700 ml-2">
+                            {videoAnalysis.contenido_visual.colores_dominantes.join(', ')}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {videoAnalysis.contenido_auditivo && (
+                    <div className="bg-yellow-50 rounded-lg p-4 border border-yellow-200">
+                      <h4 className="font-semibold text-yellow-900 mb-3">Contenido Auditivo</h4>
+                      <div className="space-y-2 text-sm">
+                        {videoAnalysis.contenido_auditivo.dialogo_principal && (
+                          <div>
+                            <span className="font-medium text-yellow-800">Diálogo Principal:</span>
+                            <p className="text-yellow-700 italic">"{videoAnalysis.contenido_auditivo.dialogo_principal}"</p>
+                          </div>
+                        )}
+                        {videoAnalysis.contenido_auditivo.musica_fondo && (
+                          <div>
+                            <span className="font-medium text-yellow-800">Música de Fondo:</span>
+                            <span className="text-yellow-700 ml-2">{videoAnalysis.contenido_auditivo.musica_fondo}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Análisis de Efectividad */}
+              {videoAnalysis.analisis_efectividad && (
+                <div className="bg-purple-50 rounded-lg p-4 border border-purple-200">
+                  <h4 className="font-semibold text-purple-900 mb-3">Análisis de Efectividad</h4>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {Object.entries(videoAnalysis.analisis_efectividad).map(([key, value]) => (
+                      <div key={key} className="text-center">
+                        <div className="text-2xl font-bold text-purple-600">{value}/10</div>
+                        <div className="text-sm text-purple-700 capitalize">
+                          {key.replace('_', ' ')}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Recomendaciones */}
+              {videoAnalysis.recomendaciones && videoAnalysis.recomendaciones.length > 0 && (
+                <div className="bg-indigo-50 rounded-lg p-4 border border-indigo-200">
+                  <h4 className="font-semibold text-indigo-900 mb-3">Recomendaciones</h4>
+                  <ul className="list-disc list-inside text-indigo-700 space-y-1">
+                    {videoAnalysis.recomendaciones.map((rec, i) => (
+                      <li key={i}>{rec}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* Información técnica */}
+              <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                <h4 className="font-semibold text-gray-900 mb-2">Información del Análisis</h4>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-gray-600">
+                  <div>
+                    <span className="font-medium">Modelo:</span>
+                    <div>{videoAnalysis.model || 'Qwen2.5-VL-72B-Instruct'}</div>
+                  </div>
+                  <div>
+                    <span className="font-medium">Tokens Usados:</span>
+                    <div>{videoAnalysis.tokensUsed?.toLocaleString() || 'N/A'}</div>
+                  </div>
+                  <div>
+                    <span className="font-medium">Costo Estimado:</span>
+                    <div>${videoAnalysis.cost?.total_cost?.toFixed(4) || 'N/A'}</div>
+                  </div>
+                  <div>
+                    <span className="font-medium">Fecha:</span>
+                    <div>{new Date(videoAnalysis.timestamp).toLocaleString('es-CL')}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </motion.div>
       )}
 
@@ -1590,7 +1821,7 @@ const SpotAnalysis = () => {
               Análisis de Impacto de Spots TV
             </h1>
             <p className="text-blue-100">
-              Plataforma inteligente de análisis con IA
+              Plataforma inteligente de análisis con IA y análisis de video
             </p>
           </div>
           <div className="flex items-center space-x-4">
@@ -1728,18 +1959,18 @@ const SpotAnalysis = () => {
           </motion.div>
         </div>
 
-        {/* Sección opcional: Video */}
+        {/* Sección de Video con análisis de IA */}
         <motion.div
           whileHover={{ y: -1 }}
-          className="bg-gradient-to-r from-gray-50 to-slate-50 rounded-xl p-6 mb-8 border border-gray-200"
+          className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-6 mb-8 border border-purple-200"
         >
           <div className="flex items-center mb-4">
-            <div className="p-2 bg-gray-500 rounded-lg mr-3">
-              <Video className="h-5 w-5 text-white" />
+            <div className="p-2 bg-purple-500 rounded-lg mr-3">
+              <FileVideo className="h-5 w-5 text-white" />
             </div>
             <div>
-              <h3 className="font-semibold text-gray-900">Video del Spot (Opcional)</h3>
-              <p className="text-sm text-gray-600">Sube el video para análisis visual adicional</p>
+              <h3 className="font-semibold text-gray-900">Video del Spot con IA</h3>
+              <p className="text-sm text-gray-600">Sube el video para análisis visual avanzado con chutes.ai</p>
             </div>
           </div>
           <div className="relative">
@@ -1752,18 +1983,76 @@ const SpotAnalysis = () => {
             />
             <label
               htmlFor="video-upload"
-              className="flex items-center justify-center w-full px-6 py-4 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-gray-400 hover:bg-gray-50 transition-all bg-white"
+              className="flex items-center justify-center w-full px-6 py-4 border-2 border-dashed border-purple-300 rounded-lg cursor-pointer hover:border-purple-400 hover:bg-purple-50 transition-all bg-white"
             >
-              <Video className="h-6 w-6 text-gray-400 mr-3" />
+              <FileVideo className="h-6 w-6 text-purple-400 mr-3" />
               <span className="text-sm text-gray-600">
                 {videoFile ? (
-                  <span className="text-blue-600 font-medium">{videoFile.name}</span>
+                  <span className="text-purple-600 font-medium">{videoFile.name}</span>
                 ) : (
                   'Selecciona video del spot'
                 )}
               </span>
             </label>
           </div>
+          
+          {/* Botón de análisis de video */}
+          {videoFile && (
+            <div className="mt-4 flex justify-center">
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={analyzeVideoWithAI}
+                disabled={analyzingVideo}
+                className="inline-flex items-center px-8 py-3 text-lg font-semibold rounded-xl text-white bg-gradient-to-r from-purple-600 via-pink-600 to-purple-700 hover:from-purple-700 hover:via-pink-700 hover:to-purple-800 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transition-all duration-300"
+              >
+                {analyzingVideo ? (
+                  <>
+                    <RefreshCw className="h-5 w-5 mr-2 animate-spin" />
+                    Analizando Video...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="h-5 w-5 mr-2" />
+                    Analizar Video con IA
+                  </>
+                )}
+              </motion.button>
+            </div>
+          )}
+
+          {/* Progreso del análisis de video */}
+          {analyzingVideo && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="mt-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-4 border border-purple-200"
+            >
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center">
+                  <div className="p-2 bg-purple-500 rounded-lg mr-3">
+                    <Sparkles className="h-4 w-4 text-white animate-pulse" />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-semibold text-gray-900">Analizando Video con IA</h4>
+                    <p className="text-xs text-gray-600">Procesando con Qwen2.5-VL-72B-Instruct</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="text-lg font-bold text-purple-600">{videoAnalysisProgress}%</div>
+                  <div className="text-xs text-gray-600">Completado</div>
+                </div>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-3">
+                <motion.div
+                  className="bg-gradient-to-r from-purple-500 to-pink-600 h-3 rounded-full"
+                  initial={{ width: 0 }}
+                  animate={{ width: `${videoAnalysisProgress}%` }}
+                  transition={{ duration: 0.5 }}
+                />
+              </div>
+            </motion.div>
+          )}
         </motion.div>
 
         {/* Botón de análisis principal */}
