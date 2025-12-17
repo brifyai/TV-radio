@@ -13,6 +13,7 @@ import Accounts from './components/Accounts/Accounts';
 import Properties from './components/Properties/Properties';
 import Analytics from './components/Analytics/Analytics';
 import SpotAnalysis from './components/SpotAnalysis/SpotAnalysis';
+import FrasesRadio from './components/FrasesRadio/FrasesRadio';
 import Layout from './components/Layout/Layout';
 import SimpleLoadingSpinner from './components/UI/SimpleLoadingSpinner';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -113,6 +114,7 @@ function AppContent() {
               <Route path="/properties/:accountId" element={<Properties />} />
               <Route path="/analytics/:propertyId" element={<Analytics />} />
               <Route path="/spot-analysis" element={<SpotAnalysis />} />
+              <Route path="/frases-radio" element={<FrasesRadio />} />
               <Route path="*" element={<Navigate to="/dashboard" replace />} />
             </Route>
           )}
