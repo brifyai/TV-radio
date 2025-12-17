@@ -1162,7 +1162,7 @@ const FrasesRadio = () => {
               Análisis de Impacto de Frases Radio
             </h1>
             <p className="text-purple-100">
-              Plataforma inteligente de análisis con IA • Dashboard moderno
+              Plataforma inteligente de análisis con IA
             </p>
           </div>
           <div className="flex items-center space-x-4">

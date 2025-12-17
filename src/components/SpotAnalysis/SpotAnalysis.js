@@ -29,6 +29,7 @@ import ImpactTimeline from './components/ImpactTimeline';
 import ConfidenceMeter from './components/ConfidenceMeter';
 import SmartInsights from './components/SmartInsights';
 import TrafficHeatmap from './components/TrafficHeatmap';
+import TrafficChart from './components/TrafficChart';
 import TemporalAnalysisDashboard from './components/TemporalAnalysisDashboard';
 import ConversionAnalysisDashboard from './components/ConversionAnalysisDashboard';
 import PredictiveAnalyticsDashboard from './components/PredictiveAnalyticsDashboard';
@@ -718,11 +719,252 @@ const SpotAnalysis = () => {
 
       {/* Grid de Componentes Modernos */}
       {analysisResults && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <ImpactTimeline spotData={spotsData} analysisResults={analysisResults} />
-          <ConfidenceMeter analysisData={analysisResults} />
-          <SmartInsights analysisResults={analysisResults} batchAIAnalysis={batchAIAnalysis} />
-          <TrafficHeatmap analysisResults={analysisResults} />
+        <div className="space-y-6">
+          {/* Primera fila: Componentes principales en grid 2x2 */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <ImpactTimeline spotData={spotsData} analysisResults={analysisResults} />
+            <ConfidenceMeter analysisData={analysisResults} />
+            <SmartInsights analysisResults={analysisResults} batchAIAnalysis={batchAIAnalysis} />
+            <TrafficHeatmap analysisResults={analysisResults} />
+          </div>
+          
+          {/* Segunda fila: Gráfico de tráfico por hora en ancho completo */}
+          <div className="w-full">
+            <TrafficChart analysisResults={analysisResults} />
+          </div>
+          
+          {/* Desglose detallado de spots con vinculación directa */}
+          {analysisResults.filter(r => r.impact.activeUsers.directCorrelation).length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.4 }}
+              className="bg-white rounded-xl shadow-lg p-6 border border-gray-100"
+            >
+              <div className="flex items-center mb-6">
+                <div className="p-3 bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl mr-4">
+                  <Target className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900">
+                    Spots con Vinculación Directa
+                  </h2>
+                  <p className="text-gray-600 mt-1">
+                    Detalle completo de los {analysisResults.filter(r => r.impact.activeUsers.directCorrelation).length} spots que lograron vinculación directa
+                  </p>
+                </div>
+              </div>
+
+              <div className="space-y-6">
+                {analysisResults
+                  .filter(result => result.impact.activeUsers.directCorrelation)
+                  .map((result, index) => (
+                    <motion.div
+                      key={index}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.1 }}
+                      className="border border-green-200 rounded-lg p-6 bg-gradient-to-r from-green-50 to-emerald-50"
+                    >
+                      {/* Header del spot */}
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex-1">
+                          <h3 className="text-lg font-bold text-gray-900 mb-1">
+                            {result?.spot?.nombre || 'Sin nombre'}
+                          </h3>
+                          <div className="flex items-center space-x-4 text-sm text-gray-600">
+                            <span className="flex items-center">
+                              <Clock className="h-4 w-4 mr-1" />
+                              {result?.spot?.dateTime ?
+                                `${result.spot.dateTime.toLocaleDateString('es-CL')} ${result.spot.dateTime.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })}` :
+                                'Fecha no disponible'
+                              }
+                            </span>
+                            <span className="flex items-center">
+                              <Video className="h-4 w-4 mr-1" />
+                              {result?.spot?.canal || 'TV'}
+                            </span>
+                            {result?.spot?.inversion && (
+                              <span className="flex items-center">
+                                <BarChart3 className="h-4 w-4 mr-1" />
+                                Inversión: {result.spot.inversion}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                            <Target className="h-4 w-4 mr-1" />
+                            Vinculación Directa
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Métricas detalladas */}
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                        {/* Usuarios Activos */}
+                        <div className="bg-white rounded-lg p-4 border border-green-200">
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center">
+                              <Users className="h-5 w-5 text-blue-500 mr-2" />
+                              <span className="font-medium text-gray-700">Usuarios Activos</span>
+                            </div>
+                            <TrendingUp className="h-4 w-4 text-green-500" />
+                          </div>
+                          <div className="space-y-2">
+                            <div className="flex justify-between">
+                              <span className="text-sm text-gray-600">Durante el spot:</span>
+                              <span className="font-semibold text-gray-900">
+                                {result?.metrics?.spot?.activeUsers || 0}
+                              </span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-sm text-gray-600">Baseline promedio:</span>
+                              <span className="font-semibold text-gray-700">
+                                {Math.round(result?.impact?.activeUsers?.baseline || 0)}
+                              </span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-sm text-gray-600">Incremento:</span>
+                              <span className="font-semibold text-green-600">
+                                +{result?.impact?.activeUsers?.increase || 0}
+                              </span>
+                            </div>
+                            <div className="flex justify-between border-t pt-2">
+                              <span className="text-sm font-medium text-gray-700">Cambio porcentual:</span>
+                              <span className="font-bold text-green-600 text-lg">
+                                +{(result?.impact?.activeUsers?.percentageChange || 0).toFixed(1)}%
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Sesiones */}
+                        <div className="bg-white rounded-lg p-4 border border-green-200">
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center">
+                              <MousePointer className="h-5 w-5 text-green-500 mr-2" />
+                              <span className="font-medium text-gray-700">Sesiones</span>
+                            </div>
+                            <TrendingUp className="h-4 w-4 text-green-500" />
+                          </div>
+                          <div className="space-y-2">
+                            <div className="flex justify-between">
+                              <span className="text-sm text-gray-600">Durante el spot:</span>
+                              <span className="font-semibold text-gray-900">
+                                {result?.metrics?.spot?.sessions || 0}
+                              </span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-sm text-gray-600">Baseline promedio:</span>
+                              <span className="font-semibold text-gray-700">
+                                {Math.round(result?.impact?.sessions?.baseline || 0)}
+                              </span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-sm text-gray-600">Incremento:</span>
+                              <span className="font-semibold text-green-600">
+                                +{result?.impact?.sessions?.increase || 0}
+                              </span>
+                            </div>
+                            <div className="flex justify-between border-t pt-2">
+                              <span className="text-sm font-medium text-gray-700">Cambio porcentual:</span>
+                              <span className="font-bold text-green-600 text-lg">
+                                +{(result?.impact?.sessions?.percentageChange || 0).toFixed(1)}%
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Vistas de Página */}
+                        <div className="bg-white rounded-lg p-4 border border-green-200">
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center">
+                              <Eye className="h-5 w-5 text-purple-500 mr-2" />
+                              <span className="font-medium text-gray-700">Vistas de Página</span>
+                            </div>
+                            <TrendingUp className="h-4 w-4 text-green-500" />
+                          </div>
+                          <div className="space-y-2">
+                            <div className="flex justify-between">
+                              <span className="text-sm text-gray-600">Durante el spot:</span>
+                              <span className="font-semibold text-gray-900">
+                                {result?.metrics?.spot?.pageviews || 0}
+                              </span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-sm text-gray-600">Baseline promedio:</span>
+                              <span className="font-semibold text-gray-700">
+                                {Math.round(result?.impact?.pageviews?.baseline || 0)}
+                              </span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-sm text-gray-600">Incremento:</span>
+                              <span className="font-semibold text-green-600">
+                                +{result?.impact?.pageviews?.increase || 0}
+                              </span>
+                            </div>
+                            <div className="flex justify-between border-t pt-2">
+                              <span className="text-sm font-medium text-gray-700">Cambio porcentual:</span>
+                              <span className="font-bold text-green-600 text-lg">
+                                +{(result?.impact?.pageviews?.percentageChange || 0).toFixed(1)}%
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Análisis de IA para este spot */}
+                      {aiAnalysis[analysisResults.indexOf(result)] && (
+                        <div className="mt-4 p-4 bg-purple-50 border border-purple-200 rounded-lg">
+                          <div className="flex items-center mb-3">
+                            <Brain className="h-5 w-5 text-purple-600 mr-2" />
+                            <h4 className="text-sm font-medium text-purple-900">Análisis Inteligente</h4>
+                          </div>
+                          <p className="text-sm text-purple-800 mb-3">{aiAnalysis[analysisResults.indexOf(result)].summary}</p>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                              <h5 className="text-xs font-medium text-purple-700 mb-2">Insights:</h5>
+                              <ul className="text-xs text-purple-700 list-disc list-inside space-y-1">
+                                {(aiAnalysis[analysisResults.indexOf(result)]?.insights || []).map((insight, i) => (
+                                  <li key={i}>{insight}</li>
+                                ))}
+                              </ul>
+                            </div>
+                            <div>
+                              <h5 className="text-xs font-medium text-purple-700 mb-2">Recomendaciones:</h5>
+                              <ul className="text-xs text-purple-700 list-disc list-inside space-y-1">
+                                {(aiAnalysis[analysisResults.indexOf(result)]?.recommendations || []).map((rec, i) => (
+                                  <li key={i}>{rec}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </motion.div>
+                  ))}
+              </div>
+
+              {/* Resumen de vinculación directa */}
+              <div className="mt-6 p-4 bg-gradient-to-r from-green-100 to-emerald-100 rounded-lg border border-green-200">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="font-semibold text-green-900">Resumen de Vinculación Directa</h4>
+                    <p className="text-sm text-green-700">
+                      {analysisResults.filter(r => r.impact.activeUsers.directCorrelation).length} de {analysisResults.length} spots lograron vinculación directa
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-2xl font-bold text-green-600">
+                      {Math.round((analysisResults.filter(r => r.impact.activeUsers.directCorrelation).length / analysisResults.length) * 100)}%
+                    </div>
+                    <div className="text-sm text-green-600">Tasa de vinculación</div>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          )}
         </div>
       )}
 
