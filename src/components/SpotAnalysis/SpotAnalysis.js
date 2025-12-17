@@ -91,6 +91,8 @@ const SpotAnalysis = () => {
     
     // Extraer headers y encontrar índices de las columnas que necesitamos
     const headers = lines[0].split(delimiter).map(h => h.trim().toLowerCase());
+    console.log('📋 Headers CSV encontrados:', headers);
+    
     const fechaIndex = headers.findIndex(h => h === 'fecha');
     const horaIndex = headers.findIndex(h => h === 'hora inicio');
     const canalIndex = headers.findIndex(h => h === 'canal');
@@ -99,6 +101,11 @@ const SpotAnalysis = () => {
     const duracionIndex = headers.findIndex(h => h === 'duracion');
     const tipoComercialIndex = headers.findIndex(h => h === 'tipo comercial');
     const inversionIndex = headers.findIndex(h => h === 'inversion');
+    
+    console.log('🔍 Índices de columnas:', {
+      fechaIndex, horaIndex, canalIndex, tituloIndex,
+      versionIndex, duracionIndex, tipoComercialIndex, inversionIndex
+    });
     
     if (fechaIndex === -1 || horaIndex === -1) {
       throw new Error('El archivo debe contener las columnas "fecha" y "hora inicio"');
@@ -132,6 +139,8 @@ const SpotAnalysis = () => {
     
     // Primera fila como headers
     const headers = jsonData[0].map(h => (h || '').toString().toLowerCase());
+    console.log('📋 Headers Excel encontrados:', headers);
+    
     const fechaIndex = headers.findIndex(h => h === 'fecha');
     const horaIndex = headers.findIndex(h => h === 'hora inicio');
     const canalIndex = headers.findIndex(h => h === 'canal');
@@ -140,6 +149,11 @@ const SpotAnalysis = () => {
     const duracionIndex = headers.findIndex(h => h === 'duracion');
     const tipoComercialIndex = headers.findIndex(h => h === 'tipo comercial');
     const inversionIndex = headers.findIndex(h => h === 'inversion');
+    
+    console.log('🔍 Índices de columnas:', {
+      fechaIndex, horaIndex, canalIndex, tituloIndex,
+      versionIndex, duracionIndex, tipoComercialIndex, inversionIndex
+    });
     
     if (fechaIndex === -1 || horaIndex === -1) {
       throw new Error('El archivo debe contener las columnas "fecha" y "hora inicio"');
@@ -295,6 +309,7 @@ const SpotAnalysis = () => {
               hora: spot.hora_inicio,
               nombre: spot.titulo_programa || `Spot ${index + 1}`,
               titulo_programa: spot.titulo_programa || '',
+              debug_titulo: spot.titulo_programa, // Para debugging
               tipo_comercial: spot.tipo_comercial || '',
               version: spot.version || '',
               duracion: spot.duracion ? parseInt(spot.duracion) : 30, // Parsear duración o usar default
@@ -306,6 +321,7 @@ const SpotAnalysis = () => {
           }).filter(spot => spot.valid && spot.fecha && spot.hora); // Filtrar spots válidos
           
           console.log(`✅ Se parsearon ${formattedSpots.length} spots válidos de ${spots.length} totales`);
+          console.log('📊 Primeros 3 spots parseados:', formattedSpots.slice(0, 3));
           resolve(formattedSpots);
         } catch (error) {
           console.error('❌ Error parseando archivo:', error);
