@@ -6,29 +6,35 @@ import { Clock, TrendingUp, Target, Zap, AlertCircle, CheckCircle } from 'lucide
 const TemporalAnalysisDashboard = ({ temporalImpact, baseline, spotData }) => {
   // Generar datos para el gráfico de línea temporal
   const generateTemporalChartData = () => {
-    if (!temporalImpact) return [];
+    if (!temporalImpact || typeof temporalImpact !== 'object') return [];
     
     return Object.entries(temporalImpact).map(([key, impact]) => {
+      if (!impact || !impact.comparison) return null;
+      
       const metrics = impact.comparison;
       return {
-        window: impact.label,
-        immediate: impact.name === 'Inmediato' ? metrics.activeUsers?.percentageChange || 0 : 0,
-        shortTerm: impact.name === 'Corto Plazo' ? metrics.activeUsers?.percentageChange || 0 : 0,
-        mediumTerm: impact.name === 'Medio Plazo' ? metrics.activeUsers?.percentageChange || 0 : 0,
-        longTerm: impact.name === 'Largo Plazo' ? metrics.activeUsers?.percentageChange || 0 : 0,
-        confidence: impact.confidence,
-        significance: impact.significance.overall
+        window: impact.label || key,
+        immediate: impact.name === 'Inmediato' ? (metrics.activeUsers?.percentageChange || 0) : 0,
+        shortTerm: impact.name === 'Corto Plazo' ? (metrics.activeUsers?.percentageChange || 0) : 0,
+        mediumTerm: impact.name === 'Medio Plazo' ? (metrics.activeUsers?.percentageChange || 0) : 0,
+        longTerm: impact.name === 'Largo Plazo' ? (metrics.activeUsers?.percentageChange || 0) : 0,
+        confidence: impact.confidence || 0,
+        significance: impact.significance?.overall || 0
       };
-    });
+    }).filter(Boolean);
   };
 
   // Datos para gráfico de barras de confianza
-  const confidenceData = Object.entries(temporalImpact || {}).map(([key, impact]) => ({
-    window: impact.label,
-    confidence: impact.confidence,
-    significance: Math.round(impact.significance.overall * 100),
-    color: impact.confidence >= 80 ? '#10B981' : impact.confidence >= 60 ? '#F59E0B' : '#EF4444'
-  }));
+  const confidenceData = Object.entries(temporalImpact || {}).map(([key, impact]) => {
+    if (!impact) return null;
+    
+    return {
+      window: impact.label || key,
+      confidence: impact.confidence || 0,
+      significance: Math.round((impact.significance?.overall || 0) * 100),
+      color: (impact.confidence || 0) >= 80 ? '#10B981' : (impact.confidence || 0) >= 60 ? '#F59E0B' : '#EF4444'
+    };
+  }).filter(Boolean);
 
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
@@ -40,10 +46,10 @@ const TemporalAnalysisDashboard = ({ temporalImpact, baseline, spotData }) => {
             <span className="font-medium">Impacto:</span> {payload[0].value?.toFixed(1) || 0}%
           </p>
           <p className="text-sm text-gray-500">
-            <span className="font-medium">Confianza:</span> {data.confidence}%
+            <span className="font-medium">Confianza:</span> {data?.confidence || 0}%
           </p>
           <p className="text-sm text-gray-500">
-            <span className="font-medium">Significancia:</span> {data.significance}%
+            <span className="font-medium">Significancia:</span> {data?.significance || 0}%
           </p>
         </div>
       );
@@ -71,6 +77,23 @@ const TemporalAnalysisDashboard = ({ temporalImpact, baseline, spotData }) => {
     }
   };
 
+  // Verificar que tenemos datos válidos
+  if (!temporalImpact || Object.keys(temporalImpact).length === 0) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-white rounded-xl shadow-lg p-6 border border-gray-100"
+      >
+        <div className="text-center py-8">
+          <Clock className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">Análisis Temporal Digital</h3>
+          <p className="text-gray-600">No hay datos de análisis temporal disponibles</p>
+        </div>
+      </motion.div>
+    );
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -93,6 +116,8 @@ const TemporalAnalysisDashboard = ({ temporalImpact, baseline, spotData }) => {
       <div className="mb-8">
         <div className="flex items-center justify-between relative">
           {Object.entries(temporalImpact || {}).map(([key, impact], index) => {
+            if (!impact || !impact.name) return null;
+            
             const IconComponent = getWindowIcon(impact.name);
             const color = getWindowColor(impact.name);
             
@@ -117,9 +142,9 @@ const TemporalAnalysisDashboard = ({ temporalImpact, baseline, spotData }) => {
                   className="mt-3 text-center"
                 >
                   <p className="text-sm font-semibold text-gray-900">{impact.name}</p>
-                  <p className="text-xs text-gray-500">{impact.label}</p>
+                  <p className="text-xs text-gray-500">{impact.label || ''}</p>
                   <p className="text-xs font-medium" style={{ color }}>
-                    {impact.confidence}% confianza
+                    {impact.confidence || 0}% confianza
                   </p>
                 </motion.div>
               </motion.div>
@@ -222,9 +247,11 @@ const TemporalAnalysisDashboard = ({ temporalImpact, baseline, spotData }) => {
       {/* Cards de Análisis Detallado */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {Object.entries(temporalImpact || {}).map(([key, impact], index) => {
+          if (!impact || !impact.name) return null;
+          
           const IconComponent = getWindowIcon(impact.name);
           const color = getWindowColor(impact.name);
-          const hasSignificantImpact = impact.significance.overall > 0.5;
+          const hasSignificantImpact = (impact.significance?.overall || 0) > 0.5;
           
           return (
             <motion.div
@@ -244,7 +271,7 @@ const TemporalAnalysisDashboard = ({ temporalImpact, baseline, spotData }) => {
                   </div>
                   <div>
                     <h5 className="font-semibold text-gray-900 text-sm">{impact.name}</h5>
-                    <p className="text-xs text-gray-500">{impact.label}</p>
+                    <p className="text-xs text-gray-500">{impact.label || ''}</p>
                   </div>
                 </div>
                 {hasSignificantImpact ? (
@@ -258,25 +285,25 @@ const TemporalAnalysisDashboard = ({ temporalImpact, baseline, spotData }) => {
                 <div className="flex justify-between items-center">
                   <span className="text-xs text-gray-600">Confianza</span>
                   <span className="text-sm font-semibold" style={{ color }}>
-                    {impact.confidence}%
+                    {impact.confidence || 0}%
                   </span>
                 </div>
                 
                 <div className="flex justify-between items-center">
                   <span className="text-xs text-gray-600">Significancia</span>
                   <span className="text-sm font-semibold text-gray-900">
-                    {Math.round(impact.significance.overall * 100)}%
+                    {Math.round((impact.significance?.overall || 0) * 100)}%
                   </span>
                 </div>
                 
-                {impact.comparison.activeUsers && (
+                {impact.comparison?.activeUsers && (
                   <div className="flex justify-between items-center">
                     <span className="text-xs text-gray-600">Cambio Usuarios</span>
                     <span className={`text-sm font-semibold ${
-                      impact.comparison.activeUsers.percentageChange >= 0 ? 'text-green-600' : 'text-red-600'
+                      (impact.comparison.activeUsers.percentageChange || 0) >= 0 ? 'text-green-600' : 'text-red-600'
                     }`}>
-                      {impact.comparison.activeUsers.percentageChange >= 0 ? '+' : ''}
-                      {impact.comparison.activeUsers.percentageChange.toFixed(1)}%
+                      {(impact.comparison.activeUsers.percentageChange || 0) >= 0 ? '+' : ''}
+                      {(impact.comparison.activeUsers.percentageChange || 0).toFixed(1)}%
                     </span>
                   </div>
                 )}
@@ -287,7 +314,7 @@ const TemporalAnalysisDashboard = ({ temporalImpact, baseline, spotData }) => {
                 <div className="w-full bg-gray-200 rounded-full h-2">
                   <motion.div
                     initial={{ width: 0 }}
-                    animate={{ width: `${impact.confidence}%` }}
+                    animate={{ width: `${impact.confidence || 0}%` }}
                     transition={{ delay: index * 0.1 + 0.5, duration: 0.8 }}
                     className="h-2 rounded-full"
                     style={{ backgroundColor: color }}
@@ -314,7 +341,7 @@ const TemporalAnalysisDashboard = ({ temporalImpact, baseline, spotData }) => {
           <div>
             <h5 className="text-sm font-medium text-blue-700 mb-2">Patrón de Impacto:</h5>
             <p className="text-xs text-blue-800">
-              {temporalImpact?.immediate?.significance?.overall > 0.5 
+              {(temporalImpact?.immediate?.significance?.overall || 0) > 0.5 
                 ? 'Impacto inmediato fuerte, ideal para generar awareness'
                 : 'Impacto gradual, efectivo para engagement sostenido'
               }
@@ -323,7 +350,7 @@ const TemporalAnalysisDashboard = ({ temporalImpact, baseline, spotData }) => {
           <div>
             <h5 className="text-sm font-medium text-blue-700 mb-2">Recomendación:</h5>
             <p className="text-xs text-blue-800">
-              {temporalImpact?.longTerm?.significance?.overall > 0.3
+              {(temporalImpact?.longTerm?.significance?.overall || 0) > 0.3
                 ? 'Considera reforzar con campañas digitales de seguimiento'
                 : 'El spot tuvo efecto principalmente inmediato, optimiza timing'
               }
