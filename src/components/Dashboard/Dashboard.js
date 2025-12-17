@@ -4,6 +4,7 @@ import { useGoogleAnalytics } from '../../contexts/GoogleAnalyticsContext';
 import { Link } from 'react-router-dom';
 import LoadingSpinner from '../UI/LoadingSpinner';
 import ErrorMessage from '../UI/ErrorMessage';
+import { motion } from 'framer-motion';
 import {
   BarChart3,
   Users,
@@ -11,7 +12,9 @@ import {
   TrendingUp,
   Plus,
   ExternalLink,
-  Globe
+  Globe,
+  Target,
+  Brain
 } from 'lucide-react';
 
 const Dashboard = () => {
@@ -83,53 +86,32 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Welcome Section */}
-      <div className="bg-white overflow-hidden shadow rounded-lg">
-        <div className="px-4 py-5 sm:p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">
-                Bienvenido, {user?.user_metadata?.full_name || user?.email || 'Usuario'}
-              </h1>
-              <p className="mt-1 text-sm text-gray-600">
-                Gestiona tus cuentas y propiedades de Google Analytics 4
-              </p>
-            </div>
-            <div className="flex-shrink-0">
-              <BarChart3 className="h-12 w-12 text-primary-600" />
-            </div>
+    <div className="min-h-screen bg-gray-50">
+      {/* Header Principal - SIEMPRE VISIBLE */}
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl shadow-lg p-6 text-white mb-6"
+      >
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold mb-2">
+              Bienvenido, {user?.user_metadata?.full_name || user?.email || 'Usuario'}
+            </h1>
+            <p className="text-blue-100">
+              Plataforma inteligente de análisis con IA
+            </p>
+          </div>
+          <div className="flex items-center space-x-4">
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              className="p-3 bg-white/20 rounded-lg backdrop-blur-sm"
+            >
+              <BarChart3 className="h-8 w-8 text-white" />
+            </motion.div>
           </div>
         </div>
-      </div>
-
-      {/* Connection Status */}
-      {!isConnected && (
-        <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4">
-          <div className="flex">
-            <Database className="h-5 w-5 text-yellow-400" />
-            <div className="ml-3">
-              <h3 className="text-sm font-medium text-yellow-800">
-                Conecta tu cuenta de Google Analytics
-              </h3>
-              <div className="mt-2 text-sm text-yellow-700">
-                <p>
-                  Para ver tus datos de Google Analytics 4, necesitas conectar tu cuenta de Google.
-                </p>
-              </div>
-              <div className="mt-4">
-                <button
-                  onClick={handleConnectGoogleAnalytics}
-                  className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-yellow-800 bg-yellow-100 hover:bg-yellow-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Conectar Google Analytics
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      </motion.div>
 
       {/* Error Display */}
       <ErrorMessage
@@ -138,73 +120,137 @@ const Dashboard = () => {
         onDismiss={clearError}
       />
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-        {stats.map((item) => (
-          <div key={item.name} className="bg-white overflow-hidden shadow rounded-lg">
-            <div className="p-5">
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <div className={`p-3 rounded-md ${item.bgColor}`}>
-                    <item.icon className={`h-6 w-6 ${item.color}`} />
-                  </div>
-                </div>
-                <div className="ml-5 w-0 flex-1">
-                  <dl>
-                    <dt className="text-sm font-medium text-gray-500 truncate">
-                      {item.name}
-                    </dt>
-                    <dd className="text-lg font-medium text-gray-900">
-                      {item.loading ? (
-                        <div className="flex items-center">
-                          <LoadingSpinner size="sm" />
-                          <span className="ml-2">Cargando...</span>
-                        </div>
-                      ) : item.href ? (
-                        <Link
-                          to={item.href}
-                          className="hover:text-primary-600 transition-colors duration-200"
-                        >
-                          {item.value}
-                        </Link>
-                      ) : (
-                        item.value
-                      )}
-                    </dd>
-                  </dl>
-                </div>
+      {/* Connection Status Mejorado */}
+      {!isConnected && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-xl p-6 mb-6"
+        >
+          <div className="flex items-start">
+            <div className="p-2 bg-yellow-500 rounded-lg mr-4">
+              <Database className="h-6 w-6 text-white" />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-lg font-semibold text-yellow-800 mb-2">
+                Conexión a Google Analytics Requerida
+              </h3>
+              <p className="text-yellow-700 mb-4">
+                Para analizar el impacto de tus spots, necesitas conectar tu cuenta de Google Analytics.
+                Esto nos permitirá acceder a los datos de tráfico y medir el efecto de tus campañas.
+              </p>
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={handleConnectGoogleAnalytics}
+                className="inline-flex items-center px-6 py-3 text-lg font-semibold rounded-xl text-white bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 shadow-lg hover:shadow-xl transition-all duration-300"
+              >
+                <Plus className="h-5 w-5 mr-2" />
+                Conectar Google Analytics
+              </motion.button>
+              <div className="flex items-center text-sm text-yellow-600 mt-3">
+                <div className="w-2 h-2 bg-yellow-500 rounded-full mr-2"></div>
+                Los datos se procesan de forma segura y privada
               </div>
             </div>
           </div>
-        ))}
-      </div>
+        </motion.div>
+      )}
 
-      {/* Recent Activity */}
-      <div className="bg-white shadow rounded-lg">
-        <div className="px-4 py-5 sm:p-6">
-          <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
-            Actividad Reciente
-          </h3>
-          
+      {/* Dashboard de Métricas Principales */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6"
+      >
+        <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Total Cuentas</p>
+              <p className="text-3xl font-bold text-gray-900">{accounts.length}</p>
+            </div>
+            <div className="p-3 bg-blue-100 rounded-full">
+              <Users className="h-6 w-6 text-blue-600" />
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Total Propiedades</p>
+              <p className="text-3xl font-bold text-gray-900">{properties.length}</p>
+            </div>
+            <div className="p-3 bg-green-100 rounded-full">
+              <Globe className="h-6 w-6 text-green-600" />
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Estado Conexión</p>
+              <p className={`text-2xl font-bold ${isConnected ? 'text-green-600' : 'text-red-600'}`}>
+                {isConnected ? 'Conectado' : 'Desconectado'}
+              </p>
+            </div>
+            <div className={`p-3 rounded-full ${isConnected ? 'bg-green-100' : 'bg-red-100'}`}>
+              <Database className={`h-6 w-6 ${isConnected ? 'text-green-600' : 'text-red-600'}`} />
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Confianza IA</p>
+              <p className="text-3xl font-bold text-orange-600">95%</p>
+            </div>
+            <div className="p-3 bg-orange-100 rounded-full">
+              <Brain className="h-6 w-6 text-orange-600" />
+            </div>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Grid Principal de Contenido */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Actividad Reciente */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-white shadow-xl rounded-2xl p-8 border border-gray-100"
+        >
+          <div className="flex items-center mb-6">
+            <div className="p-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl mr-4">
+              <TrendingUp className="h-6 w-6 text-white" />
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900">Actividad Reciente</h2>
+              <p className="text-gray-600 mt-1">Resumen de tus cuentas y propiedades</p>
+            </div>
+          </div>
+
           {accounts.length === 0 ? (
-            <div className="text-center py-6">
-              <Database className="mx-auto h-12 w-12 text-gray-400" />
-              <h3 className="mt-2 text-sm font-medium text-gray-900">
+            <div className="text-center py-8">
+              <Database className="mx-auto h-16 w-16 text-gray-400 mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
                 No hay cuentas conectadas
               </h3>
-              <p className="mt-1 text-sm text-gray-500">
+              <p className="text-gray-500 mb-6">
                 Conecta tu cuenta de Google Analytics para empezar.
               </p>
               {!isConnected && (
-                <div className="mt-6">
-                  <button
-                    onClick={handleConnectGoogleAnalytics}
-                    className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Conectar Google Analytics
-                  </button>
-                </div>
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={handleConnectGoogleAnalytics}
+                  className="inline-flex items-center px-6 py-3 text-lg font-semibold rounded-xl text-white bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-300"
+                >
+                  <Plus className="h-5 w-5 mr-2" />
+                  Conectar Google Analytics
+                </motion.button>
               )}
             </div>
           ) : (
@@ -212,21 +258,25 @@ const Dashboard = () => {
               {accounts.slice(0, 3).map((account) => {
                 const accountProperties = properties.filter(p => p.accountId === account.id);
                 return (
-                  <div key={account.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                  <motion.div
+                    key={account.id}
+                    whileHover={{ y: -2 }}
+                    className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl border border-blue-100"
+                  >
                     <div className="flex items-center">
-                      <div className="flex-shrink-0">
-                        <Users className="h-8 w-8 text-primary-600" />
+                      <div className="p-2 bg-blue-500 rounded-lg mr-4">
+                        <Users className="h-5 w-5 text-white" />
                       </div>
-                      <div className="ml-4">
+                      <div>
                         <p className="text-sm font-medium text-gray-900">
                           {account.displayName || account.name}
                         </p>
-                        <p className="text-sm text-gray-500">
+                        <p className="text-sm text-gray-600">
                           {loading ? 'Cargando propiedades...' : (
                             <>
                               {accountProperties.length} propiedades
                               {accountProperties.length > 0 && (
-                                <span className="ml-2 text-xs text-gray-400">
+                                <span className="ml-2 text-xs text-gray-500">
                                   ({accountProperties.slice(0, 2).map(p => p.displayName || p.name).join(', ')}
                                   {accountProperties.length > 2 && ` +${accountProperties.length - 2} más`})
                                 </span>
@@ -239,13 +289,13 @@ const Dashboard = () => {
                     <div className="flex items-center space-x-2">
                       <Link
                         to={`/accounts`}
-                        className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded text-primary-700 bg-primary-100 hover:bg-primary-200"
+                        className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-lg text-blue-700 bg-blue-100 hover:bg-blue-200 transition-all"
                       >
                         Ver propiedades
                         <ExternalLink className="ml-1 h-3 w-3" />
                       </Link>
                     </div>
-                  </div>
+                  </motion.div>
                 );
               })}
               
@@ -253,7 +303,7 @@ const Dashboard = () => {
                 <div className="text-center">
                   <Link
                     to="/accounts"
-                    className="text-sm text-primary-600 hover:text-primary-500"
+                    className="text-sm text-blue-600 hover:text-blue-500 font-medium"
                   >
                     Ver todas las cuentas ({accounts.length})
                   </Link>
@@ -261,53 +311,83 @@ const Dashboard = () => {
               )}
             </div>
           )}
-        </div>
-      </div>
+        </motion.div>
 
-      {/* Quick Actions */}
-      <div className="bg-white shadow rounded-lg">
-        <div className="px-4 py-5 sm:p-6">
-          <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
-            Acciones Rápidas
-          </h3>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Link
-              to="/accounts"
-              className="relative group bg-white p-6 focus-within:ring-2 focus-within:ring-inset focus-within:ring-primary-500 hover:bg-gray-50 rounded-lg border border-gray-200"
-            >
-              <div>
-                <span className="rounded-lg inline-flex p-3 bg-primary-50 text-primary-600 ring-4 ring-white">
-                  <Users className="h-6 w-6" />
-                </span>
-              </div>
-              <div className="mt-8">
-                <h3 className="text-lg font-medium">
-                  <span className="absolute inset-0" aria-hidden="true" />
-                  Gestionar Cuentas
-                </h3>
-                <p className="mt-2 text-sm text-gray-500">
-                  Ver y gestionar tus cuentas de Google Analytics
-                </p>
-              </div>
-            </Link>
-
-            <div className="relative group bg-white p-6 focus-within:ring-2 focus-within:ring-inset focus-within:ring-primary-500 hover:bg-gray-50 rounded-lg border border-gray-200 opacity-50">
-              <div>
-                <span className="rounded-lg inline-flex p-3 bg-gray-50 text-gray-400 ring-4 ring-white">
-                  <TrendingUp className="h-6 w-6" />
-                </span>
-              </div>
-              <div className="mt-8">
-                <h3 className="text-lg font-medium text-gray-400">
-                  Ver Analytics
-                </h3>
-                <p className="mt-2 text-sm text-gray-400">
-                  Selecciona una propiedad para ver datos
-                </p>
-              </div>
+        {/* Acciones Rápidas */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-white shadow-xl rounded-2xl p-8 border border-gray-100"
+        >
+          <div className="flex items-center mb-6">
+            <div className="p-3 bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl mr-4">
+              <Target className="h-6 w-6 text-white" />
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900">Acciones Rápidas</h2>
+              <p className="text-gray-600 mt-1">Accesos directos a funciones principales</p>
             </div>
           </div>
-        </div>
+
+          <div className="space-y-4">
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <Link
+                to="/accounts"
+                className="flex items-center p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-100 hover:from-blue-100 hover:to-indigo-100 transition-all group"
+              >
+                <div className="p-3 bg-blue-500 rounded-lg mr-4 group-hover:bg-blue-600 transition-all">
+                  <Users className="h-6 w-6 text-white" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-lg font-semibold text-gray-900">Gestionar Cuentas</h3>
+                  <p className="text-sm text-gray-600">Ver y gestionar tus cuentas de Google Analytics</p>
+                </div>
+                <ExternalLink className="h-5 w-5 text-gray-400 group-hover:text-blue-600 transition-all" />
+              </Link>
+            </motion.div>
+
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <Link
+                to="/spot-analysis"
+                className="flex items-center p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl border border-purple-100 hover:from-purple-100 hover:to-pink-100 transition-all group"
+              >
+                <div className="p-3 bg-purple-500 rounded-lg mr-4 group-hover:bg-purple-600 transition-all">
+                  <BarChart3 className="h-6 w-6 text-white" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-lg font-semibold text-gray-900">Análisis de Spots</h3>
+                  <p className="text-sm text-gray-600">Analizar el impacto de tus campañas publicitarias</p>
+                </div>
+                <ExternalLink className="h-5 w-5 text-gray-400 group-hover:text-purple-600 transition-all" />
+              </Link>
+            </motion.div>
+
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <Link
+                to="/frases-radio"
+                className="flex items-center p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border border-green-100 hover:from-green-100 hover:to-emerald-100 transition-all group"
+              >
+                <div className="p-3 bg-green-500 rounded-lg mr-4 group-hover:bg-green-600 transition-all">
+                  <Globe className="h-6 w-6 text-white" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-lg font-semibold text-gray-900">Frases Radio</h3>
+                  <p className="text-sm text-gray-600">Gestionar frases y contenido de radio</p>
+                </div>
+                <ExternalLink className="h-5 w-5 text-gray-400 group-hover:text-green-600 transition-all" />
+              </Link>
+            </motion.div>
+          </div>
+        </motion.div>
       </div>
     </div>
   );
