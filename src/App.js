@@ -1,8 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from 'react-query';
-import { supabase } from './config/supabase';
-import { AuthProvider } from './contexts/AuthContext';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { GoogleAnalyticsProvider } from './contexts/GoogleAnalyticsContext';
 
 // Components
@@ -47,129 +46,61 @@ const queryClient = new QueryClient({
   },
 });
 
+// Componente interno que usa el contexto de autenticación
+function AppContent() {
+  const { session, loading } = useAuth();
 
-function App() {
-  const [loading, setLoading] = useState(true);
-  const [session, setSession] = useState(null);
-
-  useEffect(() => {
-    // Get initial session
-    const getInitialSession = async () => {
-      try {
-        const { data: { session }, error } = await supabase.auth.getSession();
-        if (error) {
-          console.warn('Error getting session:', error.message);
-        }
-        setSession(session);
-        setLoading(false);
-        
-        // Persist session state for navigation
-        if (session) {
-          sessionStorage.setItem('supabase.auth.token', JSON.stringify(session));
-        } else {
-          sessionStorage.removeItem('supabase.auth.token');
-        }
-      } catch (error) {
-        console.warn('Error in getInitialSession:', error);
-        setLoading(false);
-      }
-    };
-
-    getInitialSession();
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        try {
-          setSession(session);
-          setLoading(false);
-          
-          // Persist session state for navigation
-          if (session) {
-            sessionStorage.setItem('supabase.auth.token', JSON.stringify(session));
-          } else {
-            sessionStorage.removeItem('supabase.auth.token');
-          }
-          
-          console.log('🔄 Auth state changed:', event, session?.user?.email);
-        } catch (error) {
-          console.warn('Error in auth state change:', error);
-          setLoading(false);
-        }
-      }
-    );
-
-    // Handle browser navigation (back/forward buttons)
-    const handlePopState = () => {
-      console.log('🔙 Browser navigation detected');
-      
-      // Try to restore session from storage
-      const storedSession = sessionStorage.getItem('supabase.auth.token');
-      if (storedSession) {
-        try {
-          const parsedSession = JSON.parse(storedSession);
-          setSession(parsedSession);
-          setLoading(false);
-          console.log('✅ Session restored from storage');
-        } catch (error) {
-          console.warn('Error parsing stored session:', error);
-          sessionStorage.removeItem('supabase.auth.token');
-        }
-      } else {
-        // No stored session, verify with Supabase
-        getInitialSession();
-      }
-    };
-
-    window.addEventListener('popstate', handlePopState);
-
-    return () => {
-      subscription.unsubscribe();
-      window.removeEventListener('popstate', handlePopState);
-    };
-  }, []);
-
+  // Mostrar loading solo si está cargando la sesión inicial
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <LoadingSpinner size="lg" />
+        <div className="text-center">
+          <LoadingSpinner size="lg" />
+          <p className="mt-4 text-gray-600">Cargando aplicación...</p>
+        </div>
       </div>
     );
   }
 
   return (
+    <Router>
+      <div className="App">
+        <Routes>
+          {/* Rutas públicas (sin autenticación requerida) */}
+          <Route path="/callback" element={<Callback />} />
+          <Route path="/analytics-callback" element={<AnalyticsCallback />} />
+          
+          {/* Rutas de autenticación */}
+          {!session ? (
+            <>
+              <Route path="/login" element={<Login />} />
+              <Route path="*" element={<Navigate to="/login" replace />} />
+            </>
+          ) : (
+            /* Rutas protegidas (requieren autenticación) */
+            <Route path="/" element={<Layout />}>
+              <Route index element={<Dashboard />} />
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/accounts" element={<Accounts />} />
+              <Route path="/properties/:accountId" element={<Properties />} />
+              <Route path="/analytics/:propertyId" element={<Analytics />} />
+              <Route path="/spot-analysis" element={<SpotAnalysis />} />
+              <Route path="*" element={<Navigate to="/dashboard" replace />} />
+            </Route>
+          )}
+        </Routes>
+      </div>
+    </Router>
+  );
+}
+
+function App() {
+  return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
           <GoogleAnalyticsProvider>
-            <Router>
-              <div className="App">
-                <Routes>
-                {/* Rutas públicas (sin autenticación requerida) */}
-                <Route path="/callback" element={<Callback />} />
-                <Route path="/analytics-callback" element={<AnalyticsCallback />} />
-                
-                {/* Rutas de autenticación */}
-                {!session ? (
-                  <>
-                    <Route path="/login" element={<Login />} />
-                    <Route path="*" element={<Navigate to="/login" replace />} />
-                  </>
-                ) : (
-                  /* Rutas protegidas (requieren autenticación) */
-                  <Route path="/" element={<Layout />}>
-                    <Route index element={<Dashboard />} />
-                    <Route path="/dashboard" element={<Dashboard />} />
-                    <Route path="/accounts" element={<Accounts />} />
-                    <Route path="/properties/:accountId" element={<Properties />} />
-                    <Route path="/analytics/:propertyId" element={<Analytics />} />
-                    <Route path="/spot-analysis" element={<SpotAnalysis />} />
-                    <Route path="*" element={<Navigate to="/dashboard" replace />} />
-                  </Route>
-                )}
-                </Routes>
-              </div>
-            </Router>
+            <AppContent />
           </GoogleAnalyticsProvider>
         </AuthProvider>
       </QueryClientProvider>
