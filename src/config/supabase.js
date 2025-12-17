@@ -109,6 +109,50 @@ export const databaseSchema = {
     );
   `,
 
+  // User settings table
+  user_settings: `
+    CREATE TABLE IF NOT EXISTS public.user_settings (
+      id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+      user_id UUID REFERENCES public.users(id) ON DELETE CASCADE,
+      
+      -- Configuraciones de perfil
+      full_name TEXT,
+      phone TEXT,
+      company TEXT,
+      bio TEXT,
+      
+      -- Configuraciones de notificaciones
+      notifications_email BOOLEAN DEFAULT true,
+      notifications_push BOOLEAN DEFAULT false,
+      notifications_analytics BOOLEAN DEFAULT true,
+      notifications_reports BOOLEAN DEFAULT true,
+      notifications_maintenance BOOLEAN DEFAULT true,
+      
+      -- Configuraciones de apariencia
+      theme TEXT DEFAULT 'system',
+      language TEXT DEFAULT 'es',
+      timezone TEXT DEFAULT 'America/Santiago',
+      date_format TEXT DEFAULT 'DD/MM/YYYY',
+      currency TEXT DEFAULT 'CLP',
+      
+      -- Configuraciones de privacidad
+      profile_visibility TEXT DEFAULT 'private',
+      analytics_sharing BOOLEAN DEFAULT false,
+      data_retention TEXT DEFAULT '1year',
+      two_factor_auth BOOLEAN DEFAULT false,
+      
+      -- Configuraciones de datos
+      auto_backup BOOLEAN DEFAULT true,
+      
+      -- Metadatos
+      created_at TIMESTAMPTZ DEFAULT NOW(),
+      updated_at TIMESTAMPTZ DEFAULT NOW(),
+      
+      -- Constraint único por usuario
+      UNIQUE(user_id)
+    );
+  `,
+
   // Row Level Security (RLS) policies
   rls_policies: `
     -- Enable RLS on all tables
@@ -161,6 +205,21 @@ export const databaseSchema = {
       FOR UPDATE USING (auth.uid() = user_id);
 
     CREATE POLICY "Users can delete own cached analytics" ON public.analytics_cache
+      FOR DELETE USING (auth.uid() = user_id);
+
+    -- User settings policies
+    ALTER TABLE public.user_settings ENABLE ROW LEVEL SECURITY;
+
+    CREATE POLICY "Users can view own settings" ON public.user_settings
+      FOR SELECT USING (auth.uid() = user_id);
+
+    CREATE POLICY "Users can insert own settings" ON public.user_settings
+      FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+    CREATE POLICY "Users can update own settings" ON public.user_settings
+      FOR UPDATE USING (auth.uid() = user_id);
+
+    CREATE POLICY "Users can delete own settings" ON public.user_settings
       FOR DELETE USING (auth.uid() = user_id);
   `,
 
