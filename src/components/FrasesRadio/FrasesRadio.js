@@ -630,33 +630,6 @@ const FrasesRadio = () => {
   // Renderizar vista moderna
   const renderModernView = () => (
     <div className="space-y-6">
-      {/* Header Moderno */}
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl shadow-lg p-6 text-white"
-      >
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold mb-2">
-              🎙️ Análisis de Impacto de Frases Radio
-            </h1>
-            <p className="text-purple-100">
-              Plataforma inteligente de análisis con IA • Dashboard moderno
-            </p>
-          </div>
-          <div className="flex items-center space-x-4">
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => setViewMode(viewMode === 'modern' ? 'classic' : 'modern')}
-              className="px-4 py-2 bg-white/20 rounded-lg backdrop-blur-sm hover:bg-white/30 transition-all"
-            >
-              {viewMode === 'modern' ? 'Vista Clásica' : 'Vista Moderna'}
-            </motion.button>
-          </div>
-        </div>
-      </motion.div>
 
       {/* Dashboard de Métricas Principales */}
       {analysisResults && (
