@@ -630,34 +630,6 @@ const SpotAnalysis = () => {
   // Renderizar vista moderna
   const renderModernView = () => (
     <div className="space-y-6">
-      {/* Header Moderno */}
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl shadow-lg p-6 text-white"
-      >
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold mb-2">
-              🚀 Análisis de Impacto de Spots TV
-            </h1>
-            <p className="text-blue-100">
-              Plataforma inteligente de análisis con IA • Dashboard moderno
-            </p>
-          </div>
-          <div className="flex items-center space-x-4">
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => setViewMode(viewMode === 'modern' ? 'classic' : 'modern')}
-              className="px-4 py-2 bg-white/20 rounded-lg backdrop-blur-sm hover:bg-white/30 transition-all"
-            >
-              {viewMode === 'modern' ? 'Vista Clásica' : 'Vista Moderna'}
-            </motion.button>
-          </div>
-        </div>
-      </motion.div>
-
       {/* Dashboard de Métricas Principales */}
       {analysisResults && (
         <motion.div
@@ -853,42 +825,6 @@ const SpotAnalysis = () => {
   // Renderizar vista clásica (código original)
   const renderClassicView = () => (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="bg-white shadow rounded-lg p-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">
-              Análisis de Impacto de Spots TV
-            </h1>
-            <p className="mt-1 text-sm text-gray-600">
-              Mide el impacto de los spots de televisión en las visitas a tu sitio web
-            </p>
-          </div>
-          <div className="flex items-center space-x-3">
-            <button
-              onClick={exportResults}
-              disabled={!analysisResults}
-              className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
-            >
-              <Download className="h-4 w-4 mr-2" />
-              Exportar
-            </button>
-            <button
-              onClick={performAnalysis}
-              disabled={analyzing || !selectedProperty || spotsData.length === 0}
-              className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
-            >
-              {analyzing ? (
-                <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-              ) : (
-                <BarChart3 className="h-4 w-4 mr-2" />
-              )}
-              {analyzing ? 'Analizando...' : 'Analizar Impacto'}
-            </button>
-          </div>
-        </div>
-      </div>
-
       {/* Conexión a Analytics */}
       {!isConnected && (
         <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4">
@@ -906,113 +842,6 @@ const SpotAnalysis = () => {
         </div>
       )}
 
-      {/* Configuración */}
-      <div className="bg-white shadow rounded-lg p-6">
-        <h2 className="text-lg font-medium text-gray-900 mb-4">Configuración del Análisis</h2>
-        
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Selección de cuenta */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Cuenta de Analytics
-            </label>
-            <select
-              value={selectedAccount}
-              onChange={(e) => {
-                setSelectedAccount(e.target.value);
-                setSelectedProperty(''); // Resetear propiedad al cambiar cuenta
-              }}
-              className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              disabled={!isConnected}
-            >
-              <option value="">Selecciona una cuenta...</option>
-              {sortedAccounts.map(account => (
-                <option key={account.id} value={account.id}>
-                  {account.displayName || account.account_name || account.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Selección de propiedad */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Propiedad de Analytics
-            </label>
-            <select
-              value={selectedProperty}
-              onChange={(e) => setSelectedProperty(e.target.value)}
-              className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              disabled={!isConnected || !selectedAccount}
-            >
-              <option value="">
-                {selectedAccount ? 'Selecciona una propiedad...' : 'Primero selecciona una cuenta'}
-              </option>
-              {filteredProperties.map(property => (
-                <option key={property.id} value={property.id}>
-                  {property.displayName || property.property_name || property.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Subida de archivo de spots */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Archivo de Spots (Excel/CSV)
-            </label>
-            <div className="relative">
-              <input
-                type="file"
-                accept=".xlsx,.xls,.csv"
-                onChange={handleSpotsFileUpload}
-                className="hidden"
-                id="spots-file-upload"
-              />
-              <label
-                htmlFor="spots-file-upload"
-                className="flex items-center justify-center w-full px-4 py-2 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-gray-400"
-              >
-                <Upload className="h-5 w-5 text-gray-400 mr-2" />
-                <span className="text-sm text-gray-600">
-                  {spotsFile ? spotsFile.name : 'Selecciona archivo Excel o CSV'}
-                </span>
-              </label>
-            </div>
-            {spotsData.length > 0 && (
-              <p className="mt-2 text-sm text-green-600">
-                ✓ {spotsData.length} spots cargados
-              </p>
-            )}
-          </div>
-        </div>
-
-        {/* Subida de video (opcional) */}
-        <div className="mt-6">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Video del Spot (Opcional)
-          </label>
-          <div className="relative">
-            <input
-              type="file"
-              accept="video/*"
-              onChange={handleVideoUpload}
-              className="hidden"
-              id="video-upload"
-            />
-            <label
-              htmlFor="video-upload"
-              className="flex items-center justify-center w-full px-4 py-2 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-gray-400"
-            >
-              <Video className="h-5 w-5 text-gray-400 mr-2" />
-              <span className="text-sm text-gray-600">
-                {videoFile ? videoFile.name : 'Selecciona video del spot'}
-              </span>
-            </label>
-          </div>
-        </div>
-      </div>
-
       {/* Progreso del análisis */}
       {analyzing && (
         <div className="bg-white shadow rounded-lg p-6">
@@ -1021,7 +850,7 @@ const SpotAnalysis = () => {
             <span className="text-sm text-gray-600">{analysisProgress}%</span>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2">
-            <div 
+            <div
               className="bg-blue-600 h-2 rounded-full transition-all duration-300"
               style={{ width: `${analysisProgress}%` }}
             />
@@ -1039,6 +868,28 @@ const SpotAnalysis = () => {
             <div>
               <h2 className="text-lg font-medium text-gray-900">Resultados del Análisis</h2>
               <p className="text-sm text-gray-600">Análisis automático con IA incluido</p>
+            </div>
+            <div className="flex items-center space-x-3">
+              <button
+                onClick={exportResults}
+                disabled={!analysisResults}
+                className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
+              >
+                <Download className="h-4 w-4 mr-2" />
+                Exportar
+              </button>
+              <button
+                onClick={performAnalysis}
+                disabled={analyzing || !selectedProperty || spotsData.length === 0}
+                className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
+              >
+                {analyzing ? (
+                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <BarChart3 className="h-4 w-4 mr-2" />
+                )}
+                {analyzing ? 'Analizando...' : 'Analizar Impacto'}
+              </button>
             </div>
           </div>
 
@@ -1177,6 +1028,34 @@ const SpotAnalysis = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Header Principal - SIEMPRE VISIBLE */}
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl shadow-lg p-6 text-white mb-6"
+      >
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold mb-2">
+              🚀 Análisis de Impacto de Spots TV
+            </h1>
+            <p className="text-blue-100">
+              Plataforma inteligente de análisis con IA • Dashboard moderno
+            </p>
+          </div>
+          <div className="flex items-center space-x-4">
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setViewMode(viewMode === 'modern' ? 'classic' : 'modern')}
+              className="px-4 py-2 bg-white/20 rounded-lg backdrop-blur-sm hover:bg-white/30 transition-all"
+            >
+              Vista Clásica
+            </motion.button>
+          </div>
+        </div>
+      </motion.div>
+
       {/* Configuración (siempre visible) */}
       <div className="bg-white shadow rounded-lg p-6 mb-6">
         <h2 className="text-lg font-medium text-gray-900 mb-4">Configuración del Análisis</h2>
@@ -1318,7 +1197,7 @@ const SpotAnalysis = () => {
               <span className="text-sm text-gray-600">{analysisProgress}%</span>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-3">
-              <motion.div 
+              <motion.div
                 className="bg-gradient-to-r from-blue-600 to-purple-600 h-3 rounded-full"
                 initial={{ width: 0 }}
                 animate={{ width: `${analysisProgress}%` }}
