@@ -1,6 +1,5 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 const TrafficHeatmap = ({ analysisResults }) => {
   // Generar datos de heatmap basados en datos reales de análisis
@@ -79,44 +78,12 @@ const TrafficHeatmap = ({ analysisResults }) => {
 
   const heatmapData = generateHeatmapData();
 
-  // Datos para gráfico de barras (promedio por hora)
-  const hourlyData = Array.from({ length: 24 }, (_, hour) => {
-    const hourData = heatmapData.filter(d => d.hour === hour);
-    const avgIntensity = hourData.reduce((sum, d) => sum + d.intensity, 0) / hourData.length;
-    
-    return {
-      hour: `${hour}:00`,
-      intensity: Math.round(avgIntensity),
-      isPeak: hour >= 9 && hour <= 17 || hour >= 19 && hour <= 23
-    };
-  });
-
   const getHeatmapColor = (intensity) => {
     if (intensity >= 80) return '#EF4444'; // Rojo intenso
     if (intensity >= 60) return '#F59E0B'; // Naranja
     if (intensity >= 40) return '#10B981'; // Verde
     if (intensity >= 20) return '#3B82F6'; // Azul
     return '#6B7280'; // Gris
-  };
-
-  const CustomTooltip = ({ active, payload, label }) => {
-    if (active && payload && payload.length) {
-      return (
-        <div className="bg-white p-3 rounded-lg shadow-lg border border-gray-200">
-          <p className="font-semibold text-gray-900">{label}</p>
-          <p className="text-blue-600">
-            <span className="font-medium">Intensidad:</span> {payload[0].value}%
-          </p>
-          <p className="text-sm text-gray-500">
-            {payload[0].value >= 80 ? 'Tráfico muy alto' :
-             payload[0].value >= 60 ? 'Tráfico alto' :
-             payload[0].value >= 40 ? 'Tráfico medio' :
-             payload[0].value >= 20 ? 'Tráfico bajo' : 'Tráfico muy bajo'}
-          </p>
-        </div>
-      );
-    }
-    return null;
   };
 
   return (
@@ -200,48 +167,13 @@ const TrafficHeatmap = ({ analysisResults }) => {
         </div>
       </div>
 
-      {/* Gráfico de líneas por hora - Versión expandida */}
-      <div className="h-80">
-        <h4 className="text-lg font-medium text-gray-700 mb-4">Promedio de Tráfico por Hora</h4>
-        <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={hourlyData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-            <XAxis
-              dataKey="hour"
-              tick={{ fontSize: 12, fill: '#6b7280' }}
-              axisLine={{ stroke: '#e5e7eb' }}
-              interval={1}
-            />
-            <YAxis
-              tick={{ fontSize: 12, fill: '#6b7280' }}
-              axisLine={{ stroke: '#e5e7eb' }}
-            />
-            <Tooltip content={<CustomTooltip />} />
-            <Line
-              type="monotone"
-              dataKey="intensity"
-              stroke="#3B82F6"
-              strokeWidth={3}
-              dot={{ fill: '#3B82F6', strokeWidth: 2, r: 4 }}
-              activeDot={{ r: 6, stroke: '#3B82F6', strokeWidth: 2, fill: '#ffffff' }}
-            />
-          </LineChart>
-        </ResponsiveContainer>
-      </div>
-
       {/* Estadísticas rápidas - Versión compacta */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.8 }}
-        className="mt-3 grid grid-cols-3 gap-2"
+        className="mt-3 grid grid-cols-2 gap-2"
       >
-        <div className="text-center p-2 rounded-lg bg-red-50">
-          <p className="text-xs text-red-600 mb-1">Hora Pico</p>
-          <p className="text-sm font-bold text-red-700">
-            {hourlyData.reduce((max, curr) => curr.intensity > max.intensity ? curr : max).hour}
-          </p>
-        </div>
         <div className="text-center p-2 rounded-lg bg-green-50">
           <p className="text-xs text-green-600 mb-1">Mejor Día</p>
           <p className="text-sm font-bold text-green-700">
