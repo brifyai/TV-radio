@@ -805,402 +805,404 @@ const SpotAnalysis = () => {
                           transition={{ delay: index * 0.1 }}
                           className="border border-green-200 rounded-lg p-6 bg-gradient-to-r from-green-50 to-emerald-50"
                         >
-                      {/* Header del spot */}
-                      <div className="flex items-center justify-between mb-4">
-                        <div className="flex-1">
-                          <div className="mb-2">
-                            <h3 className="text-lg font-bold text-gray-900 mb-1">
-                              {result?.spot?.nombre || 'Sin nombre'}
-                            </h3>
-                            <div className="flex items-center space-x-2">
-                              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                <Video className="h-3 w-3 mr-1" />
-                                Título Programa: {result?.spot?.titulo_programa || result?.spot?.nombre || 'N/A'}
-                              </span>
-                              {result?.spot?.tipo_comercial && (
-                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
-                                  Tipo Comercial: {result.spot.tipo_comercial}
-                                </span>
-                              )}
-                              {result?.spot?.version && (
-                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                                  Versión: {result.spot.version}
-                                </span>
-                              )}
-                              {result?.spot?.duracion && (
-                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
-                                  Duración: {result.spot.duracion}s
-                                </span>
-                              )}
-                              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                <Target className="h-3 w-3 mr-1" />
-                                Vinculación Directa
-                              </span>
-                            </div>
-                          </div>
-                          <div className="flex items-center space-x-4 text-sm text-gray-600">
-                            <span className="flex items-center">
-                              <Clock className="h-4 w-4 mr-1" />
-                              {result?.spot?.dateTime ?
-                                `${result.spot.dateTime.toLocaleDateString('es-CL')} ${result.spot.dateTime.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })}` :
-                                'Fecha no disponible'
-                              }
-                            </span>
-                            <span className="flex items-center">
-                              <Video className="h-4 w-4 mr-1" />
-                              {result?.spot?.canal || 'TV'}
-                            </span>
-                            {result?.spot?.inversion && (
-                              <span className="flex items-center">
-                                <BarChart3 className="h-4 w-4 mr-1" />
-                                Inversión: {result.spot.inversion}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Métricas detalladas */}
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                        {/* Usuarios Activos */}
-                        <div className="bg-white rounded-lg p-4 border border-green-200">
-                          <div className="flex items-center justify-between mb-2">
-                            <div className="flex items-center">
-                              <Users className="h-5 w-5 text-blue-500 mr-2" />
-                              <span className="font-medium text-gray-700">Usuarios Activos</span>
-                            </div>
-                            <TrendingUp className="h-4 w-4 text-green-500" />
-                          </div>
-                          <div className="space-y-2">
-                            <div className="flex justify-between">
-                              <span className="text-sm text-gray-600">Durante el spot:</span>
-                              <span className="font-semibold text-gray-900">
-                                {result?.metrics?.spot?.activeUsers || 0}
-                              </span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-sm text-gray-600">Referencia promedio:</span>
-                              <span className="font-semibold text-gray-700">
-                                {Math.round(result?.impact?.activeUsers?.baseline || 0)}
-                              </span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-sm text-gray-600">Incremento:</span>
-                              <span className="font-semibold text-green-600">
-                                +{result?.impact?.activeUsers?.increase || 0}
-                              </span>
-                            </div>
-                            <div className="flex justify-between border-t pt-2">
-                              <span className="text-sm font-medium text-gray-700">Cambio porcentual:</span>
-                              <span className="font-bold text-green-600 text-lg">
-                                +{(result?.impact?.activeUsers?.percentageChange || 0).toFixed(1)}%
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Sesiones */}
-                        <div className="bg-white rounded-lg p-4 border border-green-200">
-                          <div className="flex items-center justify-between mb-2">
-                            <div className="flex items-center">
-                              <MousePointer className="h-5 w-5 text-green-500 mr-2" />
-                              <span className="font-medium text-gray-700">Sesiones</span>
-                            </div>
-                            <TrendingUp className="h-4 w-4 text-green-500" />
-                          </div>
-                          <div className="space-y-2">
-                            <div className="flex justify-between">
-                              <span className="text-sm text-gray-600">Durante el spot:</span>
-                              <span className="font-semibold text-gray-900">
-                                {result?.metrics?.spot?.sessions || 0}
-                              </span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-sm text-gray-600">Referencia promedio:</span>
-                              <span className="font-semibold text-gray-700">
-                                {Math.round(result?.impact?.sessions?.baseline || 0)}
-                              </span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-sm text-gray-600">Incremento:</span>
-                              <span className="font-semibold text-green-600">
-                                +{result?.impact?.sessions?.increase || 0}
-                              </span>
-                            </div>
-                            <div className="flex justify-between border-t pt-2">
-                              <span className="text-sm font-medium text-gray-700">Cambio porcentual:</span>
-                              <span className="font-bold text-green-600 text-lg">
-                                +{(result?.impact?.sessions?.percentageChange || 0).toFixed(1)}%
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Vistas de Página */}
-                        <div className="bg-white rounded-lg p-4 border border-green-200">
-                          <div className="flex items-center justify-between mb-2">
-                            <div className="flex items-center">
-                              <Eye className="h-5 w-5 text-purple-500 mr-2" />
-                              <span className="font-medium text-gray-700">Vistas de Página</span>
-                            </div>
-                            <TrendingUp className="h-4 w-4 text-green-500" />
-                          </div>
-                          <div className="space-y-2">
-                            <div className="flex justify-between">
-                              <span className="text-sm text-gray-600">Durante el spot:</span>
-                              <span className="font-semibold text-gray-900">
-                                {result?.metrics?.spot?.pageviews || 0}
-                              </span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-sm text-gray-600">Referencia promedio:</span>
-                              <span className="font-semibold text-gray-700">
-                                {Math.round(result?.impact?.pageviews?.baseline || 0)}
-                              </span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-sm text-gray-600">Incremento:</span>
-                              <span className="font-semibold text-green-600">
-                                +{result?.impact?.pageviews?.increase || 0}
-                              </span>
-                            </div>
-                            <div className="flex justify-between border-t pt-2">
-                              <span className="text-sm font-medium text-gray-700">Cambio porcentual:</span>
-                              <span className="font-bold text-green-600 text-lg">
-                                +{(result?.impact?.pageviews?.percentageChange || 0).toFixed(1)}%
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Línea de Tiempo de Visitas */}
-                      <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
-                        <div className="flex items-center justify-between mb-4">
-                          <div className="flex items-center">
-                            <Clock className="h-5 w-5 text-blue-600 mr-2" />
-                            <h4 className="text-sm font-semibold text-gray-900">Línea de Tiempo de Visitas</h4>
-                          </div>
-                          <button
-                            onClick={() => toggleTimeline(analysisResults.indexOf(result))}
-                            className="flex items-center space-x-1 px-3 py-1 text-xs font-medium text-blue-600 bg-blue-100 hover:bg-blue-200 rounded-lg transition-colors"
-                          >
-                            {expandedTimeline[analysisResults.indexOf(result)] ? (
-                              <>
-                                <ChevronDown className="h-4 w-4" />
-                                <span>Colapsar</span>
-                              </>
-                            ) : (
-                              <>
-                                <ChevronRight className="h-4 w-4" />
-                                <span>Expandir</span>
-                              </>
-                            )}
-                          </button>
-                        </div>
-                        
-                        {/* Contenido colapsable del timeline */}
-                        {expandedTimeline[analysisResults.indexOf(result)] && (
-                          <motion.div
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: 'auto' }}
-                            exit={{ opacity: 0, height: 0 }}
-                            transition={{ duration: 0.3 }}
-                            className="overflow-hidden"
-                          >
-                            {/* Hora del Spot */}
-                            <div className="mb-4 p-3 bg-white rounded-lg border border-blue-200">
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center">
-                                  <div className="w-3 h-3 bg-red-500 rounded-full mr-3 animate-pulse"></div>
-                                  <span className="font-medium text-gray-900">Hora del Spot:</span>
+                          {/* Header del spot */}
+                          <div className="flex items-center justify-between mb-4">
+                            <div className="flex-1">
+                              <div className="mb-2">
+                                <h3 className="text-lg font-bold text-gray-900 mb-1">
+                                  {result?.spot?.nombre || 'Sin nombre'}
+                                </h3>
+                                <div className="flex items-center space-x-2">
+                                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                    <Video className="h-3 w-3 mr-1" />
+                                    Título Programa: {result?.spot?.titulo_programa || result?.spot?.nombre || 'N/A'}
+                                  </span>
+                                  {result?.spot?.tipo_comercial && (
+                                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+                                      Tipo Comercial: {result.spot.tipo_comercial}
+                                    </span>
+                                  )}
+                                  {result?.spot?.version && (
+                                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                                      Versión: {result.spot.version}
+                                    </span>
+                                  )}
+                                  {result?.spot?.duracion && (
+                                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+                                      Duración: {result.spot.duracion}s
+                                    </span>
+                                  )}
+                                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                    <Target className="h-3 w-3 mr-1" />
+                                    Vinculación Directa
+                                  </span>
                                 </div>
-                                <span className="text-lg font-bold text-red-600">
+                              </div>
+                              <div className="flex items-center space-x-4 text-sm text-gray-600">
+                                <span className="flex items-center">
+                                  <Clock className="h-4 w-4 mr-1" />
                                   {result?.spot?.dateTime ?
-                                    result.spot.dateTime.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' }) :
-                                    'N/A'
+                                    `${result.spot.dateTime.toLocaleDateString('es-CL')} ${result.spot.dateTime.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })}` :
+                                    'Fecha no disponible'
                                   }
                                 </span>
-                              </div>
-                            </div>
-
-                            {/* Timeline de Visitas */}
-                            <div className="space-y-3">
-                              {(() => {
-                                // Generar datos de visitas basados en el impacto real
-                                const baseVisits = result?.metrics?.spot?.activeUsers || 0;
-                                const referenceVisits = Math.round(result?.impact?.activeUsers?.reference || baseVisits * 0.7);
-                                
-                                const timelineData = [
-                                  { time: '1 min', minutes: 1, visits: Math.round(baseVisits * 0.8) },
-                                  { time: '3 min', minutes: 3, visits: Math.round(baseVisits * 0.6) },
-                                  { time: '5 min', minutes: 5, visits: Math.round(baseVisits * 0.4) },
-                                  { time: '10 min', minutes: 10, visits: Math.round(baseVisits * 0.25) },
-                                  { time: '15 min', minutes: 15, visits: Math.round(baseVisits * 0.15) },
-                                  { time: '20 min', minutes: 20, visits: Math.round(baseVisits * 0.1) },
-                                  { time: '25 min', minutes: 25, visits: Math.round(baseVisits * 0.08) },
-                                  { time: '30 min', minutes: 30, visits: Math.round(baseVisits * 0.05) }
-                                ];
-
-                                const maxVisits = Math.max(...timelineData.map(d => d.visits));
-
-                                return (
-                                  <>
-                                    <div className="grid grid-cols-4 gap-2 text-xs text-gray-600 mb-2">
-                                      <span>Tiempo</span>
-                                      <span className="text-center">Visitas</span>
-                                      <span className="text-center">Incremento</span>
-                                      <span className="text-right">Barra</span>
-                                    </div>
-                                    {timelineData.map((data, index) => {
-                                      const increment = data.visits - referenceVisits;
-                                      const incrementPercent = referenceVisits > 0 ? ((increment / referenceVisits) * 100) : 0;
-                                      const barWidth = maxVisits > 0 ? (data.visits / maxVisits) * 100 : 0;
-                                      
-                                      return (
-                                        <motion.div
-                                          key={data.time}
-                                          initial={{ opacity: 0, x: -20 }}
-                                          animate={{ opacity: 1, x: 0 }}
-                                          transition={{ delay: index * 0.1 }}
-                                          className="grid grid-cols-4 gap-2 items-center py-2 px-3 bg-white rounded-lg border border-gray-200 hover:border-blue-300 transition-colors"
-                                        >
-                                          <span className="text-sm font-medium text-gray-900">{data.time}</span>
-                                          <span className="text-center text-sm font-semibold text-blue-600">{data.visits}</span>
-                                          <span className="text-center text-sm">
-                                            <span className={`font-medium ${increment >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                                              {increment >= 0 ? '+' : ''}{increment}
-                                            </span>
-                                            <span className="text-xs text-gray-500 ml-1">
-                                              ({incrementPercent >= 0 ? '+' : ''}{incrementPercent.toFixed(0)}%)
-                                            </span>
-                                          </span>
-                                          <div className="flex items-center justify-end">
-                                            <div className="w-16 bg-gray-200 rounded-full h-2 mr-2">
-                                              <motion.div
-                                                className={`h-2 rounded-full ${increment >= 0 ? 'bg-green-500' : 'bg-red-500'}`}
-                                                initial={{ width: 0 }}
-                                                animate={{ width: `${barWidth}%` }}
-                                                transition={{ delay: index * 0.1 + 0.3, duration: 0.5 }}
-                                              />
-                                            </div>
-                                            <span className="text-xs text-gray-500 w-8 text-right">
-                                              {barWidth.toFixed(0)}%
-                                            </span>
-                                          </div>
-                                        </motion.div>
-                                      );
-                                    })}
-                                  </>
-                                );
-                              })()}
-                            </div>
-
-                            {/* Resumen del Timeline */}
-                            <div className="mt-4 p-3 bg-white rounded-lg border border-blue-200">
-                              <div className="flex items-center justify-between text-sm">
-                                <span className="text-gray-600">Total visitas en 30 min:</span>
-                                <span className="font-bold text-blue-600">
-                                  {(() => {
-                                    const baseVisits = result?.metrics?.spot?.activeUsers || 0;
-                                    const total = Math.round(baseVisits * (0.8 + 0.6 + 0.4 + 0.25 + 0.15 + 0.1 + 0.08 + 0.05));
-                                    return total;
-                                  })()}
+                                <span className="flex items-center">
+                                  <Video className="h-4 w-4 mr-1" />
+                                  {result?.spot?.canal || 'TV'}
                                 </span>
-                              </div>
-                              <div className="flex items-center justify-between text-sm mt-1">
-                                <span className="text-gray-600">Pico de visitas:</span>
-                                <span className="font-bold text-green-600">1 minuto después</span>
+                                {result?.spot?.inversion && (
+                                  <span className="flex items-center">
+                                    <BarChart3 className="h-4 w-4 mr-1" />
+                                    Inversión: {result.spot.inversion}
+                                  </span>
+                                )}
                               </div>
                             </div>
-                          </motion.div>
-                        )}
-                      </div>
+                          </div>
 
-                      {/* Análisis de IA para este spot */}
-                      {aiAnalysis[analysisResults.indexOf(result)] && (
-                        <div className="mt-4 p-4 bg-purple-50 border border-purple-200 rounded-lg">
-                          <div className="flex items-center mb-3">
-                            <Brain className="h-5 w-5 text-purple-600 mr-2" />
-                            <h4 className="text-sm font-medium text-purple-900">Análisis Inteligente</h4>
-                          </div>
-                          <p className="text-sm text-purple-800 mb-3">{aiAnalysis[analysisResults.indexOf(result)].summary}</p>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                              <h5 className="text-xs font-medium text-purple-700 mb-2">Insights:</h5>
-                              <ul className="text-xs text-purple-700 list-disc list-inside space-y-1">
-                                {(aiAnalysis[analysisResults.indexOf(result)]?.insights || []).map((insight, i) => (
-                                  <li key={i}>{insight}</li>
-                                ))}
-                              </ul>
+                          {/* Métricas detalladas */}
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                            {/* Usuarios Activos */}
+                            <div className="bg-white rounded-lg p-4 border border-green-200">
+                              <div className="flex items-center justify-between mb-2">
+                                <div className="flex items-center">
+                                  <Users className="h-5 w-5 text-blue-500 mr-2" />
+                                  <span className="font-medium text-gray-700">Usuarios Activos</span>
+                                </div>
+                                <TrendingUp className="h-4 w-4 text-green-500" />
+                              </div>
+                              <div className="space-y-2">
+                                <div className="flex justify-between">
+                                  <span className="text-sm text-gray-600">Durante el spot:</span>
+                                  <span className="font-semibold text-gray-900">
+                                    {result?.metrics?.spot?.activeUsers || 0}
+                                  </span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span className="text-sm text-gray-600">Referencia promedio:</span>
+                                  <span className="font-semibold text-gray-700">
+                                    {Math.round(result?.impact?.activeUsers?.reference || 0)}
+                                  </span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span className="text-sm text-gray-600">Incremento:</span>
+                                  <span className="font-semibold text-green-600">
+                                    +{result?.impact?.activeUsers?.increase || 0}
+                                  </span>
+                                </div>
+                                <div className="flex justify-between border-t pt-2">
+                                  <span className="text-sm font-medium text-gray-700">Cambio porcentual:</span>
+                                  <span className="font-bold text-green-600 text-lg">
+                                    +{(result?.impact?.activeUsers?.percentageChange || 0).toFixed(1)}%
+                                  </span>
+                                </div>
+                              </div>
                             </div>
-                            <div>
-                              <h5 className="text-xs font-medium text-purple-700 mb-2">Recomendaciones:</h5>
-                              <ul className="text-xs text-purple-700 list-disc list-inside space-y-1">
-                                {(aiAnalysis[analysisResults.indexOf(result)]?.recommendations || []).map((rec, i) => (
-                                  <li key={i}>{rec}</li>
-                                ))}
-                              </ul>
+
+                            {/* Sesiones */}
+                            <div className="bg-white rounded-lg p-4 border border-green-200">
+                              <div className="flex items-center justify-between mb-2">
+                                <div className="flex items-center">
+                                  <MousePointer className="h-5 w-5 text-green-500 mr-2" />
+                                  <span className="font-medium text-gray-700">Sesiones</span>
+                                </div>
+                                <TrendingUp className="h-4 w-4 text-green-500" />
+                              </div>
+                              <div className="space-y-2">
+                                <div className="flex justify-between">
+                                  <span className="text-sm text-gray-600">Durante el spot:</span>
+                                  <span className="font-semibold text-gray-900">
+                                    {result?.metrics?.spot?.sessions || 0}
+                                  </span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span className="text-sm text-gray-600">Referencia promedio:</span>
+                                  <span className="font-semibold text-gray-700">
+                                    {Math.round(result?.impact?.sessions?.reference || 0)}
+                                  </span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span className="text-sm text-gray-600">Incremento:</span>
+                                  <span className="font-semibold text-green-600">
+                                    +{result?.impact?.sessions?.increase || 0}
+                                  </span>
+                                </div>
+                                <div className="flex justify-between border-t pt-2">
+                                  <span className="text-sm font-medium text-gray-700">Cambio porcentual:</span>
+                                  <span className="font-bold text-green-600 text-lg">
+                                    +{(result?.impact?.sessions?.percentageChange || 0).toFixed(1)}%
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Vistas de Página */}
+                            <div className="bg-white rounded-lg p-4 border border-green-200">
+                              <div className="flex items-center justify-between mb-2">
+                                <div className="flex items-center">
+                                  <Eye className="h-5 w-5 text-purple-500 mr-2" />
+                                  <span className="font-medium text-gray-700">Vistas de Página</span>
+                                </div>
+                                <TrendingUp className="h-4 w-4 text-green-500" />
+                              </div>
+                              <div className="space-y-2">
+                                <div className="flex justify-between">
+                                  <span className="text-sm text-gray-600">Durante el spot:</span>
+                                  <span className="font-semibold text-gray-900">
+                                    {result?.metrics?.spot?.pageviews || 0}
+                                  </span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span className="text-sm text-gray-600">Referencia promedio:</span>
+                                  <span className="font-semibold text-gray-700">
+                                    {Math.round(result?.impact?.pageviews?.reference || 0)}
+                                  </span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span className="text-sm text-gray-600">Incremento:</span>
+                                  <span className="font-semibold text-green-600">
+                                    +{result?.impact?.pageviews?.increase || 0}
+                                  </span>
+                                </div>
+                                <div className="flex justify-between border-t pt-2">
+                                  <span className="text-sm font-medium text-gray-700">Cambio porcentual:</span>
+                                  <span className="font-bold text-green-600 text-lg">
+                                    +{(result?.impact?.pageviews?.percentageChange || 0).toFixed(1)}%
+                                  </span>
+                                </div>
+                              </div>
                             </div>
                           </div>
+
+                          {/* Línea de Tiempo de Visitas */}
+                          <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
+                            <div className="flex items-center justify-between mb-4">
+                              <div className="flex items-center">
+                                <Clock className="h-5 w-5 text-blue-600 mr-2" />
+                                <h4 className="text-sm font-semibold text-gray-900">Línea de Tiempo de Visitas</h4>
+                              </div>
+                              <button
+                                onClick={() => toggleTimeline(analysisResults.indexOf(result))}
+                                className="flex items-center space-x-1 px-3 py-1 text-xs font-medium text-blue-600 bg-blue-100 hover:bg-blue-200 rounded-lg transition-colors"
+                              >
+                                {expandedTimeline[analysisResults.indexOf(result)] ? (
+                                  <>
+                                    <ChevronDown className="h-4 w-4" />
+                                    <span>Colapsar</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <ChevronRight className="h-4 w-4" />
+                                    <span>Expandir</span>
+                                  </>
+                                )}
+                              </button>
+                            </div>
+                            
+                            {/* Contenido colapsable del timeline */}
+                            {expandedTimeline[analysisResults.indexOf(result)] && (
+                              <motion.div
+                                initial={{ opacity: 0, height: 0 }}
+                                animate={{ opacity: 1, height: 'auto' }}
+                                exit={{ opacity: 0, height: 0 }}
+                                transition={{ duration: 0.3 }}
+                                className="overflow-hidden"
+                              >
+                                {/* Hora del Spot */}
+                                <div className="mb-4 p-3 bg-white rounded-lg border border-blue-200">
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex items-center">
+                                      <div className="w-3 h-3 bg-red-500 rounded-full mr-3 animate-pulse"></div>
+                                      <span className="font-medium text-gray-900">Hora del Spot:</span>
+                                    </div>
+                                    <span className="text-lg font-bold text-red-600">
+                                      {result?.spot?.dateTime ?
+                                        result.spot.dateTime.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' }) :
+                                        'N/A'
+                                      }
+                                    </span>
+                                  </div>
+                                </div>
+
+                                {/* Timeline de Visitas */}
+                                <div className="space-y-3">
+                                  {(() => {
+                                    // Generar datos de visitas basados en el impacto real
+                                    const baseVisits = result?.metrics?.spot?.activeUsers || 0;
+                                    const referenceVisits = Math.round(result?.impact?.activeUsers?.reference || baseVisits * 0.7);
+                                    
+                                    const timelineData = [
+                                      { time: '1 min', minutes: 1, visits: Math.round(baseVisits * 0.8) },
+                                      { time: '3 min', minutes: 3, visits: Math.round(baseVisits * 0.6) },
+                                      { time: '5 min', minutes: 5, visits: Math.round(baseVisits * 0.4) },
+                                      { time: '10 min', minutes: 10, visits: Math.round(baseVisits * 0.25) },
+                                      { time: '15 min', minutes: 15, visits: Math.round(baseVisits * 0.15) },
+                                      { time: '20 min', minutes: 20, visits: Math.round(baseVisits * 0.1) },
+                                      { time: '25 min', minutes: 25, visits: Math.round(baseVisits * 0.08) },
+                                      { time: '30 min', minutes: 30, visits: Math.round(baseVisits * 0.05) }
+                                    ];
+
+                                    const maxVisits = Math.max(...timelineData.map(d => d.visits));
+
+                                    return (
+                                      <>
+                                        <div className="grid grid-cols-4 gap-2 text-xs text-gray-600 mb-2">
+                                          <span>Tiempo</span>
+                                          <span className="text-center">Visitas</span>
+                                          <span className="text-center">Incremento</span>
+                                          <span className="text-right">Barra</span>
+                                        </div>
+                                        {timelineData.map((data, index) => {
+                                          const increment = data.visits - referenceVisits;
+                                          const incrementPercent = referenceVisits > 0 ? ((increment / referenceVisits) * 100) : 0;
+                                          const barWidth = maxVisits > 0 ? (data.visits / maxVisits) * 100 : 0;
+                                          
+                                          return (
+                                            <motion.div
+                                              key={data.time}
+                                              initial={{ opacity: 0, x: -20 }}
+                                              animate={{ opacity: 1, x: 0 }}
+                                              transition={{ delay: index * 0.1 }}
+                                              className="grid grid-cols-4 gap-2 items-center py-2 px-3 bg-white rounded-lg border border-gray-200 hover:border-blue-300 transition-colors"
+                                            >
+                                              <span className="text-sm font-medium text-gray-900">{data.time}</span>
+                                              <span className="text-center text-sm font-semibold text-blue-600">{data.visits}</span>
+                                              <span className="text-center text-sm">
+                                                <span className={`font-medium ${increment >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                                  {increment >= 0 ? '+' : ''}{increment}
+                                                </span>
+                                                <span className="text-xs text-gray-500 ml-1">
+                                                  ({incrementPercent >= 0 ? '+' : ''}{incrementPercent.toFixed(0)}%)
+                                                </span>
+                                              </span>
+                                              <div className="flex items-center justify-end">
+                                                <div className="w-16 bg-gray-200 rounded-full h-2 mr-2">
+                                                  <motion.div
+                                                    className={`h-2 rounded-full ${increment >= 0 ? 'bg-green-500' : 'bg-red-500'}`}
+                                                    initial={{ width: 0 }}
+                                                    animate={{ width: `${barWidth}%` }}
+                                                    transition={{ delay: index * 0.1 + 0.3, duration: 0.5 }}
+                                                  />
+                                                </div>
+                                                <span className="text-xs text-gray-500 w-8 text-right">
+                                                  {barWidth.toFixed(0)}%
+                                                </span>
+                                              </div>
+                                            </motion.div>
+                                          );
+                                        })}
+                                      </>
+                                    );
+                                  })()}
+                                </div>
+
+                                {/* Resumen del Timeline */}
+                                <div className="mt-4 p-3 bg-white rounded-lg border border-blue-200">
+                                  <div className="flex items-center justify-between text-sm">
+                                    <span className="text-gray-600">Total visitas en 30 min:</span>
+                                    <span className="font-bold text-blue-600">
+                                      {(() => {
+                                        const baseVisits = result?.metrics?.spot?.activeUsers || 0;
+                                        const total = Math.round(baseVisits * (0.8 + 0.6 + 0.4 + 0.25 + 0.15 + 0.1 + 0.08 + 0.05));
+                                        return total;
+                                      })()}
+                                    </span>
+                                  </div>
+                                  <div className="flex items-center justify-between text-sm mt-1">
+                                    <span className="text-gray-600">Pico de visitas:</span>
+                                    <span className="font-bold text-green-600">1 minuto después</span>
+                                  </div>
+                                </div>
+                              </motion.div>
+                            )}
+                          </div>
+
+                          {/* Análisis de IA para este spot */}
+                          {aiAnalysis[analysisResults.indexOf(result)] && (
+                            <div className="mt-4 p-4 bg-purple-50 border border-purple-200 rounded-lg">
+                              <div className="flex items-center mb-3">
+                                <Brain className="h-5 w-5 text-purple-600 mr-2" />
+                                <h4 className="text-sm font-medium text-purple-900">Análisis Inteligente</h4>
+                              </div>
+                              <p className="text-sm text-purple-800 mb-3">{aiAnalysis[analysisResults.indexOf(result)].summary}</p>
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                  <h5 className="text-xs font-medium text-purple-700 mb-2">Insights:</h5>
+                                  <ul className="text-xs text-purple-700 list-disc list-inside space-y-1">
+                                    {(aiAnalysis[analysisResults.indexOf(result)]?.insights || []).map((insight, i) => (
+                                      <li key={i}>{insight}</li>
+                                    ))}
+                                  </ul>
+                                </div>
+                                <div>
+                                  <h5 className="text-xs font-medium text-purple-700 mb-2">Recomendaciones:</h5>
+                                  <ul className="text-xs text-purple-700 list-disc list-inside space-y-1">
+                                    {(aiAnalysis[analysisResults.indexOf(result)]?.recommendations || []).map((rec, i) => (
+                                      <li key={i}>{rec}</li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </motion.div>
+                      ))}
+                      
+                      {/* Controles de paginación */}
+                      {totalPages > 1 && (
+                        <div className="flex items-center justify-center space-x-4 mt-8 pt-6 border-t border-gray-200">
+                          <button
+                            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                            disabled={currentPage === 1}
+                            className="flex items-center px-4 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            <ChevronLeft className="h-4 w-4 mr-1" />
+                            Anterior
+                          </button>
+                          
+                          <div className="flex items-center space-x-2">
+                            {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+                              let pageNum;
+                              if (totalPages <= 5) {
+                                pageNum = i + 1;
+                              } else if (currentPage <= 3) {
+                                pageNum = i + 1;
+                              } else if (currentPage >= totalPages - 2) {
+                                pageNum = totalPages - 4 + i;
+                              } else {
+                                pageNum = currentPage - 2 + i;
+                              }
+                              
+                              return (
+                                <button
+                                  key={pageNum}
+                                  onClick={() => setCurrentPage(pageNum)}
+                                  className={`px-3 py-2 text-sm font-medium rounded-lg ${
+                                    currentPage === pageNum
+                                      ? 'bg-blue-600 text-white'
+                                      : 'text-gray-700 bg-white border border-gray-300 hover:bg-gray-50'
+                                  }`}
+                                >
+                                  {pageNum}
+                                </button>
+                              );
+                            })}
+                          </div>
+                          
+                          <button
+                            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                            disabled={currentPage === totalPages}
+                            className="flex items-center px-4 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            Siguiente
+                            <ChevronRight className="h-4 w-4 ml-1" />
+                          </button>
                         </div>
                       )}
-                    </motion.div>
-                  ))}
-                  
-                  {/* Controles de paginación */}
-                  {totalPages > 1 && (
-                    <div className="flex items-center justify-center space-x-4 mt-8 pt-6 border-t border-gray-200">
-                      <button
-                        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                        disabled={currentPage === 1}
-                        className="flex items-center px-4 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        <ChevronLeft className="h-4 w-4 mr-1" />
-                        Anterior
-                      </button>
-                      
-                      <div className="flex items-center space-x-2">
-                        {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
-                          let pageNum;
-                          if (totalPages <= 5) {
-                            pageNum = i + 1;
-                          } else if (currentPage <= 3) {
-                            pageNum = i + 1;
-                          } else if (currentPage >= totalPages - 2) {
-                            pageNum = totalPages - 4 + i;
-                          } else {
-                            pageNum = currentPage - 2 + i;
-                          }
-                          
-                          return (
-                            <button
-                              key={pageNum}
-                              onClick={() => setCurrentPage(pageNum)}
-                              className={`px-3 py-2 text-sm font-medium rounded-lg ${
-                                currentPage === pageNum
-                                  ? 'bg-blue-600 text-white'
-                                  : 'text-gray-700 bg-white border border-gray-300 hover:bg-gray-50'
-                              }`}
-                            >
-                              {pageNum}
-                            </button>
-                          );
-                        })}
-                      </div>
-                      
-                      <button
-                        onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                        disabled={currentPage === totalPages}
-                        className="flex items-center px-4 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        Siguiente
-                        <ChevronRight className="h-4 w-4 ml-1" />
-                      </button>
-                    </div>
-                  )}
-                </>
-              )}
+                    </>
+                  );
+                })()}
+              </div>
               
               {/* Resumen de vinculación directa */}
               <div className="mt-6 p-4 bg-gradient-to-r from-green-100 to-emerald-100 rounded-lg border border-green-200">
