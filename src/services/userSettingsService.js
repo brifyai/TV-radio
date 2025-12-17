@@ -16,16 +16,77 @@ class UserSettingsService {
         .from('user_settings')
         .select('*')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle(); // Cambiado de .single() a .maybeSingle()
 
       if (error) {
         console.error('Error fetching user settings:', error);
         throw error;
       }
 
+      // Si no hay configuraciones, crear configuraciones por defecto
+      if (!data) {
+        console.log('No settings found, creating default settings...');
+        return await this.createDefaultSettings(user.id);
+      }
+
       return data;
     } catch (error) {
       console.error('Error in getUserSettings:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Crear configuraciones por defecto para un usuario
+   */
+  async createDefaultSettings(userId) {
+    try {
+      const defaultSettings = {
+        user_id: userId,
+        // Configuraciones de perfil
+        full_name: '',
+        phone: '',
+        company: '',
+        bio: '',
+        
+        // Configuraciones de notificaciones
+        notifications_email: true,
+        notifications_push: false,
+        notifications_analytics: true,
+        notifications_reports: true,
+        notifications_maintenance: true,
+        
+        // Configuraciones de apariencia
+        theme: 'system',
+        language: 'es',
+        timezone: 'America/Santiago',
+        date_format: 'DD/MM/YYYY',
+        currency: 'CLP',
+        
+        // Configuraciones de privacidad
+        profile_visibility: 'private',
+        analytics_sharing: false,
+        data_retention: '1year',
+        two_factor_auth: false,
+        
+        // Configuraciones de datos
+        auto_backup: true
+      };
+
+      const { data, error } = await supabase
+        .from('user_settings')
+        .insert(defaultSettings)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error creating default settings:', error);
+        throw error;
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error in createDefaultSettings:', error);
       throw error;
     }
   }
