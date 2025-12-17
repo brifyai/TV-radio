@@ -69,7 +69,7 @@ const SpotAnalysis = () => {
   // Instancia del servicio de análisis temporal
   const temporalAnalysisService = new TemporalAnalysisService();
 
-  // Parsear CSV mejorado - SOLO LEE fecha_aparicion y hora_megatime
+  // Parsear CSV mejorado - LEE fecha, hora inicio, Canal, Titulo Programa, inversion
   const parseCSV = useCallback((content) => {
     const lines = content.split('\n').filter(line => line.trim());
     if (lines.length === 0) return [];
@@ -84,25 +84,31 @@ const SpotAnalysis = () => {
     
     // Extraer headers y encontrar índices de las columnas que necesitamos
     const headers = lines[0].split(delimiter).map(h => h.trim().toLowerCase());
-    const fechaIndex = headers.findIndex(h => h === 'fecha_aparicion');
-    const horaIndex = headers.findIndex(h => h === 'hora_megatime');
+    const fechaIndex = headers.findIndex(h => h === 'fecha');
+    const horaIndex = headers.findIndex(h => h === 'hora inicio');
+    const canalIndex = headers.findIndex(h => h === 'canal');
+    const tituloIndex = headers.findIndex(h => h === 'titulo programa');
+    const inversionIndex = headers.findIndex(h => h === 'inversion');
     
     if (fechaIndex === -1 || horaIndex === -1) {
-      throw new Error('El archivo debe contener las columnas "fecha_aparicion" y "hora_megatime"');
+      throw new Error('El archivo debe contener las columnas "fecha" y "hora inicio"');
     }
     
     return lines.slice(1).map((line, index) => {
       const values = line.split(delimiter).map(v => v.trim());
       
-      // Solo extraer las columnas necesarias
+      // Extraer todas las columnas necesarias
       return {
-        fecha_aparicion: values[fechaIndex] || '',
-        hora_megatime: values[horaIndex] || ''
+        fecha: values[fechaIndex] || '',
+        hora_inicio: values[horaIndex] || '',
+        canal: values[canalIndex] || '',
+        titulo_programa: values[tituloIndex] || '',
+        inversion: values[inversionIndex] || ''
       };
-    }).filter(spot => spot.fecha_aparicion || spot.hora_megatime); // Filtrar filas vacías
+    }).filter(spot => spot.fecha || spot.hora_inicio); // Filtrar filas vacías
   }, []);
 
-  // Parsear datos de Excel - SOLO LEE fecha_aparicion y hora_megatime
+  // Parsear datos de Excel - LEE fecha, hora inicio, Canal, Titulo Programa, inversion
   const parseExcelData = useCallback((jsonData) => {
     if (jsonData.length === 0) return [];
     
@@ -113,20 +119,26 @@ const SpotAnalysis = () => {
     
     // Primera fila como headers
     const headers = jsonData[0].map(h => (h || '').toString().toLowerCase());
-    const fechaIndex = headers.findIndex(h => h === 'fecha_aparicion');
-    const horaIndex = headers.findIndex(h => h === 'hora_megatime');
+    const fechaIndex = headers.findIndex(h => h === 'fecha');
+    const horaIndex = headers.findIndex(h => h === 'hora inicio');
+    const canalIndex = headers.findIndex(h => h === 'canal');
+    const tituloIndex = headers.findIndex(h => h === 'titulo programa');
+    const inversionIndex = headers.findIndex(h => h === 'inversion');
     
     if (fechaIndex === -1 || horaIndex === -1) {
-      throw new Error('El archivo debe contener las columnas "fecha_aparicion" y "hora_megatime"');
+      throw new Error('El archivo debe contener las columnas "fecha" y "hora inicio"');
     }
     
     return jsonData.slice(1).map((row, index) => {
-      // Solo extraer las columnas necesarias
+      // Extraer todas las columnas necesarias
       return {
-        fecha_aparicion: row[fechaIndex] || '',
-        hora_megatime: row[horaIndex] || ''
+        fecha: row[fechaIndex] || '',
+        hora_inicio: row[horaIndex] || '',
+        canal: row[canalIndex] || '',
+        titulo_programa: row[tituloIndex] || '',
+        inversion: row[inversionIndex] || ''
       };
-    }).filter(spot => spot.fecha_aparicion || spot.hora_megatime); // Filtrar filas vacías
+    }).filter(spot => spot.fecha || spot.hora_inicio); // Filtrar filas vacías
   }, []);
 
   // Parsear fecha y hora con múltiples formatos - SOPORTA FECHAS SERIAL DE EXCEL
@@ -253,18 +265,19 @@ const SpotAnalysis = () => {
             return;
           }
           
-          // Validar y formatear datos - SOLO USAR fecha_aparicion y hora_megatime
+          // Validar y formatear datos - USAR fecha, hora inicio, Canal, Titulo Programa, inversion
           const formattedSpots = spots.map((spot, index) => {
             // Parsear fecha y hora con múltiples formatos
-            const dateTime = parseDateTimeFlexible(spot.fecha_aparicion, spot.hora_megatime);
+            const dateTime = parseDateTimeFlexible(spot.fecha, spot.hora_inicio);
            
             return {
               id: index + 1,
-              fecha: spot.fecha_aparicion,
-              hora: spot.hora_megatime,
-              nombre: `Spot ${index + 1}`, // Nombre por defecto ya que no tenemos este dato
+              fecha: spot.fecha,
+              hora: spot.hora_inicio,
+              nombre: spot.titulo_programa || `Spot ${index + 1}`,
               duracion: 30, // Default 30 segundos ya que no tenemos este dato
-              canal: 'TV', // Default TV ya que no tenemos este dato
+              canal: spot.canal || 'TV',
+              inversion: spot.inversion || '',
               dateTime: dateTime, // Objeto Date para análisis
               valid: !isNaN(dateTime.getTime())
             };
@@ -604,11 +617,14 @@ const SpotAnalysis = () => {
     if (!analysisResults) return;
     
     const csv = [
-      ['Spot', 'Fecha', 'Hora', 'Usuarios Activos', 'Sesiones', 'Vistas de Página', 'Impacto Usuarios', 'Impacto Sesiones', 'Impacto Vistas'],
+      ['Spot', 'Fecha', 'Hora Inicio', 'Canal', 'Título Programa', 'Inversión', 'Usuarios Activos', 'Sesiones', 'Vistas de Página', 'Impacto Usuarios', 'Impacto Sesiones', 'Impacto Vistas'],
       ...analysisResults.map(result => [
         result.spot.nombre,
         result.spot.fecha,
         result.spot.hora,
+        result.spot.canal,
+        result.spot.nombre, // Usar nombre como título del programa
+        result.spot.inversion || '',
         result.metrics.spot.activeUsers,
         result.metrics.spot.sessions,
         result.metrics.spot.pageviews,
