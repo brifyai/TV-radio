@@ -27,6 +27,40 @@ const verifyAuthToken = (headers) => {
   return token;
 };
 
+// Función para parsear el cuerpo de la solicitud de manera segura
+const parseRequestBody = (body) => {
+  console.log('🔍 DEBUG: Parseando cuerpo de solicitud...');
+  console.log('🔍 DEBUG: Tipo de body:', typeof body);
+  console.log('🔍 DEBUG: Body recibido:', body);
+  
+  if (!body) {
+    console.log('❌ DEBUG: Cuerpo de solicitud vacío');
+    return null;
+  }
+  
+  // Si ya es un objeto (Netlify a veces envía el body como objeto)
+  if (typeof body === 'object') {
+    console.log('✅ DEBUG: Body ya es un objeto');
+    return body;
+  }
+  
+  // Si es string, intentar parsear
+  if (typeof body === 'string') {
+    console.log('🔍 DEBUG: Body es string, intentando parsear...');
+    try {
+      const parsed = JSON.parse(body);
+      console.log('✅ DEBUG: JSON parseado exitosamente');
+      return parsed;
+    } catch (parseError) {
+      console.log('❌ DEBUG: Error al parsear JSON:', parseError.message);
+      throw new Error(`JSON inválido en el cuerpo de la solicitud: ${parseError.message}`);
+    }
+  }
+  
+  console.log('❌ DEBUG: Tipo de body no soportado:', typeof body);
+  throw new Error(`Tipo de cuerpo de solicitud no soportado: ${typeof body}`);
+};
+
 // Manejador para obtener cuentas de Google Analytics
 exports.handler = async (event, context) => {
   // Configurar CORS headers
@@ -157,33 +191,35 @@ exports.handler = async (event, context) => {
       console.log('🔍 DEBUG: HTTP Method:', event.httpMethod);
       console.log('🔍 DEBUG: Path completo:', path);
       
-      // Verificar que event.body existe y no está vacío
-      if (!event.body || event.body.trim() === '') {
-        console.log('❌ DEBUG: Cuerpo de solicitud vacío');
+      // Parsear el cuerpo de la solicitud de manera segura
+      let requestData;
+      try {
+        requestData = parseRequestBody(event.body);
+        console.log('✅ DEBUG: Cuerpo parseado exitosamente');
+        console.log('🔍 DEBUG: Datos parseados:', requestData);
+      } catch (parseError) {
+        console.log('❌ DEBUG: Error al parsear cuerpo:', parseError.message);
+        return {
+          statusCode: 400,
+          headers,
+          body: JSON.stringify({
+            error: 'Cuerpo de la solicitud inválido',
+            details: parseError.message,
+            bodyType: typeof event.body,
+            bodyPreview: typeof event.body === 'string' ? event.body.substring(0, 200) : 'No es string'
+          })
+        };
+      }
+      
+      // Verificar que tenemos datos válidos
+      if (!requestData) {
+        console.log('❌ DEBUG: No se pudieron obtener datos del cuerpo');
         return {
           statusCode: 400,
           headers,
           body: JSON.stringify({
             error: 'Cuerpo de la solicitud requerido',
             details: 'Se requiere enviar métricas, dimensiones y rango de fechas en el cuerpo'
-          })
-        };
-      }
-      
-      let requestData;
-      try {
-        console.log('🔍 DEBUG: Intentando parsear JSON del cuerpo...');
-        requestData = JSON.parse(event.body);
-        console.log('✅ DEBUG: JSON parseado exitosamente');
-      } catch (parseError) {
-        console.log('❌ DEBUG: Error al parsear JSON:', parseError.message);
-        return {
-          statusCode: 400,
-          headers,
-          body: JSON.stringify({
-            error: 'JSON inválido en el cuerpo de la solicitud',
-            details: `Error de parseo: ${parseError.message}`,
-            receivedBody: event.body.substring(0, 200) // Primeros 200 chars para debug
           })
         };
       }
