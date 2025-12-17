@@ -43,8 +43,8 @@ const SmartInsights = ({ analysisResults, batchAIAnalysis }) => {
       color: impact > 50 ? 'green' : impact > 20 ? 'blue' : 'yellow'
     });
 
-    // Insight de duración del efecto
-    const hasSustainedTraffic = Math.random() > 0.3; // Simulado
+    // Insight de duración del efecto - basado en datos reales
+    const hasSustainedTraffic = spot.metrics && spot.metrics.frase && spot.metrics.frase.sessions > 10;
     insights.push({
       type: 'sustainability',
       icon: Zap,
@@ -56,8 +56,10 @@ const SmartInsights = ({ analysisResults, batchAIAnalysis }) => {
       color: hasSustainedTraffic ? 'green' : 'blue'
     });
 
-    // Insight de conversión potencial
-    const conversionRate = Math.random() * 5 + 1; // 1-6% simulado
+    // Insight de conversión potencial - basado en datos reales
+    const sessions = spot.metrics?.frase?.sessions || 0;
+    const pageviews = spot.metrics?.frase?.pageviews || 0;
+    const conversionRate = sessions > 0 ? Math.min(5, (pageviews / sessions) * 0.5) : 0;
     insights.push({
       type: 'conversion',
       icon: Target,
@@ -67,14 +69,16 @@ const SmartInsights = ({ analysisResults, batchAIAnalysis }) => {
       color: conversionRate > 3 ? 'green' : 'yellow'
     });
 
-    // Insight comparativo
-    const avgImpact = 25; // Promedio simulado
+    // Insight comparativo - basado en datos reales del análisis
+    const avgImpact = analysisResults.length > 1
+      ? analysisResults.reduce((sum, r) => sum + Math.abs(r.impact.activeUsers.percentageChange), 0) / analysisResults.length
+      : Math.abs(impact);
     insights.push({
       type: 'comparison',
       icon: BarChart3,
       title: 'Benchmarking',
-      message: impact > avgImpact 
-        ? `🏆 Superaste el promedio: Tu spot generó ${(impact - avgImpact).toFixed(1)}% más impacto que la media de la industria.`
+      message: impact > avgImpact
+        ? `🏆 Superaste el promedio: Tu spot generó ${(impact - avgImpact).toFixed(1)}% más impacto que la media de tus análisis.`
         : `📊 Por debajo del promedio: Tu spot generó ${(avgImpact - impact).toFixed(1)}% menos impacto. Hay oportunidad de mejora.`,
       confidence: 80,
       color: impact > avgImpact ? 'green' : 'yellow'

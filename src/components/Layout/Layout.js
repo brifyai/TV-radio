@@ -18,8 +18,8 @@ import {
   Unlink,
   TrendingUp,
   Radio,
-  Sparkles,
-  Activity
+  Maximize,
+  Minimize
 } from 'lucide-react';
 
 const Layout = () => {
@@ -29,6 +29,7 @@ const Layout = () => {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [fullscreenMode, setFullscreenMode] = useState(false);
   const userMenuRef = useRef(null);
 
   // Close user menu when clicking outside
@@ -63,13 +64,16 @@ const Layout = () => {
     }
   };
 
+  const toggleFullscreen = () => {
+    setFullscreenMode(!fullscreenMode);
+  };
+
   const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: Home, current: location.pathname === '/dashboard' },
     { name: 'Cuentas', href: '/accounts', icon: Users, current: location.pathname === '/accounts' },
     { name: 'Spot TV', href: '/spot-analysis', icon: TrendingUp, current: location.pathname === '/spot-analysis' },
     { name: 'Frases Radio', href: '/frases-radio', icon: Radio, current: location.pathname === '/frases-radio' },
   ];
-
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -156,130 +160,148 @@ const Layout = () => {
         </div>
       </div>
 
-      {/* Static sidebar for desktop */}
-      <div className="hidden md:flex md:w-72 md:flex-col md:fixed md:inset-y-0">
-        <div className="flex-1 flex flex-col min-h-0 bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 shadow-2xl">
-          {/* Header del sidebar */}
-          <div className="flex-1 flex flex-col pt-6 pb-4 overflow-y-auto">
-            <div className="flex items-center flex-shrink-0 px-6 mb-8">
-              <motion.div
-                className="h-12 w-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg"
-                whileHover={{ scale: 1.05, rotate: 5 }}
-                transition={{ type: "spring", stiffness: 300 }}
-              >
-                <BarChart3 className="h-7 w-7 text-white" />
-              </motion.div>
-              <div className="ml-4">
-                <h1 className="text-xl font-bold text-white">Analytics</h1>
-                <p className="text-xs text-slate-300">Dashboard Pro</p>
+      {/* Static sidebar for desktop - solo se muestra si no está en modo pantalla completa */}
+      {!fullscreenMode && (
+        <div className="hidden md:flex md:w-72 md:flex-col md:fixed md:inset-y-0">
+          <div className="flex-1 flex flex-col min-h-0 bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 shadow-2xl">
+            {/* Header del sidebar */}
+            <div className="flex-1 flex flex-col pt-6 pb-4 overflow-y-auto">
+              <div className="flex items-center flex-shrink-0 px-6 mb-8">
+                <motion.div
+                  className="h-12 w-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg"
+                  whileHover={{ scale: 1.05, rotate: 5 }}
+                  transition={{ type: "spring", stiffness: 300 }}
+                >
+                  <BarChart3 className="h-7 w-7 text-white" />
+                </motion.div>
+                <div className="ml-4">
+                  <h1 className="text-xl font-bold text-white">Analytics</h1>
+                  <p className="text-xs text-slate-300">Dashboard Pro</p>
+                </div>
               </div>
+              
+              {/* Navegación */}
+              <nav className="flex-1 px-4 space-y-2">
+                {navigation.map((item, index) => (
+                  <motion.div
+                    key={item.name}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                  >
+                    <Link
+                      to={item.href}
+                      className={`group flex items-center px-4 py-3.5 text-sm font-medium rounded-xl transition-all duration-200 ${
+                        item.current
+                          ? 'bg-gradient-to-r from-blue-500/20 to-purple-500/20 text-white shadow-lg border border-blue-400/30'
+                          : 'text-slate-300 hover:bg-white/10 hover:text-white hover:shadow-md'
+                      }`}
+                    >
+                      <motion.div
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.95 }}
+                      >
+                        <item.icon
+                          className={`mr-4 flex-shrink-0 h-5 w-5 transition-colors duration-200 ${
+                            item.current ? 'text-blue-400' : 'text-slate-400 group-hover:text-white'
+                          }`}
+                        />
+                      </motion.div>
+                      <span className="font-medium">{item.name}</span>
+                      {item.current && (
+                        <motion.div
+                          className="ml-auto h-2 w-2 bg-blue-400 rounded-full"
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          transition={{ type: "spring", stiffness: 500 }}
+                        />
+                      )}
+                    </Link>
+                  </motion.div>
+                ))}
+              </nav>
             </div>
             
-            {/* Navegación */}
-            <nav className="flex-1 px-4 space-y-2">
-              {navigation.map((item, index) => (
-                <motion.div
-                  key={item.name}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                >
-                  <Link
-                    to={item.href}
-                    className={`group flex items-center px-4 py-3.5 text-sm font-medium rounded-xl transition-all duration-200 ${
-                      item.current
-                        ? 'bg-gradient-to-r from-blue-500/20 to-purple-500/20 text-white shadow-lg border border-blue-400/30'
-                        : 'text-slate-300 hover:bg-white/10 hover:text-white hover:shadow-md'
-                    }`}
-                  >
+            {/* Perfil de usuario */}
+            <div className="flex-shrink-0 border-t border-slate-700/50 p-4">
+              <div className="flex items-center w-full p-3 rounded-xl bg-white/5 hover:bg-white/10 transition-colors duration-200">
+                <div className="flex-shrink-0">
+                  {user?.user_metadata?.avatar_url ? (
+                    <motion.img
+                      className="h-12 w-12 rounded-xl shadow-lg"
+                      src={user?.user_metadata?.avatar_url}
+                      alt={user?.email}
+                      whileHover={{ scale: 1.05 }}
+                    />
+                  ) : (
                     <motion.div
-                      whileHover={{ scale: 1.1 }}
-                      whileTap={{ scale: 0.95 }}
+                      className="h-12 w-12 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg"
+                      whileHover={{ scale: 1.05, rotate: 5 }}
                     >
-                      <item.icon
-                        className={`mr-4 flex-shrink-0 h-5 w-5 transition-colors duration-200 ${
-                          item.current ? 'text-blue-400' : 'text-slate-400 group-hover:text-white'
-                        }`}
-                      />
+                      <span className="text-lg font-bold text-white">
+                        {user?.email?.charAt(0).toUpperCase() || '?'}
+                      </span>
                     </motion.div>
-                    <span className="font-medium">{item.name}</span>
-                    {item.current && (
-                      <motion.div
-                        className="ml-auto h-2 w-2 bg-blue-400 rounded-full"
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        transition={{ type: "spring", stiffness: 500 }}
-                      />
-                    )}
-                  </Link>
-                </motion.div>
-              ))}
-            </nav>
-          </div>
-          
-          {/* Perfil de usuario */}
-          <div className="flex-shrink-0 border-t border-slate-700/50 p-4">
-            <div className="flex items-center w-full p-3 rounded-xl bg-white/5 hover:bg-white/10 transition-colors duration-200">
-              <div className="flex-shrink-0">
-                {user?.user_metadata?.avatar_url ? (
-                  <motion.img
-                    className="h-12 w-12 rounded-xl shadow-lg"
-                    src={user?.user_metadata?.avatar_url}
-                    alt={user?.email}
-                    whileHover={{ scale: 1.05 }}
-                  />
-                ) : (
-                  <motion.div
-                    className="h-12 w-12 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg"
-                    whileHover={{ scale: 1.05, rotate: 5 }}
-                  >
-                    <span className="text-lg font-bold text-white">
-                      {user?.email?.charAt(0).toUpperCase() || '?'}
-                    </span>
-                  </motion.div>
-                )}
+                  )}
+                </div>
+                <div className="ml-4 flex-1 min-w-0">
+                  <p className="text-sm font-medium text-white truncate">
+                    {user?.user_metadata?.full_name || user?.email || 'Usuario'}
+                  </p>
+                  <p className="text-xs text-slate-400 truncate">
+                    {user?.email || 'Sin email'}
+                  </p>
+                </div>
+                <motion.div
+                  className="ml-2 h-2 w-2 bg-green-400 rounded-full"
+                  animate={{ opacity: [1, 0.5, 1] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                />
               </div>
-              <div className="ml-4 flex-1 min-w-0">
-                <p className="text-sm font-medium text-white truncate">
-                  {user?.user_metadata?.full_name || user?.email || 'Usuario'}
-                </p>
-                <p className="text-xs text-slate-400 truncate">
-                  {user?.email || 'Sin email'}
-                </p>
-              </div>
-              <motion.div
-                className="ml-2 h-2 w-2 bg-green-400 rounded-full"
-                animate={{ opacity: [1, 0.5, 1] }}
-                transition={{ duration: 2, repeat: Infinity }}
-              />
             </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Main content */}
-      <div className="md:pl-72 flex flex-col flex-1">
-        <div className="sticky top-0 z-10 md:hidden pl-1 pt-1 sm:pl-3 sm:pt-3 bg-gray-50">
-          <button
-            type="button"
-            className="-ml-0.5 -mt-0.5 h-12 w-12 inline-flex items-center justify-center rounded-md text-gray-500 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-500"
-            onClick={() => setSidebarOpen(true)}
-          >
-            <Menu className="h-6 w-6" />
-          </button>
-        </div>
-
-        {/* Header */}
+      <div className={`flex flex-col flex-1 ${!fullscreenMode ? 'md:pl-72' : ''}`}>
+        {/* Header - siempre visible */}
         <header className="bg-white shadow">
           <div className="px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between h-16">
               <div className="flex items-center">
+                {/* Botón de menú móvil */}
+                <div className="md:hidden mr-4">
+                  <button
+                    type="button"
+                    className="-ml-0.5 -mt-0.5 h-12 w-12 inline-flex items-center justify-center rounded-md text-gray-500 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-500"
+                    onClick={() => setSidebarOpen(true)}
+                  >
+                    <Menu className="h-6 w-6" />
+                  </button>
+                </div>
+                
                 <h1 className="text-2xl font-semibold text-gray-900">
                   {navigation.find(item => item.current)?.name || 'Dashboard'}
                 </h1>
               </div>
               
               <div className="flex items-center space-x-4">
+                {/* Botón de pantalla completa */}
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={toggleFullscreen}
+                  className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                  title={fullscreenMode ? 'Salir de pantalla completa' : 'Pantalla completa'}
+                >
+                  {fullscreenMode ? (
+                    <Minimize className="h-5 w-5" />
+                  ) : (
+                    <Maximize className="h-5 w-5" />
+                  )}
+                </motion.button>
+
                 {/* Google Analytics Connection Status */}
                 <div className="flex items-center space-x-2">
                   {gaLoading ? (
@@ -377,7 +399,7 @@ const Layout = () => {
           </div>
         </header>
 
-{/* Main content area */}
+        {/* Main content area */}
         <main className="flex-1">
           <div className="py-6">
             <div className="px-4 sm:px-6 lg:px-8">

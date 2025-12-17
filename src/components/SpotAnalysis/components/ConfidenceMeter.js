@@ -3,18 +3,18 @@ import { motion } from 'framer-motion';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 
 const ConfidenceMeter = ({ confidenceScore = 85, analysisData }) => {
-  // Calcular score de confianza basado en múltiples factores
+  // Calcular score de confianza basado en múltiples factores reales
   const calculateConfidence = () => {
     if (!analysisData || analysisData.length === 0) return 60;
     
     let score = 60; // Base score
     
-    // Factores que aumentan la confianza
+    // Factores que aumentan la confianza - basados en datos reales
     const factors = {
       dataPoints: Math.min(analysisData.length * 10, 20), // Más spots = más confianza
       timeRange: analysisData.length > 1 ? 15 : 5, // Rango temporal
-      statisticalSignificance: Math.random() * 10 + 5, // Significancia estadística
-      baselineQuality: Math.random() * 10 + 10 // Calidad del baseline
+      statisticalSignificance: analysisData.length > 1 ? 12 : 8, // Basado en cantidad de datos
+      baselineQuality: analysisData.every(d => d.impact?.activeUsers?.significant) ? 18 : 10 // Basado en significancia real
     };
     
     score = Math.min(95, score + Object.values(factors).reduce((a, b) => a + b, 0));

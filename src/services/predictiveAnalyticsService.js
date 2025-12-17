@@ -20,13 +20,13 @@ export class PredictiveAnalyticsService {
       optimalTiming: this.predictOptimalTiming.bind(this)
     };
     
-    // Factores de predicción
+    // Factores de predicción - evitar datos simulados
     this.predictionFactors = {
-      historicalPerformance: 0.3,
-      temporalPatterns: 0.25,
-      audienceBehavior: 0.2,
-      contentAnalysis: 0.15,
-      marketTrends: 0.1
+      historicalPerformance: 0,
+      temporalPatterns: 0,
+      audienceBehavior: 0,
+      contentAnalysis: 0,
+      marketTrends: 0
     };
   }
 
@@ -515,16 +515,16 @@ export class PredictiveAnalyticsService {
   // Métodos auxiliares para cálculos específicos
   
   calculateBasePerformance(spotData, historicalPatterns) {
-    // Implementación simplificada - en producción sería más compleja
+    // Evitar datos simulados - retornar valores vacíos
     return {
-      immediate: 1000,
-      shortTerm: 2500,
-      mediumTerm: 5000,
-      longTerm: 8000,
-      reach: 15000,
-      frequency: 2.5,
-      engagement: 0.15,
-      brandAwareness: 0.25
+      immediate: 0,
+      shortTerm: 0,
+      mediumTerm: 0,
+      longTerm: 0,
+      reach: 0,
+      frequency: 0,
+      engagement: 0,
+      brandAwareness: 0
     };
   }
 
@@ -579,11 +579,12 @@ export class PredictiveAnalyticsService {
   }
 
   calculateBaseEngagement(spotData, historicalPatterns) {
+    // Evitar datos de engagement simulados
     return {
-      immediate: 100,
-      shortTerm: 250,
-      mediumTerm: 500,
-      longTerm: 750
+      immediate: 0,
+      shortTerm: 0,
+      mediumTerm: 0,
+      longTerm: 0
     };
   }
 
@@ -610,10 +611,11 @@ export class PredictiveAnalyticsService {
   }
 
   predictSentiment(engagementTypes, spotData) {
+    // Evitar datos de sentimiento simulados
     return {
-      positive: 0.7,
-      neutral: 0.2,
-      negative: 0.1
+      positive: 0,
+      neutral: 0,
+      negative: 0
     };
   }
 
@@ -622,18 +624,13 @@ export class PredictiveAnalyticsService {
   }
 
   calculateConversionRate(stage, spotData, historicalPatterns) {
-    const rates = {
-      impressions: 0.05,
-      clicks: 0.15,
-      landing: 0.60,
-      engagement: 0.30,
-      conversion: 0.08
-    };
-    return rates[stage] || 0.05;
+    // Evitar tasas simuladas - retornar 0
+    return 0;
   }
 
   calculateConversionValue(conversions, spotData) {
-    return conversions * 50; // $50 por conversión promedio
+    // Evitar valor simulado por conversión
+    return 0;
   }
 
   calculateConversionConfidence(conversionPredictions, historicalPatterns) {

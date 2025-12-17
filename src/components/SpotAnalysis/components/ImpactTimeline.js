@@ -3,22 +3,19 @@ import { motion } from 'framer-motion';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 const ImpactTimeline = ({ spotData, analysisResults }) => {
-  // Generar datos de timeline basados en el análisis
+  // Generar datos de timeline basados en datos reales
   const generateTimelineData = () => {
     if (!analysisResults || analysisResults.length === 0) return [];
     
-    const timelineData = [];
     const spot = analysisResults[0]; // Tomar el primer spot como ejemplo
     
-    // Crear puntos de datos para las 4 ventanas de tiempo
+    // Solo usar datos reales disponibles, evitar multiplicadores simulados
     const timePoints = [
-      { time: 'Spot', label: 'Durante Spot', impact: spot.metrics.spot.activeUsers, color: '#10B981' },
-      { time: '+30min', label: '30 min después', impact: Math.round(spot.metrics.spot.activeUsers * 0.7), color: '#3B82F6' },
-      { time: '+2hrs', label: '2 horas después', impact: Math.round(spot.metrics.spot.activeUsers * 0.4), color: '#8B5CF6' },
-      { time: '+1day', label: '1 día después', impact: Math.round(spot.metrics.spot.activeUsers * 0.2), color: '#F59E0B' },
-      { time: '+1week', label: '1 semana después', impact: Math.round(spot.metrics.spot.activeUsers * 0.1), color: '#EF4444' }
+      { time: 'Spot', label: 'Durante Spot', impact: spot.metrics?.spot?.activeUsers || 0, color: '#10B981' }
     ];
     
+    // Solo agregar puntos adicionales si hay datos reales disponibles
+    // Evitar datos simulados con multiplicadores arbitrarios
     return timePoints;
   };
 

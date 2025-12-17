@@ -20,38 +20,17 @@ export class ConversionAnalysisService extends TemporalAnalysisService {
     ];
   }
 
-  // Obtener datos de conversiones para análisis
+  // Obtener datos de conversiones para análisis - basado en datos reales
   async getConversionData(propertyId, startDate, endDate, goals = this.conversionGoals) {
     try {
-      // Simular datos de conversión (en implementación real, usar Google Analytics API)
-      const mockData = this.generateMockConversionData(startDate, endDate);
-      return mockData;
+      // En implementación real, esto consultaría Google Analytics API
+      // Por ahora, retornar datos vacíos para evitar datos simulados
+      console.warn('Datos de conversión no disponibles - usando datos vacíos');
+      return this.getEmptyConversionData();
     } catch (error) {
       console.error('Error obteniendo datos de conversión:', error);
       return this.getEmptyConversionData();
     }
-  }
-
-  // Generar datos mock de conversión para demostración
-  generateMockConversionData(startDate, endDate) {
-    const days = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24));
-    const data = [];
-    
-    for (let i = 0; i < days; i++) {
-      const date = new Date(startDate.getTime() + i * 24 * 60 * 60 * 1000);
-      data.push({
-        date: date.toISOString().split('T')[0],
-        conversions: Math.floor(Math.random() * 50) + 10,
-        goalCompletionsAll: Math.floor(Math.random() * 30) + 5,
-        transactions: Math.floor(Math.random() * 20) + 3,
-        ecommercePurchases: Math.floor(Math.random() * 15) + 2,
-        purchaseRevenue: Math.floor(Math.random() * 50000) + 10000,
-        conversionRate: (Math.random() * 5 + 1).toFixed(2),
-        averageOrderValue: Math.floor(Math.random() * 200) + 50
-      });
-    }
-    
-    return { rows: data };
   }
 
   // Datos vacíos de conversión
@@ -171,14 +150,12 @@ export class ConversionAnalysisService extends TemporalAnalysisService {
   getSpotStageMetrics(stage, spotData, conversionData) {
     const baseMetrics = this.getStageBaseMetrics(stage, conversionData);
     
-    // Simular impacto del spot en cada etapa
-    const impactMultiplier = this.getStageImpactMultiplier(stage);
-    
+    // Evitar datos simulados - retornar métricas base sin multiplicadores artificiales
     return {
-      count: Math.floor(baseMetrics.count * impactMultiplier),
-      rate: baseMetrics.rate * impactMultiplier,
-      revenue: baseMetrics.revenue * impactMultiplier,
-      lift: (impactMultiplier - 1) * 100
+      count: baseMetrics.count,
+      rate: baseMetrics.rate,
+      revenue: baseMetrics.revenue,
+      lift: 0
     };
   }
 
@@ -198,17 +175,10 @@ export class ConversionAnalysisService extends TemporalAnalysisService {
     return baseMetrics;
   }
 
-  // Multiplicador de impacto por etapa
-  getStageImpactMultiplier(stage) {
-    const multipliers = {
-      'impressions': 1.0,    // Sin impacto directo
-      'clicks': 1.15,        // +15% clics
-      'landing': 1.12,       // +12% llegadas
-      'engagement': 1.08,    // +8% engagement
-      'conversion': 1.20     // +20% conversiones
-    };
-    
-    return multipliers[stage] || 1.0;
+  // Estimar costo del spot (eliminar datos simulados)
+  estimateSpotCost(funnel) {
+    // Retornar 0 para evitar costos simulados
+    return 0;
   }
 
   // Calcular impacto de cada etapa
@@ -377,16 +347,6 @@ export class ConversionAnalysisService extends TemporalAnalysisService {
       cost: totalCost,
       profit: totalRevenue - totalCost
     };
-  }
-
-  // Estimar costo del spot (mock)
-  estimateSpotCost(funnel) {
-    // Simular costo basado en duración y horario
-    const baseCost = 50000; // $50,000 CLP base
-    const duration = 30; // 30 segundos
-    const timeMultiplier = 1.2; // Horario prime time
-    
-    return baseCost * (duration / 30) * timeMultiplier;
   }
 
   // Analizar drop-off en el embudo
