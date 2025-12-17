@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 const TrafficHeatmap = ({ analysisResults }) => {
   // Generar datos de heatmap basados en datos reales de análisis
@@ -200,32 +200,32 @@ const TrafficHeatmap = ({ analysisResults }) => {
         </div>
       </div>
 
-      {/* Gráfico de barras por hora - Versión más grande */}
-      <div className="h-56">
-        <h4 className="text-sm font-medium text-gray-700 mb-3">Promedio de Tráfico por Hora</h4>
+      {/* Gráfico de líneas por hora - Versión expandida */}
+      <div className="h-80">
+        <h4 className="text-lg font-medium text-gray-700 mb-4">Promedio de Tráfico por Hora</h4>
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={hourlyData}>
+          <LineChart data={hourlyData}>
             <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
             <XAxis
               dataKey="hour"
-              tick={{ fontSize: 10, fill: '#6b7280' }}
+              tick={{ fontSize: 12, fill: '#6b7280' }}
               axisLine={{ stroke: '#e5e7eb' }}
               interval={1}
             />
             <YAxis
-              tick={{ fontSize: 10, fill: '#6b7280' }}
+              tick={{ fontSize: 12, fill: '#6b7280' }}
               axisLine={{ stroke: '#e5e7eb' }}
             />
             <Tooltip content={<CustomTooltip />} />
-            <Bar dataKey="intensity" radius={[2, 2, 0, 0]}>
-              {hourlyData.map((entry, index) => (
-                <Cell
-                  key={`cell-${index}`}
-                  fill={entry.isPeak ? '#EF4444' : getHeatmapColor(entry.intensity)}
-                />
-              ))}
-            </Bar>
-          </BarChart>
+            <Line
+              type="monotone"
+              dataKey="intensity"
+              stroke="#3B82F6"
+              strokeWidth={3}
+              dot={{ fill: '#3B82F6', strokeWidth: 2, r: 4 }}
+              activeDot={{ r: 6, stroke: '#3B82F6', strokeWidth: 2, fill: '#ffffff' }}
+            />
+          </LineChart>
         </ResponsiveContainer>
       </div>
 
