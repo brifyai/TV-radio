@@ -105,22 +105,64 @@ const SpotAnalysis = () => {
     const headers = lines[0].split(delimiter).map(h => h.trim().toLowerCase());
     console.log('📋 Headers CSV encontrados:', headers);
     
-    const fechaIndex = headers.findIndex(h => h === 'fecha');
-    const horaIndex = headers.findIndex(h => h === 'hora inicio');
-    const canalIndex = headers.findIndex(h => h === 'canal');
-    const tituloIndex = headers.findIndex(h => h === 'titulo programa');
-    const versionIndex = headers.findIndex(h => h === 'version');
-    const duracionIndex = headers.findIndex(h => h === 'duracion');
-    const tipoComercialIndex = headers.findIndex(h => h === 'tipo comercial');
-    const inversionIndex = headers.findIndex(h => h === 'inversion');
+    // Búsqueda case-insensitive y con trim para mayor robustez
+    const findColumnIndex = (headers, possibleNames) => {
+      console.log('🔍 Buscando columnas en:', headers);
+      for (const name of possibleNames) {
+        const index = headers.findIndex(h => h.trim().toLowerCase() === name.toLowerCase());
+        console.log(`🔍 Buscando "${name}" -> índice: ${index}`);
+        if (index !== -1) return index;
+      }
+      console.log('⚠️ No se encontró ninguna de las columnas buscadas');
+      return -1;
+    };
+
+    const fechaIndex = findColumnIndex(headers, ['fecha']);
+    const horaIndex = findColumnIndex(headers, ['hora inicio', 'hora_inicio', 'hora']);
+    const canalIndex = findColumnIndex(headers, ['canal']);
+    const tituloIndex = findColumnIndex(headers, [
+      'titulo programa', 'título programa', 'Titulo Programa', 'TITULO PROGRAMA',
+      'titulo_programa', 'título_programa', 'Titulo_Programa', 'TITULO_PROGRAMA',
+      'programa', 'titulo', 'show', 'program', 'nombre programa', 'nombre_programa',
+      'programa nombre', 'programa_nombre', 'programa tv', 'programa_tv'
+    ]);
+    const versionIndex = findColumnIndex(headers, [
+      'version', 'versión', 'Version', 'VERSIÓN', 'version_', 'Version_', 'VERSIÓN_',
+      'ver', 'v', 'numero version', 'numero_version', 'número versión', 'número_version'
+    ]);
+    const duracionIndex = findColumnIndex(headers, [
+      'duracion', 'duración', 'Duracion', 'DURACIÓN', 'duracion_', 'duración_',
+      'tiempo', 'length', 'minutos', 'segundos'
+    ]);
+    const tipoComercialIndex = findColumnIndex(headers, [
+      'tipo comercial', 'tipo_comercial', 'Tipo Comercial', 'TIPO_COMERCIAL',
+      'tipo', 'categoria', 'categoría', 'class', 'clase'
+    ]);
+    const inversionIndex = findColumnIndex(headers, [
+      'inversion', 'inversión', 'Inversion', 'INVERSIÓN', 'inversion_', 'inversión_',
+      'costo', 'coste', 'precio', 'amount', 'monto', 'presupuesto', 'budget'
+    ]);
     
     console.log('🔍 Índices de columnas:', {
       fechaIndex, horaIndex, canalIndex, tituloIndex,
       versionIndex, duracionIndex, tipoComercialIndex, inversionIndex
     });
     
+    // Debug: Mostrar qué headers se encontraron
+    console.log('🔍 Headers disponibles:', headers);
+    console.log('🔍 Buscando columna título programa...');
+    console.log('🔍 tituloIndex encontrado:', tituloIndex);
+    console.log('🔍 Si tituloIndex es -1, significa que no se encontró la columna');
+    
     if (fechaIndex === -1 || horaIndex === -1) {
       throw new Error('El archivo debe contener las columnas "fecha" y "hora inicio"');
+    }
+    
+    // Advertencia si no se encuentra la columna del título del programa
+    if (tituloIndex === -1) {
+      console.warn('⚠️ ADVERTENCIA: No se encontró la columna del título del programa');
+      console.warn('📋 Columnas disponibles:', headers);
+      console.warn('🔍 Se buscó: "titulo programa", "título programa", "programa", "titulo", etc.');
     }
     
     return lines.slice(1).map((line, index) => {
@@ -153,22 +195,64 @@ const SpotAnalysis = () => {
     const headers = jsonData[0].map(h => (h || '').toString().toLowerCase());
     console.log('📋 Headers Excel encontrados:', headers);
     
-    const fechaIndex = headers.findIndex(h => h === 'fecha');
-    const horaIndex = headers.findIndex(h => h === 'hora inicio');
-    const canalIndex = headers.findIndex(h => h === 'canal');
-    const tituloIndex = headers.findIndex(h => h === 'titulo programa');
-    const versionIndex = headers.findIndex(h => h === 'version');
-    const duracionIndex = headers.findIndex(h => h === 'duracion');
-    const tipoComercialIndex = headers.findIndex(h => h === 'tipo comercial');
-    const inversionIndex = headers.findIndex(h => h === 'inversion');
+    // Búsqueda case-insensitive y con trim para mayor robustez
+    const findColumnIndex = (headers, possibleNames) => {
+      console.log('🔍 Buscando columnas en Excel:', headers);
+      for (const name of possibleNames) {
+        const index = headers.findIndex(h => h.trim().toLowerCase() === name.toLowerCase());
+        console.log(`🔍 Buscando "${name}" -> índice: ${index}`);
+        if (index !== -1) return index;
+      }
+      console.log('⚠️ No se encontró ninguna de las columnas buscadas en Excel');
+      return -1;
+    };
+
+    const fechaIndex = findColumnIndex(headers, ['fecha']);
+    const horaIndex = findColumnIndex(headers, ['hora inicio', 'hora_inicio', 'hora']);
+    const canalIndex = findColumnIndex(headers, ['canal']);
+    const tituloIndex = findColumnIndex(headers, [
+      'titulo programa', 'título programa', 'Titulo Programa', 'TITULO PROGRAMA',
+      'titulo_programa', 'título_programa', 'Titulo_Programa', 'TITULO_PROGRAMA',
+      'programa', 'titulo', 'show', 'program', 'nombre programa', 'nombre_programa',
+      'programa nombre', 'programa_nombre', 'programa tv', 'programa_tv'
+    ]);
+    const versionIndex = findColumnIndex(headers, [
+      'version', 'versión', 'Version', 'VERSIÓN', 'version_', 'Version_', 'VERSIÓN_',
+      'ver', 'v', 'numero version', 'numero_version', 'número versión', 'número_version'
+    ]);
+    const duracionIndex = findColumnIndex(headers, [
+      'duracion', 'duración', 'Duracion', 'DURACIÓN', 'duracion_', 'duración_',
+      'tiempo', 'length', 'minutos', 'segundos'
+    ]);
+    const tipoComercialIndex = findColumnIndex(headers, [
+      'tipo comercial', 'tipo_comercial', 'Tipo Comercial', 'TIPO_COMERCIAL',
+      'tipo', 'categoria', 'categoría', 'class', 'clase'
+    ]);
+    const inversionIndex = findColumnIndex(headers, [
+      'inversion', 'inversión', 'Inversion', 'INVERSIÓN', 'inversion_', 'inversión_',
+      'costo', 'coste', 'precio', 'amount', 'monto', 'presupuesto', 'budget'
+    ]);
     
     console.log('🔍 Índices de columnas:', {
       fechaIndex, horaIndex, canalIndex, tituloIndex,
       versionIndex, duracionIndex, tipoComercialIndex, inversionIndex
     });
     
+    // Debug: Mostrar qué headers se encontraron
+    console.log('🔍 Headers disponibles (Excel):', headers);
+    console.log('🔍 Buscando columna título programa (Excel)...');
+    console.log('🔍 tituloIndex encontrado (Excel):', tituloIndex);
+    console.log('🔍 Si tituloIndex es -1, significa que no se encontró la columna');
+    
     if (fechaIndex === -1 || horaIndex === -1) {
       throw new Error('El archivo debe contener las columnas "fecha" y "hora inicio"');
+    }
+    
+    // Advertencia si no se encuentra la columna del título del programa
+    if (tituloIndex === -1) {
+      console.warn('⚠️ ADVERTENCIA: No se encontró la columna del título del programa (Excel)');
+      console.warn('📋 Columnas disponibles:', headers);
+      console.warn('🔍 Se buscó: "Titulo Programa", "titulo programa", "programa", "titulo", etc.');
     }
     
     return jsonData.slice(1).map((row, index) => {
@@ -334,6 +418,19 @@ const SpotAnalysis = () => {
           
           console.log(`✅ Se parsearon ${formattedSpots.length} spots válidos de ${spots.length} totales`);
           console.log('📊 Primeros 3 spots parseados:', formattedSpots.slice(0, 3));
+          
+          // Debug específico para título programa
+          console.log('🔍 DEBUG - Análisis de títulos programa:');
+          formattedSpots.slice(0, 3).forEach((spot, index) => {
+            console.log(`Spot ${index + 1}:`, {
+              nombre: spot.nombre,
+              titulo_programa: spot.titulo_programa,
+              debug_titulo: spot.debug_titulo,
+              '¿titulo_programa está vacío?': !spot.titulo_programa,
+              '¿nombre empieza con "Spot"?': spot.nombre?.startsWith('Spot')
+            });
+          });
+          
           resolve(formattedSpots);
         } catch (error) {
           console.error('❌ Error parseando archivo:', error);
