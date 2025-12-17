@@ -1179,22 +1179,42 @@ const FrasesRadio = () => {
       </motion.div>
 
       {/* Configuración (siempre visible) */}
-      <div className="bg-white shadow rounded-lg p-6 mb-6">
-        <h2 className="text-lg font-medium text-gray-900 mb-4">Configuración del Análisis</h2>
-        
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Selección de cuenta */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-white shadow-xl rounded-2xl p-8 mb-6 border border-gray-100"
+      >
+        {/* Header de configuración */}
+        <div className="flex items-center mb-8">
+          <div className="p-3 bg-gradient-to-r from-purple-500 to-pink-600 rounded-xl mr-4">
+            <Radio className="h-6 w-6 text-white" />
+          </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Cuenta de Analytics
-            </label>
+            <h2 className="text-2xl font-bold text-gray-900">Configuración del Análisis</h2>
+            <p className="text-gray-600 mt-1">Configura los parámetros para analizar el impacto de tus frases de radio</p>
+          </div>
+        </div>
+
+        {/* Grid principal de configuración */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+          {/* Card: Cuenta de Analytics */}
+          <motion.div
+            whileHover={{ y: -2 }}
+            className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-6 border border-purple-100"
+          >
+            <div className="flex items-center mb-4">
+              <div className="p-2 bg-purple-500 rounded-lg mr-3">
+                <Users className="h-5 w-5 text-white" />
+              </div>
+              <h3 className="font-semibold text-gray-900">Cuenta de Analytics</h3>
+            </div>
             <select
               value={selectedAccount}
               onChange={(e) => {
                 setSelectedAccount(e.target.value);
-                setSelectedProperty(''); // Resetear propiedad al cambiar cuenta
+                setSelectedProperty('');
               }}
-              className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500"
+              className="w-full px-4 py-3 bg-white border border-purple-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
               disabled={!isConnected}
             >
               <option value="">Selecciona una cuenta...</option>
@@ -1204,17 +1224,29 @@ const FrasesRadio = () => {
                 </option>
               ))}
             </select>
-          </div>
+            {selectedAccount && (
+              <div className="mt-3 flex items-center text-sm text-green-600">
+                <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                Cuenta seleccionada
+              </div>
+            )}
+          </motion.div>
 
-          {/* Selección de propiedad */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Propiedad de Analytics
-            </label>
+          {/* Card: Propiedad de Analytics */}
+          <motion.div
+            whileHover={{ y: -2 }}
+            className="bg-gradient-to-br from-pink-50 to-purple-50 rounded-xl p-6 border border-pink-100"
+          >
+            <div className="flex items-center mb-4">
+              <div className="p-2 bg-pink-500 rounded-lg mr-3">
+                <Target className="h-5 w-5 text-white" />
+              </div>
+              <h3 className="font-semibold text-gray-900">Propiedad de Analytics</h3>
+            </div>
             <select
               value={selectedProperty}
               onChange={(e) => setSelectedProperty(e.target.value)}
-              className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500"
+              className="w-full px-4 py-3 bg-white border border-pink-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all"
               disabled={!isConnected || !selectedAccount}
             >
               <option value="">
@@ -1226,13 +1258,25 @@ const FrasesRadio = () => {
                 </option>
               ))}
             </select>
-          </div>
+            {selectedProperty && (
+              <div className="mt-3 flex items-center text-sm text-green-600">
+                <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                Propiedad seleccionada
+              </div>
+            )}
+          </motion.div>
 
-          {/* Subida de archivo de frases */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Archivo de Frases (Excel/CSV)
-            </label>
+          {/* Card: Archivo de Frases */}
+          <motion.div
+            whileHover={{ y: -2 }}
+            className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-100"
+          >
+            <div className="flex items-center mb-4">
+              <div className="p-2 bg-blue-500 rounded-lg mr-3">
+                <Upload className="h-5 w-5 text-white" />
+              </div>
+              <h3 className="font-semibold text-gray-900">Archivo de Frases</h3>
+            </div>
             <div className="relative">
               <input
                 type="file"
@@ -1243,27 +1287,41 @@ const FrasesRadio = () => {
               />
               <label
                 htmlFor="frases-file-upload"
-                className="flex items-center justify-center w-full px-4 py-2 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-gray-400"
+                className="flex flex-col items-center justify-center w-full px-6 py-8 border-2 border-dashed border-blue-300 rounded-lg cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-all bg-white"
               >
-                <Upload className="h-5 w-5 text-gray-400 mr-2" />
-                <span className="text-sm text-gray-600">
-                  {frasesFile ? frasesFile.name : 'Selecciona archivo Excel o CSV'}
+                <Upload className="h-8 w-8 text-blue-500 mb-2" />
+                <span className="text-sm text-gray-600 text-center">
+                  {frasesFile ? (
+                    <span className="text-blue-600 font-medium">{frasesFile.name}</span>
+                  ) : (
+                    'Selecciona archivo Excel o CSV'
+                  )}
                 </span>
               </label>
             </div>
             {frasesData.length > 0 && (
-              <p className="mt-2 text-sm text-green-600">
-                ✓ {frasesData.length} frases cargadas
-              </p>
+              <div className="mt-3 flex items-center text-sm text-green-600">
+                <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                {frasesData.length} frases cargadas exitosamente
+              </div>
             )}
-          </div>
+          </motion.div>
         </div>
 
-        {/* Subida de audio (opcional) */}
-        <div className="mt-6">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Audio de la Frase (Opcional)
-          </label>
+        {/* Sección opcional: Audio */}
+        <motion.div
+          whileHover={{ y: -1 }}
+          className="bg-gradient-to-r from-gray-50 to-slate-50 rounded-xl p-6 mb-8 border border-gray-200"
+        >
+          <div className="flex items-center mb-4">
+            <div className="p-2 bg-gray-500 rounded-lg mr-3">
+              <Radio className="h-5 w-5 text-white" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-gray-900">Audio de la Frase (Opcional)</h3>
+              <p className="text-sm text-gray-600">Sube el audio para análisis adicional</p>
+            </div>
+          </div>
           <div className="relative">
             <input
               type="file"
@@ -1274,85 +1332,107 @@ const FrasesRadio = () => {
             />
             <label
               htmlFor="audio-upload"
-              className="flex items-center justify-center w-full px-4 py-2 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-gray-400"
+              className="flex items-center justify-center w-full px-6 py-4 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-gray-400 hover:bg-gray-50 transition-all bg-white"
             >
-              <Radio className="h-5 w-5 text-gray-400 mr-2" />
+              <Radio className="h-6 w-6 text-gray-400 mr-3" />
               <span className="text-sm text-gray-600">
-                {audioFile ? audioFile.name : 'Selecciona audio de la frase'}
+                {audioFile ? (
+                  <span className="text-blue-600 font-medium">{audioFile.name}</span>
+                ) : (
+                  'Selecciona audio de la frase'
+                )}
               </span>
             </label>
           </div>
-        </div>
+        </motion.div>
 
-        {/* Botón de análisis */}
-        <div className="mt-6 flex justify-center">
+        {/* Botón de análisis principal */}
+        <div className="flex justify-center mb-8">
           <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={performAnalysis}
             disabled={analyzing || !selectedProperty || frasesData.length === 0}
-            className="inline-flex items-center px-8 py-3 border border-transparent shadow-sm text-base font-medium rounded-lg text-white bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="inline-flex items-center px-12 py-4 text-lg font-semibold rounded-xl text-white bg-gradient-to-r from-purple-600 via-pink-600 to-purple-700 hover:from-purple-700 hover:via-pink-700 hover:to-purple-800 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transition-all duration-300"
           >
             {analyzing ? (
               <>
-                <RefreshCw className="h-5 w-5 mr-2 animate-spin" />
-                Analizando...
+                <RefreshCw className="h-6 w-6 mr-3 animate-spin" />
+                Analizando Impacto...
               </>
             ) : (
               <>
-                <BarChart3 className="h-5 w-5 mr-2" />
-                Analizar Impacto
+                <BarChart3 className="h-6 w-6 mr-3" />
+                Analizar Impacto de Frases
               </>
             )}
           </motion.button>
         </div>
 
-        {/* Progreso del análisis */}
+        {/* Progreso del análisis mejorado */}
         {analyzing && (
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mt-6 bg-white rounded-lg shadow p-6"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-6 mb-6 border border-purple-200"
           >
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-medium text-gray-900">Analizando Impacto</h3>
-              <span className="text-sm text-gray-600">{analysisProgress}%</span>
+              <div className="flex items-center">
+                <div className="p-2 bg-purple-500 rounded-lg mr-3">
+                  <RefreshCw className="h-5 w-5 text-white animate-spin" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">Analizando Impacto</h3>
+                  <p className="text-sm text-gray-600">Procesando datos de Google Analytics</p>
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="text-2xl font-bold text-purple-600">{analysisProgress}%</div>
+                <div className="text-sm text-gray-600">Completado</div>
+              </div>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-3">
+            <div className="w-full bg-gray-200 rounded-full h-4 mb-3">
               <motion.div
-                className="bg-gradient-to-r from-purple-600 to-pink-600 h-3 rounded-full"
+                className="bg-gradient-to-r from-purple-500 to-pink-600 h-4 rounded-full"
                 initial={{ width: 0 }}
                 animate={{ width: `${analysisProgress}%` }}
-                transition={{ duration: 0.3 }}
+                transition={{ duration: 0.5 }}
               />
             </div>
-            <p className="mt-2 text-sm text-gray-600 text-center">
+            <p className="text-sm text-gray-600 text-center">
               Analizando frase {Math.ceil((analysisProgress / 100) * frasesData.length)} de {frasesData.length}...
             </p>
           </motion.div>
         )}
 
-        {/* Conexión a Analytics */}
+        {/* Conexión a Analytics mejorada */}
         {!isConnected && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mt-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4"
+            className="bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-xl p-6"
           >
-            <div className="flex">
-              <AlertCircle className="h-5 w-5 text-yellow-400" />
-              <div className="ml-3">
-                <h3 className="text-sm font-medium text-yellow-800">
-                  Conexión requerida
+            <div className="flex items-start">
+              <div className="p-2 bg-yellow-500 rounded-lg mr-4">
+                <AlertCircle className="h-6 w-6 text-white" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-lg font-semibold text-yellow-800 mb-2">
+                  Conexión a Google Analytics Requerida
                 </h3>
-                <div className="mt-2 text-sm text-yellow-700">
-                  <p>Conecta tu cuenta de Google Analytics para analizar el impacto de las frases.</p>
+                <p className="text-yellow-700 mb-4">
+                  Para analizar el impacto de tus frases de radio, necesitas conectar tu cuenta de Google Analytics.
+                  Esto nos permitirá acceder a los datos de tráfico y medir el efecto de tus campañas.
+                </p>
+                <div className="flex items-center text-sm text-yellow-600">
+                  <div className="w-2 h-2 bg-yellow-500 rounded-full mr-2"></div>
+                  Los datos se procesan de forma segura y privada
                 </div>
               </div>
             </div>
           </motion.div>
         )}
-      </div>
+      </motion.div>
 
       {/* Renderizar vista según el modo */}
       {viewMode === 'modern' ? renderModernView() : renderClassicView()}
