@@ -97,6 +97,7 @@ const SpotAnalysis = () => {
     const tituloIndex = headers.findIndex(h => h === 'titulo programa');
     const versionIndex = headers.findIndex(h => h === 'version');
     const duracionIndex = headers.findIndex(h => h === 'duracion');
+    const tipoComercialIndex = headers.findIndex(h => h === 'tipo comercial');
     const inversionIndex = headers.findIndex(h => h === 'inversion');
     
     if (fechaIndex === -1 || horaIndex === -1) {
@@ -112,6 +113,7 @@ const SpotAnalysis = () => {
         hora_inicio: values[horaIndex] || '',
         canal: values[canalIndex] || '',
         titulo_programa: values[tituloIndex] || '',
+        tipo_comercial: values[tipoComercialIndex] || '',
         version: values[versionIndex] || '',
         duracion: values[duracionIndex] || '',
         inversion: values[inversionIndex] || ''
@@ -136,6 +138,7 @@ const SpotAnalysis = () => {
     const tituloIndex = headers.findIndex(h => h === 'titulo programa');
     const versionIndex = headers.findIndex(h => h === 'version');
     const duracionIndex = headers.findIndex(h => h === 'duracion');
+    const tipoComercialIndex = headers.findIndex(h => h === 'tipo comercial');
     const inversionIndex = headers.findIndex(h => h === 'inversion');
     
     if (fechaIndex === -1 || horaIndex === -1) {
@@ -149,6 +152,7 @@ const SpotAnalysis = () => {
         hora_inicio: row[horaIndex] || '',
         canal: row[canalIndex] || '',
         titulo_programa: row[tituloIndex] || '',
+        tipo_comercial: row[tipoComercialIndex] || '',
         version: row[versionIndex] || '',
         duracion: row[duracionIndex] || '',
         inversion: row[inversionIndex] || ''
@@ -290,6 +294,8 @@ const SpotAnalysis = () => {
               fecha: spot.fecha,
               hora: spot.hora_inicio,
               nombre: spot.titulo_programa || `Spot ${index + 1}`,
+              titulo_programa: spot.titulo_programa || '',
+              tipo_comercial: spot.tipo_comercial || '',
               version: spot.version || '',
               duracion: spot.duracion ? parseInt(spot.duracion) : 30, // Parsear duración o usar default
               canal: spot.canal || 'TV',
@@ -645,13 +651,14 @@ const SpotAnalysis = () => {
     if (!analysisResults) return;
     
     const csv = [
-      ['Spot', 'Fecha', 'Hora Inicio', 'Canal', 'Título Programa', 'Versión', 'Duración', 'Inversión', 'Usuarios Activos', 'Sesiones', 'Vistas de Página', 'Impacto Usuarios', 'Impacto Sesiones', 'Impacto Vistas'],
+      ['Spot', 'Fecha', 'Hora Inicio', 'Canal', 'Título Programa', 'Tipo Comercial', 'Versión', 'Duración', 'Inversión', 'Usuarios Activos', 'Sesiones', 'Vistas de Página', 'Impacto Usuarios', 'Impacto Sesiones', 'Impacto Vistas'],
       ...analysisResults.map(result => [
         result?.spot?.nombre || 'Sin nombre',
         result?.spot?.fecha || '',
         result?.spot?.hora || '',
         result?.spot?.canal || '',
         result?.spot?.titulo_programa || result?.spot?.nombre || 'Sin título',
+        result?.spot?.tipo_comercial || '',
         result?.spot?.version || '',
         result?.spot?.duracion || '',
         result?.spot?.inversion || '',
@@ -801,8 +808,13 @@ const SpotAnalysis = () => {
                             <div className="flex items-center space-x-2">
                               <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                                 <Video className="h-3 w-3 mr-1" />
-                                Programa: {result?.spot?.titulo_programa || result?.spot?.nombre || 'N/A'}
+                                Título Programa: {result?.spot?.titulo_programa || result?.spot?.nombre || 'N/A'}
                               </span>
+                              {result?.spot?.tipo_comercial && (
+                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+                                  Tipo Comercial: {result.spot.tipo_comercial}
+                                </span>
+                              )}
                               {result?.spot?.version && (
                                 <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
                                   Versión: {result.spot.version}
