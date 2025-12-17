@@ -3,6 +3,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useGoogleAnalytics } from '../../contexts/GoogleAnalyticsContext';
 import { Link, useLocation, useNavigate, Outlet } from 'react-router-dom';
 import LoadingSpinner from '../UI/LoadingSpinner';
+import { motion } from 'framer-motion';
 import {
   BarChart3,
   Users,
@@ -16,7 +17,9 @@ import {
   ChevronDown,
   Unlink,
   TrendingUp,
-  Radio
+  Radio,
+  Sparkles,
+  Activity
 } from 'lucide-react';
 
 const Layout = () => {
@@ -154,70 +157,108 @@ const Layout = () => {
       </div>
 
       {/* Static sidebar for desktop */}
-      <div className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0">
-        <div className="flex-1 flex flex-col min-h-0 border-r border-gray-200 bg-white">
-          <div className="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
-            <div className="flex items-center flex-shrink-0 px-4">
-              <div className="h-8 w-8 bg-primary-600 rounded-full flex items-center justify-center">
-                <BarChart3 className="h-5 w-5 text-white" />
+      <div className="hidden md:flex md:w-72 md:flex-col md:fixed md:inset-y-0">
+        <div className="flex-1 flex flex-col min-h-0 bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 shadow-2xl">
+          {/* Header del sidebar */}
+          <div className="flex-1 flex flex-col pt-6 pb-4 overflow-y-auto">
+            <div className="flex items-center flex-shrink-0 px-6 mb-8">
+              <motion.div
+                className="h-12 w-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg"
+                whileHover={{ scale: 1.05, rotate: 5 }}
+                transition={{ type: "spring", stiffness: 300 }}
+              >
+                <BarChart3 className="h-7 w-7 text-white" />
+              </motion.div>
+              <div className="ml-4">
+                <h1 className="text-xl font-bold text-white">Analytics</h1>
+                <p className="text-xs text-slate-300">Dashboard Pro</p>
               </div>
-              <span className="ml-2 text-xl font-bold text-gray-900">GA4 Dashboard</span>
             </div>
             
-            <nav className="mt-5 flex-1 px-2 space-y-1">
-              {navigation.map((item) => (
-                <Link
+            {/* Navegación */}
+            <nav className="flex-1 px-4 space-y-2">
+              {navigation.map((item, index) => (
+                <motion.div
                   key={item.name}
-                  to={item.href}
-                  className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${
-                    item.current
-                      ? 'bg-primary-100 text-primary-900'
-                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                  }`}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.1 }}
                 >
-                  <item.icon
-                    className={`mr-3 flex-shrink-0 h-6 w-6 ${
-                      item.current ? 'text-primary-500' : 'text-gray-400 group-hover:text-gray-500'
+                  <Link
+                    to={item.href}
+                    className={`group flex items-center px-4 py-3.5 text-sm font-medium rounded-xl transition-all duration-200 ${
+                      item.current
+                        ? 'bg-gradient-to-r from-blue-500/20 to-purple-500/20 text-white shadow-lg border border-blue-400/30'
+                        : 'text-slate-300 hover:bg-white/10 hover:text-white hover:shadow-md'
                     }`}
-                  />
-                  {item.name}
-                </Link>
+                  >
+                    <motion.div
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      <item.icon
+                        className={`mr-4 flex-shrink-0 h-5 w-5 transition-colors duration-200 ${
+                          item.current ? 'text-blue-400' : 'text-slate-400 group-hover:text-white'
+                        }`}
+                      />
+                    </motion.div>
+                    <span className="font-medium">{item.name}</span>
+                    {item.current && (
+                      <motion.div
+                        className="ml-auto h-2 w-2 bg-blue-400 rounded-full"
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        transition={{ type: "spring", stiffness: 500 }}
+                      />
+                    )}
+                  </Link>
+                </motion.div>
               ))}
             </nav>
           </div>
           
-          <div className="flex-shrink-0 flex border-t border-gray-200 p-4">
-            <div className="flex items-center w-full">
+          {/* Perfil de usuario */}
+          <div className="flex-shrink-0 border-t border-slate-700/50 p-4">
+            <div className="flex items-center w-full p-3 rounded-xl bg-white/5 hover:bg-white/10 transition-colors duration-200">
               <div className="flex-shrink-0">
                 {user?.user_metadata?.avatar_url ? (
-                  <img
-                    className="h-10 w-10 rounded-full"
+                  <motion.img
+                    className="h-12 w-12 rounded-xl shadow-lg"
                     src={user?.user_metadata?.avatar_url}
                     alt={user?.email}
+                    whileHover={{ scale: 1.05 }}
                   />
                 ) : (
-                  <div className="h-10 w-10 rounded-full bg-primary-600 flex items-center justify-center">
-                    <span className="text-sm font-medium text-white">
+                  <motion.div
+                    className="h-12 w-12 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg"
+                    whileHover={{ scale: 1.05, rotate: 5 }}
+                  >
+                    <span className="text-lg font-bold text-white">
                       {user?.email?.charAt(0).toUpperCase() || '?'}
                     </span>
-                  </div>
+                  </motion.div>
                 )}
               </div>
-              <div className="ml-3 flex-1">
-                <p className="text-sm font-medium text-gray-700">
+              <div className="ml-4 flex-1 min-w-0">
+                <p className="text-sm font-medium text-white truncate">
                   {user?.user_metadata?.full_name || user?.email || 'Usuario'}
                 </p>
-                <p className="text-xs text-gray-500 truncate">
+                <p className="text-xs text-slate-400 truncate">
                   {user?.email || 'Sin email'}
                 </p>
               </div>
+              <motion.div
+                className="ml-2 h-2 w-2 bg-green-400 rounded-full"
+                animate={{ opacity: [1, 0.5, 1] }}
+                transition={{ duration: 2, repeat: Infinity }}
+              />
             </div>
           </div>
         </div>
       </div>
 
       {/* Main content */}
-      <div className="md:pl-64 flex flex-col flex-1">
+      <div className="md:pl-72 flex flex-col flex-1">
         <div className="sticky top-0 z-10 md:hidden pl-1 pt-1 sm:pl-3 sm:pt-3 bg-gray-50">
           <button
             type="button"
