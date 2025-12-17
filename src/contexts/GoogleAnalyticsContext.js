@@ -25,7 +25,15 @@ export const GoogleAnalyticsProvider = ({ children }) => {
   // Check if user has Google Analytics connection
   useEffect(() => {
     if (user) {
-      checkGoogleConnection();
+      // Usar setTimeout para evitar bloqueos y agregar timeout
+      const timeoutId = setTimeout(() => {
+        checkGoogleConnection().catch(error => {
+          console.warn('⚠️ Error en checkGoogleConnection (no bloquea UI):', error);
+          // No establecer loading en false aquí para evitar conflictos
+        });
+      }, 100); // Pequeño delay para evitar conflictos
+      
+      return () => clearTimeout(timeoutId);
     }
   }, [user]);
 

@@ -19,10 +19,25 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     // Get initial session
     const getInitialSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      setSession(session);
-      setUser(session?.user || null);
-      setLoading(false);
+      try {
+        console.log('🔍 DEBUG: Obteniendo sesión inicial...');
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.warn('⚠️ Error obteniendo sesión:', error.message);
+        }
+        
+        setSession(session);
+        setUser(session?.user || null);
+        console.log('✅ DEBUG: Sesión inicial obtenida:', !!session);
+      } catch (error) {
+        console.error('❌ Error crítico en getInitialSession:', error);
+        // En caso de error, asumir que no hay sesión
+        setSession(null);
+        setUser(null);
+      } finally {
+        setLoading(false);
+      }
     };
 
     getInitialSession();
@@ -30,13 +45,22 @@ export const AuthProvider = ({ children }) => {
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        setSession(session);
-        setUser(session?.user || null);
-        setLoading(false);
+        try {
+          console.log('🔄 DEBUG: Auth state changed:', event);
+          setSession(session);
+          setUser(session?.user || null);
+          setLoading(false);
 
-        // Update user profile in database
-        if (session?.user) {
-          await updateUserProfile(session.user);
+          // Update user profile in database (sin bloquear la UI)
+          if (session?.user) {
+            updateUserProfile(session.user).catch(error => {
+              console.warn('⚠️ Error actualizando perfil de usuario:', error);
+              // No lanzar el error para no interrumpir el flujo de autenticación
+            });
+          }
+        } catch (error) {
+          console.error('❌ Error en onAuthStateChange:', error);
+          setLoading(false);
         }
       }
     );
