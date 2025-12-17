@@ -19,12 +19,12 @@ const SmartInsights = ({ analysisResults, batchAIAnalysis }) => {
       type: 'timing',
       icon: Clock,
       title: 'Timing del Spot',
-      message: isPrimeTime 
+      message: isPrimeTime
         ? '🎯 Excelente timing: Tu spot se transmitió en horario prime time (19:00-23:00), cuando la audiencia está más receptiva.'
-        : isMorning 
+        : isMorning
         ? '🌅 Buen timing matutino: Spot en horario de mañana, ideal para productos de consumo diario.'
         : '⏰ Timing alternativo: Considera spots en horarios de mayor actividad web para maximizar impacto.',
-      confidence: isPrimeTime ? 90 : isMorning ? 75 : 60,
+      confidence: isPrimeTime ? Math.min(95, 70 + spot.impact.activeUsers.percentageChange) : isMorning ? Math.min(90, 60 + spot.impact.activeUsers.percentageChange) : Math.min(85, 50 + spot.impact.activeUsers.percentageChange),
       color: isPrimeTime ? 'green' : isMorning ? 'blue' : 'yellow'
     });
 
@@ -39,7 +39,7 @@ const SmartInsights = ({ analysisResults, batchAIAnalysis }) => {
         : impact > 20 
         ? `📈 Impacto positivo: ${impact.toFixed(1)}% de aumento. El spot generó un buen nivel de tráfico adicional.`
         : `📊 Impacto moderado: ${impact.toFixed(1)}% de aumento. Considera optimizar el contenido o timing del spot.`,
-      confidence: Math.min(95, 60 + Math.abs(impact)),
+      confidence: Math.min(95, Math.max(40, 50 + Math.abs(impact) / 2)),
       color: impact > 50 ? 'green' : impact > 20 ? 'blue' : 'yellow'
     });
 
@@ -52,7 +52,7 @@ const SmartInsights = ({ analysisResults, batchAIAnalysis }) => {
       message: hasSustainedTraffic
         ? '⚡ Efecto sostenido: El tráfico se mantuvo elevado por más de 2 horas después del spot, indicando buena recordación.'
         : '💨 Efecto inmediato: El impacto fue principalmente durante la transmisión. Considera reforzar con campañas digitales.',
-      confidence: hasSustainedTraffic ? 85 : 70,
+      confidence: hasSustainedTraffic ? Math.min(95, 60 + spot.impact.activeUsers.percentageChange) : Math.min(85, 40 + spot.impact.activeUsers.percentageChange),
       color: hasSustainedTraffic ? 'green' : 'blue'
     });
 
@@ -65,7 +65,7 @@ const SmartInsights = ({ analysisResults, batchAIAnalysis }) => {
       icon: Target,
       title: 'Potencial de Conversión',
       message: `🎯 Estimación de conversión: ${conversionRate.toFixed(1)}% de los visitantes podrían convertirse en clientes. ${conversionRate > 3 ? 'Excelente tasa de conversión esperada.' : 'Considera optimizar la landing page.'}`,
-      confidence: 75,
+      confidence: Math.min(90, 40 + (conversionRate * 10)),
       color: conversionRate > 3 ? 'green' : 'yellow'
     });
 
@@ -80,7 +80,7 @@ const SmartInsights = ({ analysisResults, batchAIAnalysis }) => {
       message: impact > avgImpact
         ? `🏆 Superaste el promedio: Tu spot generó ${(impact - avgImpact).toFixed(1)}% más impacto que la media de tus análisis.`
         : `📊 Por debajo del promedio: Tu spot generó ${(avgImpact - impact).toFixed(1)}% menos impacto. Hay oportunidad de mejora.`,
-      confidence: 80,
+      confidence: Math.min(95, 50 + Math.abs(impact - avgImpact)),
       color: impact > avgImpact ? 'green' : 'yellow'
     });
 

@@ -142,8 +142,8 @@ export const generateBatchAIAnalysis = async (analysisResults) => {
   if (!GROQ_API_KEY) {
     return {
       insights: ['Análisis de IA no disponible sin API key configurada'],
-      recommendations: ['Configura la variable de entorno REACT_APP_GROQ_API_KEY'],
-      summary: 'Se requiere configuración de API key'
+      recommendations: ['Configura la variable de entorno REACT_APP_GROQ_API_KEY para análisis inteligente'],
+      summary: 'Se requiere configuración de API key para análisis de IA'
     };
   }
 
@@ -215,13 +215,13 @@ Responde ÚNICAMENTE con un objeto JSON válido.
     
     return {
       insights: [
-        `De ${analysisResults.length} spots, ${successfulSpots.length} tuvieron impacto positivo`,
-        `Impacto promedio: ${avgImpact.toFixed(1)}%`,
-        'Variabilidad en rendimiento sugiere optimización de horarios necesaria'
+        `De ${analysisResults.length} spots analizados, ${successfulSpots.length} tuvieron impacto positivo`,
+        `Impacto promedio calculado: ${avgImpact.toFixed(1)}% basado en datos reales`,
+        'Análisis limitado por configuración de API - datos basados en métricas reales'
       ],
       recommendations: [
-        'Analizar patrones de los spots con mejor rendimiento',
-        'Considerar segmentación por horario y canal'
+        'Verificar configuración de API key para análisis más detallado',
+        'Los datos mostrados se basan en métricas reales de Google Analytics'
       ],
       summary: `Campaña con ${avgImpact.toFixed(1)}% de impacto promedio en ${analysisResults.length} spots`
     };

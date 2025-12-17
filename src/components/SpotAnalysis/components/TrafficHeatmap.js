@@ -244,7 +244,18 @@ const TrafficHeatmap = ({ analysisResults }) => {
         </div>
         <div className="text-center p-2 rounded-lg bg-green-50">
           <p className="text-xs text-green-600 mb-1">Mejor Día</p>
-          <p className="text-sm font-bold text-green-700">Martes</p>
+          <p className="text-sm font-bold text-green-700">
+            {(() => {
+              // Calcular el mejor día basado en datos reales
+              const dayAverages = {};
+              ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'].forEach(day => {
+                const dayData = heatmapData.filter(d => d.day === day);
+                dayAverages[day] = dayData.reduce((sum, d) => sum + d.intensity, 0) / dayData.length;
+              });
+              const bestDay = Object.keys(dayAverages).reduce((a, b) => dayAverages[a] > dayAverages[b] ? a : b);
+              return bestDay;
+            })()}
+          </p>
         </div>
         <div className="text-center p-2 rounded-lg bg-blue-50">
           <p className="text-xs text-blue-600 mb-1">Spot Timing</p>
