@@ -1,6 +1,9 @@
 import React, { useState, useCallback } from 'react';
 import { useGoogleAnalytics } from '../../contexts/GoogleAnalyticsContext';
 import { generateAIAnalysis, generateBatchAIAnalysis } from '../../services/aiAnalysisService';
+import { TemporalAnalysisService } from '../../services/temporalAnalysisService';
+import conversionAnalysisService from '../../services/conversionAnalysisService';
+import { predictiveAnalyticsService } from '../../services/predictiveAnalyticsService';
 import * as XLSX from 'xlsx';
 import { motion } from 'framer-motion';
 import {
@@ -26,6 +29,9 @@ import ImpactTimeline from './components/ImpactTimeline';
 import ConfidenceMeter from './components/ConfidenceMeter';
 import SmartInsights from './components/SmartInsights';
 import TrafficHeatmap from './components/TrafficHeatmap';
+import TemporalAnalysisDashboard from './components/TemporalAnalysisDashboard';
+import ConversionAnalysisDashboard from './components/ConversionAnalysisDashboard';
+import PredictiveAnalyticsDashboard from './components/PredictiveAnalyticsDashboard';
 
 const SpotAnalysis = () => {
   const { accounts, properties, getAnalyticsData, isConnected } = useGoogleAnalytics();
@@ -42,6 +48,11 @@ const SpotAnalysis = () => {
   const [aiAnalysis, setAiAnalysis] = useState({});
   const [batchAIAnalysis, setBatchAIAnalysis] = useState(null);
   const [viewMode, setViewMode] = useState('modern'); // 'modern' o 'classic'
+  const [temporalAnalysis, setTemporalAnalysis] = useState(null);
+  const [temporalBaseline, setTemporalBaseline] = useState(null);
+  const [conversionAnalysis, setConversionAnalysis] = useState(null);
+  const [controlGroupAnalysis, setControlGroupAnalysis] = useState(null);
+  const [predictiveAnalysis, setPredictiveAnalysis] = useState(null);
 
   // Filtrar y ordenar propiedades basadas en la cuenta seleccionada
   const filteredProperties = selectedAccount
@@ -54,6 +65,9 @@ const SpotAnalysis = () => {
   const sortedAccounts = [...accounts].sort((a, b) =>
     (a.displayName || a.account_name || a.name).localeCompare(b.displayName || b.account_name || b.name)
   );
+
+  // Instancia del servicio de análisis temporal
+  const temporalAnalysisService = new TemporalAnalysisService();
 
   // Parsear CSV mejorado - SOLO LEE fecha_aparicion y hora_megatime
   const parseCSV = useCallback((content) => {
@@ -481,6 +495,11 @@ const SpotAnalysis = () => {
     setAnalysisProgress(0);
     setAiAnalysis({});
     setBatchAIAnalysis(null);
+    setTemporalAnalysis(null);
+    setTemporalBaseline(null);
+    setConversionAnalysis(null);
+    setControlGroupAnalysis(null);
+    setPredictiveAnalysis(null);
 
     try {
       const results = [];
@@ -498,10 +517,78 @@ const SpotAnalysis = () => {
       }
       
       setAnalysisResults(results);
-      console.log('📈 Análisis completado:', results);
+      console.log('📈 Análisis básico completado:', results);
       
       // Ejecutar análisis de IA automáticamente después del análisis de spots
       await generateAutomaticAIAnalysis(results);
+      
+      // FASE 2: Análisis temporal digital avanzado
+      if (results.length > 0) {
+        console.log('🕒 Iniciando análisis temporal digital avanzado...');
+        setAnalysisProgress(90);
+        
+        try {
+          // Obtener datos históricos para baseline robusto (últimos 30 días)
+          const spotDateTime = results[0].spot.dateTime;
+          const historicalData = await temporalAnalysisService.getHistoricalData(
+            selectedProperty,
+            new Date(spotDateTime.getTime() - 30 * 24 * 60 * 60 * 1000), // 30 días atrás
+            spotDateTime
+          );
+          
+          // Calcular baseline robusto
+          const robustBaseline = temporalAnalysisService.calculateRobustBaseline(spotDateTime, historicalData);
+          setTemporalBaseline(robustBaseline);
+          
+          // Realizar análisis temporal para cada spot
+          const temporalResults = {};
+          for (let i = 0; i < results.length; i++) {
+            const spotResult = results[i];
+            const temporalImpact = temporalAnalysisService.analyzeTemporalImpact(
+              spotResult.spot,
+              spotResult.metrics,
+              robustBaseline
+            );
+            temporalResults[i] = temporalImpact;
+          }
+          
+          setTemporalAnalysis(temporalResults);
+          console.log('✅ Análisis temporal digital completado:', temporalResults);
+          
+        } catch (temporalError) {
+          console.warn('⚠️ Error en análisis temporal:', temporalError);
+          // Continuar sin análisis temporal si falla
+        }
+      }
+      
+      // FASE 4: Análisis predictivo con IA
+      if (results.length > 0 && temporalBaseline) {
+        console.log('🔮 Iniciando análisis predictivo con IA...');
+        setAnalysisProgress(95);
+        
+        try {
+          // Generar análisis predictivo para el primer spot (como ejemplo)
+          const spotForPrediction = results[0].spot;
+          const historicalDataForPrediction = await temporalAnalysisService.getHistoricalData(
+            selectedProperty,
+            new Date(spotForPrediction.dateTime.getTime() - 30 * 24 * 60 * 60 * 1000),
+            spotForPrediction.dateTime
+          );
+          
+          const predictiveResults = await predictiveAnalyticsService.generatePredictiveAnalysis(
+            spotForPrediction,
+            historicalDataForPrediction,
+            {} // marketData vacío por ahora
+          );
+          
+          setPredictiveAnalysis(predictiveResults);
+          console.log('✅ Análisis predictivo completado:', predictiveResults);
+          
+        } catch (predictiveError) {
+          console.warn('⚠️ Error en análisis predictivo:', predictiveError);
+          // Continuar sin análisis predictivo si falla
+        }
+      }
       
     } catch (error) {
       console.error('❌ Error en el análisis:', error);
@@ -510,7 +597,7 @@ const SpotAnalysis = () => {
       setAnalyzing(false);
       setAnalysisProgress(0);
     }
-  }, [spotsData, selectedProperty, analyzeSpotImpact, generateAutomaticAIAnalysis]);
+  }, [spotsData, selectedProperty, analyzeSpotImpact, generateAutomaticAIAnalysis, temporalAnalysisService, predictiveAnalyticsService, setTemporalAnalysis, setTemporalBaseline, setPredictiveAnalysis]);
 
   // Exportar resultados
   const exportResults = () => {
@@ -640,6 +727,22 @@ const SpotAnalysis = () => {
           <SmartInsights analysisResults={analysisResults} batchAIAnalysis={batchAIAnalysis} />
           <TrafficHeatmap analysisResults={analysisResults} />
         </div>
+      )}
+
+      {/* Dashboard de Análisis Temporal (FASE 2) */}
+      {temporalAnalysis && temporalBaseline && (
+        <TemporalAnalysisDashboard
+          temporalImpact={temporalAnalysis}
+          baseline={temporalBaseline}
+          spotData={spotsData}
+        />
+      )}
+
+      {/* Dashboard de Análisis Predictivo con IA (FASE 4) */}
+      {predictiveAnalysis && (
+        <PredictiveAnalyticsDashboard
+          predictiveAnalysis={predictiveAnalysis}
+        />
       )}
 
       {/* Resultados Clásicos (si se necesita) */}

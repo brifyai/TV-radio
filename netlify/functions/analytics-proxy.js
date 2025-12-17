@@ -4,15 +4,27 @@ const axios = require('axios');
 const GOOGLE_ANALYTICS_API_BASE = 'https://analyticsdata.googleapis.com';
 const GOOGLE_ANALYTICS_ADMIN_API_BASE = 'https://analyticsadmin.googleapis.com';
 
-// Middleware para verificar el token de autorización
+// Middleware mejorado para verificar el token de autorización
 const verifyAuthToken = (headers) => {
-  const authHeader = headers.authorization;
+  console.log('🔍 DEBUG: Verificando token de autorización...');
+  console.log('🔍 DEBUG: Headers recibidos:', Object.keys(headers || {}));
   
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    throw new Error('Token de autorización no proporcionado o inválido');
+  const authHeader = headers.authorization || headers.Authorization;
+  
+  if (!authHeader) {
+    console.log('❌ DEBUG: No se encontró header de autorización');
+    throw new Error('Header de autorización no encontrado');
   }
   
-  return authHeader.substring(7);
+  if (!authHeader.startsWith('Bearer ')) {
+    console.log('❌ DEBUG: Header de autorización no tiene formato Bearer');
+    throw new Error('Header de autorización debe tener formato "Bearer <token>"');
+  }
+  
+  const token = authHeader.substring(7);
+  console.log('✅ DEBUG: Token extraído, longitud:', token.length);
+  
+  return token;
 };
 
 // Manejador para obtener cuentas de Google Analytics
@@ -34,8 +46,45 @@ exports.handler = async (event, context) => {
   }
 
   try {
+    console.log('🔍 DEBUG: Nueva solicitud recibida');
+    console.log('🔍 DEBUG: HTTP Method:', event.httpMethod);
+    console.log('🔍 DEBUG: Path original:', event.path);
+    console.log('🔍 DEBUG: Headers disponibles:', Object.keys(event.headers || {}));
+    
     const path = event.path.replace('/.netlify/functions/analytics-proxy', '');
-    const accessToken = verifyAuthToken(event.headers);
+    console.log('🔍 DEBUG: Path procesado:', path);
+    
+    // Endpoint de health check para debugging
+    if (event.httpMethod === 'GET' && path === '/health') {
+      console.log('✅ DEBUG: Health check solicitado');
+      return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify({
+          status: 'OK',
+          timestamp: new Date().toISOString(),
+          version: '1.0.0',
+          environment: process.env.NODE_ENV || 'unknown'
+        })
+      };
+    }
+
+    // Verificar token de autorización para endpoints que lo requieren
+    let accessToken;
+    try {
+      accessToken = verifyAuthToken(event.headers);
+    } catch (authError) {
+      console.log('❌ DEBUG: Error de autenticación:', authError.message);
+      return {
+        statusCode: 401,
+        headers,
+        body: JSON.stringify({
+          error: 'No autorizado',
+          message: authError.message,
+          timestamp: new Date().toISOString()
+        })
+      };
+    }
 
     // Endpoint para obtener cuentas
     if (event.httpMethod === 'GET' && path === '/api/analytics/accounts') {
@@ -104,8 +153,13 @@ exports.handler = async (event, context) => {
     if (event.httpMethod === 'POST' && path.startsWith('/api/analytics/data/')) {
       const propertyId = path.split('/').pop();
       
+      console.log('🔍 DEBUG: Procesando solicitud de datos para propiedad:', propertyId);
+      console.log('🔍 DEBUG: HTTP Method:', event.httpMethod);
+      console.log('🔍 DEBUG: Path completo:', path);
+      
       // Verificar que event.body existe y no está vacío
-      if (!event.body) {
+      if (!event.body || event.body.trim() === '') {
+        console.log('❌ DEBUG: Cuerpo de solicitud vacío');
         return {
           statusCode: 400,
           headers,
@@ -118,14 +172,18 @@ exports.handler = async (event, context) => {
       
       let requestData;
       try {
+        console.log('🔍 DEBUG: Intentando parsear JSON del cuerpo...');
         requestData = JSON.parse(event.body);
+        console.log('✅ DEBUG: JSON parseado exitosamente');
       } catch (parseError) {
+        console.log('❌ DEBUG: Error al parsear JSON:', parseError.message);
         return {
           statusCode: 400,
           headers,
           body: JSON.stringify({
             error: 'JSON inválido en el cuerpo de la solicitud',
-            details: parseError.message
+            details: `Error de parseo: ${parseError.message}`,
+            receivedBody: event.body.substring(0, 200) // Primeros 200 chars para debug
           })
         };
       }
@@ -179,14 +237,50 @@ exports.handler = async (event, context) => {
       };
       
       // Mapear dimensiones a los nombres correctos de la API
-      const apiDimensions = dimensions?.map(dim => dimensionMapping[dim] || dim) || [];
+      const apiDimensions = dimensions?.map(dim => {
+        const mapped = dimensionMapping[dim] || dim;
+        console.log(`🔍 Mapeando dimensión: ${dim} -> ${mapped}`);
+        return mapped;
+      }) || [];
       
       console.log(`🔍 Dimensiones mapeadas para API:`, apiDimensions);
       
+      // Validar que tenemos dimensiones válidas
+      if (apiDimensions.length === 0) {
+        console.log('❌ DEBUG: No se proporcionaron dimensiones válidas');
+        return {
+          statusCode: 400,
+          headers,
+          body: JSON.stringify({
+            error: 'Dimensiones requeridas',
+            details: 'Debe proporcionar al menos una dimensión válida',
+            availableDimensions: Object.keys(dimensionMapping)
+          })
+        };
+      }
+      
       // Mapear métricas a los nombres correctos de la API
-      const apiMetrics = metrics?.map(metric => metricMapping[metric] || metric) || [];
+      const apiMetrics = metrics?.map(metric => {
+        const mapped = metricMapping[metric] || metric;
+        console.log(`🔍 Mapeando métrica: ${metric} -> ${mapped}`);
+        return mapped;
+      }) || [];
       
       console.log(`🔍 Métricas mapeadas para API:`, apiMetrics);
+      
+      // Validar que tenemos métricas válidas
+      if (apiMetrics.length === 0) {
+        console.log('❌ DEBUG: No se proporcionaron métricas válidas');
+        return {
+          statusCode: 400,
+          headers,
+          body: JSON.stringify({
+            error: 'Métricas requeridas',
+            details: 'Debe proporcionar al menos una métrica válida',
+            availableMetrics: Object.keys(metricMapping)
+          })
+        };
+      }
       
       // Construir la solicitud para la API de Google Analytics Data
       const requestBody = {
@@ -250,17 +344,62 @@ exports.handler = async (event, context) => {
     };
 
   } catch (error) {
-    console.error('❌ Error en el proxy de Netlify:', error.response?.data || error.message);
+    console.error('❌ Error en el proxy de Netlify:');
+    console.error('❌ Tipo de error:', error.constructor.name);
+    console.error('❌ Mensaje:', error.message);
+    console.error('❌ Stack:', error.stack);
+    console.error('❌ Response data:', error.response?.data);
+    console.error('❌ Response status:', error.response?.status);
+    console.error('❌ Request path:', event.path);
+    console.error('❌ Request method:', event.httpMethod);
     
-    const status = error.response?.status || 500;
-    const message = error.response?.data?.error?.message || error.message;
+    // Determinar código de estado apropiado
+    let status = 500;
+    let message = 'Error interno del servidor';
+    let details = {};
+    
+    if (error.response) {
+      // Error de la API de Google
+      status = error.response.status;
+      message = error.response.data?.error?.message || error.response.data?.message || error.message;
+      details = {
+        googleApiError: error.response.data,
+        status: status
+      };
+    } else if (error.code === 'ENOTFOUND' || error.code === 'ECONNREFUSED') {
+      // Error de red
+      status = 503;
+      message = 'Servicio no disponible temporalmente';
+      details = {
+        networkError: error.code,
+        message: 'No se puede conectar con Google Analytics API'
+      };
+    } else if (error.message.includes('Token de autorización')) {
+      // Error de autenticación
+      status = 401;
+      message = 'Token de autorización inválido';
+      details = {
+        authError: true,
+        message: 'Verifica que el token de acceso sea válido'
+      };
+    } else {
+      // Error genérico
+      message = error.message || 'Error desconocido';
+      details = {
+        errorType: error.constructor.name,
+        originalError: error.message
+      };
+    }
     
     return {
       statusCode: status,
       headers,
-      body: JSON.stringify({ 
+      body: JSON.stringify({
         error: message,
-        details: error.response?.data
+        details: details,
+        timestamp: new Date().toISOString(),
+        path: event.path,
+        method: event.httpMethod
       })
     };
   }
