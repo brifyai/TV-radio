@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../../contexts/AuthContext';
 import { useGoogleAnalytics } from '../../contexts/GoogleAnalyticsContext';
@@ -87,11 +87,7 @@ const Settings = () => {
   });
 
   // Cargar configuraciones al montar el componente
-  useEffect(() => {
-    loadUserSettings();
-  }, [loadUserSettings]);
-
-  const loadUserSettings = async () => {
+  const loadUserSettings = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -155,7 +151,11 @@ const Settings = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
+
+  useEffect(() => {
+    loadUserSettings();
+  }, [loadUserSettings]);
 
   // Funciones para manejo de avatar
   const handleAvatarClick = () => {
