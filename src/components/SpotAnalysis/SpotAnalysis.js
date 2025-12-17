@@ -619,18 +619,18 @@ const SpotAnalysis = () => {
     const csv = [
       ['Spot', 'Fecha', 'Hora Inicio', 'Canal', 'Título Programa', 'Inversión', 'Usuarios Activos', 'Sesiones', 'Vistas de Página', 'Impacto Usuarios', 'Impacto Sesiones', 'Impacto Vistas'],
       ...analysisResults.map(result => [
-        result.spot.nombre,
-        result.spot.fecha,
-        result.spot.hora,
-        result.spot.canal,
-        result.spot.nombre, // Usar nombre como título del programa
-        result.spot.inversion || '',
-        result.metrics.spot.activeUsers,
-        result.metrics.spot.sessions,
-        result.metrics.spot.pageviews,
-        `${result.impact.activeUsers.percentageChange.toFixed(1)}%`,
-        `${result.impact.sessions.percentageChange.toFixed(1)}%`,
-        `${result.impact.pageviews.percentageChange.toFixed(1)}%`
+        result?.spot?.nombre || 'Sin nombre',
+        result?.spot?.fecha || '',
+        result?.spot?.hora || '',
+        result?.spot?.canal || '',
+        result?.spot?.nombre || 'Sin título', // Usar nombre como título del programa
+        result?.spot?.inversion || '',
+        result?.metrics?.spot?.activeUsers || 0,
+        result?.metrics?.spot?.sessions || 0,
+        result?.metrics?.spot?.pageviews || 0,
+        `${(result?.impact?.activeUsers?.percentageChange || 0).toFixed(1)}%`,
+        `${(result?.impact?.sessions?.percentageChange || 0).toFixed(1)}%`,
+        `${(result?.impact?.pageviews?.percentageChange || 0).toFixed(1)}%`
       ])
     ].map(row => row.join(',')).join('\n');
     
@@ -742,13 +742,16 @@ const SpotAnalysis = () => {
               <div key={index} className="border border-gray-200 rounded-lg p-4">
                 <div className="flex items-center justify-between mb-3">
                   <div>
-                    <h3 className="font-medium text-gray-900">{result.spot.nombre}</h3>
+                    <h3 className="font-medium text-gray-900">{result?.spot?.nombre || 'Sin nombre'}</h3>
                     <p className="text-sm text-gray-600">
-                      {result.spot.dateTime.toLocaleDateString('es-CL')} {result.spot.dateTime.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })} - {result.spot.canal}
+                      {result?.spot?.dateTime ?
+                        `${result.spot.dateTime.toLocaleDateString('es-CL')} ${result.spot.dateTime.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })}` :
+                        'Fecha no disponible'
+                      } - {result?.spot?.canal || ''}
                     </p>
                   </div>
                   <div className="flex items-center space-x-2">
-                    {result.impact.activeUsers.significant ? (
+                    {result?.impact?.activeUsers?.significant ? (
                       <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
                         <TrendingUp className="h-3 w-3 mr-1" />
                         Impacto Detectado
@@ -768,10 +771,10 @@ const SpotAnalysis = () => {
                       <span className="text-sm font-medium text-gray-700">Usuarios</span>
                     </div>
                     <p className="text-lg font-semibold text-gray-900">
-                      {result.metrics.spot.activeUsers}
+                      {result?.metrics?.spot?.activeUsers || 0}
                     </p>
-                    <p className={`text-xs ${result.impact.activeUsers.percentageChange >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                      {result.impact.activeUsers.percentageChange >= 0 ? '+' : ''}{result.impact.activeUsers.percentageChange.toFixed(1)}%
+                    <p className={`text-xs ${(result?.impact?.activeUsers?.percentageChange || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      {(result?.impact?.activeUsers?.percentageChange || 0) >= 0 ? '+' : ''}{(result?.impact?.activeUsers?.percentageChange || 0).toFixed(1)}%
                     </p>
                   </div>
                   
@@ -781,10 +784,10 @@ const SpotAnalysis = () => {
                       <span className="text-sm font-medium text-gray-700">Sesiones</span>
                     </div>
                     <p className="text-lg font-semibold text-gray-900">
-                      {result.metrics.spot.sessions}
+                      {result?.metrics?.spot?.sessions || 0}
                     </p>
-                    <p className={`text-xs ${result.impact.sessions.percentageChange >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                      {result.impact.sessions.percentageChange >= 0 ? '+' : ''}{result.impact.sessions.percentageChange.toFixed(1)}%
+                    <p className={`text-xs ${(result?.impact?.sessions?.percentageChange || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      {(result?.impact?.sessions?.percentageChange || 0) >= 0 ? '+' : ''}{(result?.impact?.sessions?.percentageChange || 0).toFixed(1)}%
                     </p>
                   </div>
                   
@@ -794,10 +797,10 @@ const SpotAnalysis = () => {
                       <span className="text-sm font-medium text-gray-700">Vistas</span>
                     </div>
                     <p className="text-lg font-semibold text-gray-900">
-                      {result.metrics.spot.pageviews}
+                      {result?.metrics?.spot?.pageviews || 0}
                     </p>
-                    <p className={`text-xs ${result.impact.pageviews.percentageChange >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                      {result.impact.pageviews.percentageChange >= 0 ? '+' : ''}{result.impact.pageviews.percentageChange.toFixed(1)}%
+                    <p className={`text-xs ${(result?.impact?.pageviews?.percentageChange || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      {(result?.impact?.pageviews?.percentageChange || 0) >= 0 ? '+' : ''}{(result?.impact?.pageviews?.percentageChange || 0).toFixed(1)}%
                     </p>
                   </div>
                 </div>
@@ -943,13 +946,16 @@ const SpotAnalysis = () => {
               <div key={index} className="border border-gray-200 rounded-lg p-4">
                 <div className="flex items-center justify-between mb-3">
                   <div>
-                    <h3 className="font-medium text-gray-900">{result.spot.nombre}</h3>
+                    <h3 className="font-medium text-gray-900">{result?.spot?.nombre || 'Sin nombre'}</h3>
                     <p className="text-sm text-gray-600">
-                      {result.spot.dateTime.toLocaleDateString('es-CL')} {result.spot.dateTime.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })} - {result.spot.canal}
+                      {result?.spot?.dateTime ?
+                        `${result.spot.dateTime.toLocaleDateString('es-CL')} ${result.spot.dateTime.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })}` :
+                        'Fecha no disponible'
+                      } - {result?.spot?.canal || ''}
                     </p>
                   </div>
                   <div className="flex items-center space-x-2">
-                    {result.impact.activeUsers.significant ? (
+                    {result?.impact?.activeUsers?.significant ? (
                       <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
                         <TrendingUp className="h-3 w-3 mr-1" />
                         Impacto Detectado
@@ -970,10 +976,10 @@ const SpotAnalysis = () => {
                       <span className="text-sm font-medium text-gray-700">Usuarios</span>
                     </div>
                     <p className="text-lg font-semibold text-gray-900">
-                      {result.metrics.spot.activeUsers}
+                      {result?.metrics?.spot?.activeUsers || 0}
                     </p>
-                    <p className={`text-xs ${result.impact.activeUsers.percentageChange >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                      {result.impact.activeUsers.percentageChange >= 0 ? '+' : ''}{result.impact.activeUsers.percentageChange.toFixed(1)}%
+                    <p className={`text-xs ${(result?.impact?.activeUsers?.percentageChange || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      {(result?.impact?.activeUsers?.percentageChange || 0) >= 0 ? '+' : ''}{(result?.impact?.activeUsers?.percentageChange || 0).toFixed(1)}%
                     </p>
                   </div>
                   
@@ -984,10 +990,10 @@ const SpotAnalysis = () => {
                       <span className="text-sm font-medium text-gray-700">Sesiones</span>
                     </div>
                     <p className="text-lg font-semibold text-gray-900">
-                      {result.metrics.spot.sessions}
+                      {result?.metrics?.spot?.sessions || 0}
                     </p>
-                    <p className={`text-xs ${result.impact.sessions.percentageChange >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                      {result.impact.sessions.percentageChange >= 0 ? '+' : ''}{result.impact.sessions.percentageChange.toFixed(1)}%
+                    <p className={`text-xs ${(result?.impact?.sessions?.percentageChange || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      {(result?.impact?.sessions?.percentageChange || 0) >= 0 ? '+' : ''}{(result?.impact?.sessions?.percentageChange || 0).toFixed(1)}%
                     </p>
                   </div>
                   
@@ -998,10 +1004,10 @@ const SpotAnalysis = () => {
                       <span className="text-sm font-medium text-gray-700">Vistas</span>
                     </div>
                     <p className="text-lg font-semibold text-gray-900">
-                      {result.metrics.spot.pageviews}
+                      {result?.metrics?.spot?.pageviews || 0}
                     </p>
-                    <p className={`text-xs ${result.impact.pageviews.percentageChange >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                      {result.impact.pageviews.percentageChange >= 0 ? '+' : ''}{result.impact.pageviews.percentageChange.toFixed(1)}%
+                    <p className={`text-xs ${(result?.impact?.pageviews?.percentageChange || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      {(result?.impact?.pageviews?.percentageChange || 0) >= 0 ? '+' : ''}{(result?.impact?.pageviews?.percentageChange || 0).toFixed(1)}%
                     </p>
                   </div>
                 </div>
