@@ -826,7 +826,7 @@ const SpotAnalysis = () => {
                       <div>
                         <h5 className="text-xs font-medium text-purple-700">Insights:</h5>
                         <ul className="text-xs text-purple-700 list-disc list-inside">
-                          {aiAnalysis[index].insights.map((insight, i) => (
+                          {(aiAnalysis[index]?.insights || []).map((insight, i) => (
                             <li key={i}>{insight}</li>
                           ))}
                         </ul>
@@ -834,7 +834,7 @@ const SpotAnalysis = () => {
                       <div>
                         <h5 className="text-xs font-medium text-purple-700">Recomendaciones:</h5>
                         <ul className="text-xs text-purple-700 list-disc list-inside">
-                          {aiAnalysis[index].recommendations.map((rec, i) => (
+                          {(aiAnalysis[index]?.recommendations || []).map((rec, i) => (
                             <li key={i}>{rec}</li>
                           ))}
                         </ul>
@@ -1054,7 +1054,7 @@ const SpotAnalysis = () => {
                 <div>
                   <h4 className="text-xs font-medium text-purple-700 mb-1">Insights Clave:</h4>
                   <ul className="text-xs text-purple-700 list-disc list-inside">
-                    {batchAIAnalysis.insights.map((insight, i) => (
+                    {(batchAIAnalysis.insights || []).map((insight, i) => (
                       <li key={i}>{insight}</li>
                     ))}
                   </ul>
@@ -1062,7 +1062,7 @@ const SpotAnalysis = () => {
                 <div>
                   <h4 className="text-xs font-medium text-purple-700 mb-1">Recomendaciones:</h4>
                   <ul className="text-xs text-purple-700 list-disc list-inside">
-                    {batchAIAnalysis.recommendations.map((rec, i) => (
+                    {(batchAIAnalysis.recommendations || []).map((rec, i) => (
                       <li key={i}>{rec}</li>
                     ))}
                   </ul>
@@ -1151,7 +1151,7 @@ const SpotAnalysis = () => {
                       <div>
                         <h5 className="text-xs font-medium text-purple-700">Insights:</h5>
                         <ul className="text-xs text-purple-700 list-disc list-inside">
-                          {aiAnalysis[index].insights.map((insight, i) => (
+                          {(aiAnalysis[index]?.insights || []).map((insight, i) => (
                             <li key={i}>{insight}</li>
                           ))}
                         </ul>
@@ -1159,7 +1159,7 @@ const SpotAnalysis = () => {
                       <div>
                         <h5 className="text-xs font-medium text-purple-700">Recomendaciones:</h5>
                         <ul className="text-xs text-purple-700 list-disc list-inside">
-                          {aiAnalysis[index].recommendations.map((rec, i) => (
+                          {(aiAnalysis[index]?.recommendations || []).map((rec, i) => (
                             <li key={i}>{rec}</li>
                           ))}
                         </ul>
