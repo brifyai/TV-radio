@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../../contexts/AuthContext';
 import { useGoogleAnalytics } from '../../contexts/GoogleAnalyticsContext';
+import userSettingsService from '../../services/userSettingsService';
 import {
   User,
   Bell,
@@ -16,25 +17,23 @@ import {
   Moon,
   Sun,
   Monitor,
-  Smartphone,
-  Mail,
   Lock,
-  Eye,
-  EyeOff,
   Check,
-  X,
   AlertTriangle,
-  Info
+  Info,
+  Loader2
 } from 'lucide-react';
 
 const Settings = () => {
-  const { user, updateProfile } = useAuth();
+  const { user } = useAuth();
   const { isConnected, disconnectGoogleAnalytics } = useGoogleAnalytics();
   
   // Estados para configuraciones
   const [activeTab, setActiveTab] = useState('profile');
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [error, setError] = useState(null);
   
   // Estados para configuraciones de usuario
   const [profileData, setProfileData] = useState({
@@ -79,6 +78,75 @@ const Settings = () => {
     resetSettings: false
   });
 
+  // Cargar configuraciones al montar el componente
+  useEffect(() => {
+    loadUserSettings();
+  }, []);
+
+  const loadUserSettings = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const settings = await userSettingsService.getUserSettings();
+      
+      if (settings) {
+        // Actualizar estados con las configuraciones cargadas
+        setProfileData({
+          fullName: settings.full_name || user?.user_metadata?.full_name || '',
+          email: user?.email || '',
+          phone: settings.phone || '',
+          company: settings.company || '',
+          bio: settings.bio || ''
+        });
+
+        setNotifications({
+          email: settings.notifications_email ?? true,
+          push: settings.notifications_push ?? false,
+          analytics: settings.notifications_analytics ?? true,
+          reports: settings.notifications_reports ?? true,
+          maintenance: settings.notifications_maintenance ?? true
+        });
+
+        setAppearance({
+          theme: settings.theme || 'system',
+          language: settings.language || 'es',
+          timezone: settings.timezone || 'America/Santiago',
+          dateFormat: settings.date_format || 'DD/MM/YYYY',
+          currency: settings.currency || 'CLP'
+        });
+
+        setPrivacy({
+          profileVisibility: settings.profile_visibility || 'private',
+          analyticsSharing: settings.analytics_sharing ?? false,
+          dataRetention: settings.data_retention || '1year',
+          twoFactorAuth: settings.two_factor_auth ?? false
+        });
+
+        setDataSettings({
+          autoBackup: settings.auto_backup ?? true,
+          dataExport: false,
+          clearCache: false,
+          resetSettings: false
+        });
+      }
+    } catch (error) {
+      console.error('Error loading user settings:', error);
+      setError('Error al cargar las configuraciones. Usando valores por defecto.');
+      
+      // En caso de error, usar valores por defecto
+      setProfileData({
+        fullName: user?.user_metadata?.full_name || '',
+        email: user?.email || '',
+        phone: '',
+        company: '',
+        bio: ''
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const tabs = [
     { id: 'profile', name: 'Perfil', icon: User },
     { id: 'notifications', name: 'Notificaciones', icon: Bell },
@@ -88,16 +156,51 @@ const Settings = () => {
   ];
 
   const handleSave = async () => {
-    setLoading(true);
     try {
-      // Simular guardado
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      setSaving(true);
+      setError(null);
+
+      // Preparar datos para guardar
+      const settingsToSave = {
+        // Perfil
+        full_name: profileData.fullName,
+        phone: profileData.phone,
+        company: profileData.company,
+        bio: profileData.bio,
+        
+        // Notificaciones
+        notifications_email: notifications.email,
+        notifications_push: notifications.push,
+        notifications_analytics: notifications.analytics,
+        notifications_reports: notifications.reports,
+        notifications_maintenance: notifications.maintenance,
+        
+        // Apariencia
+        theme: appearance.theme,
+        language: appearance.language,
+        timezone: appearance.timezone,
+        date_format: appearance.dateFormat,
+        currency: appearance.currency,
+        
+        // Privacidad
+        profile_visibility: privacy.profileVisibility,
+        analytics_sharing: privacy.analyticsSharing,
+        data_retention: privacy.dataRetention,
+        two_factor_auth: privacy.twoFactorAuth,
+        
+        // Datos
+        auto_backup: dataSettings.autoBackup
+      };
+
+      await userSettingsService.updateUserSettings(settingsToSave);
+      
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
     } catch (error) {
       console.error('Error saving settings:', error);
+      setError('Error al guardar las configuraciones. Por favor, inténtalo de nuevo.');
     } finally {
-      setLoading(false);
+      setSaving(false);
     }
   };
 
@@ -112,6 +215,77 @@ const Settings = () => {
       }
     }
   };
+
+  const handleExportData = async () => {
+    try {
+      setSaving(true);
+      const exportData = await userSettingsService.exportUserSettings();
+      
+      // Crear y descargar archivo
+      const blob = new Blob([JSON.stringify(exportData, null, 2)], {
+        type: 'application/json'
+      });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `user-settings-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      
+      alert('Datos exportados exitosamente');
+    } catch (error) {
+      console.error('Error exporting data:', error);
+      alert('Error al exportar los datos');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleClearCache = async () => {
+    try {
+      setSaving(true);
+      await userSettingsService.clearUserCache();
+      alert('Caché limpiado exitosamente');
+    } catch (error) {
+      console.error('Error clearing cache:', error);
+      alert('Error al limpiar el caché');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleResetSettings = async () => {
+    if (window.confirm('¿Estás seguro? Esta acción restablecerá todas las configuraciones a sus valores por defecto y no se puede deshacer.')) {
+      try {
+        setSaving(true);
+        await userSettingsService.resetToDefaults();
+        
+        // Recargar configuraciones
+        await loadUserSettings();
+        
+        alert('Configuraciones restablecidas exitosamente');
+      } catch (error) {
+        console.error('Error resetting settings:', error);
+        alert('Error al restablecer las configuraciones');
+      } finally {
+        setSaving(false);
+      }
+    }
+  };
+
+  // Mostrar loading mientras se cargan las configuraciones
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin text-blue-600 mx-auto mb-4" />
+          <p className="text-gray-600">Cargando configuraciones...</p>
+        </div>
+      </div>
+    );
+  }
 
   const renderProfileSettings = () => (
     <motion.div
@@ -523,10 +697,11 @@ const Settings = () => {
               </div>
             </div>
             <button
-              onClick={() => setDataSettings({...dataSettings, dataExport: true})}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              onClick={handleExportData}
+              disabled={saving}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Exportar
+              {saving ? 'Exportando...' : 'Exportar'}
             </button>
           </div>
           
@@ -539,10 +714,11 @@ const Settings = () => {
               </div>
             </div>
             <button
-              onClick={() => setDataSettings({...dataSettings, clearCache: true})}
-              className="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors"
+              onClick={handleClearCache}
+              disabled={saving}
+              className="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Limpiar
+              {saving ? 'Limpiando...' : 'Limpiar'}
             </button>
           </div>
           
@@ -555,14 +731,11 @@ const Settings = () => {
               </div>
             </div>
             <button
-              onClick={() => {
-                if (window.confirm('¿Estás seguro? Esta acción no se puede deshacer.')) {
-                  setDataSettings({...dataSettings, resetSettings: true});
-                }
-              }}
-              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+              onClick={handleResetSettings}
+              disabled={saving}
+              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Restablecer
+              {saving ? 'Restableciendo...' : 'Restablecer'}
             </button>
           </div>
         </div>
@@ -631,11 +804,11 @@ const Settings = () => {
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={handleSave}
-                disabled={loading}
+                disabled={saving}
                 className={`flex items-center px-6 py-3 rounded-lg font-medium transition-all ${
                   saved
                     ? 'bg-green-600 text-white'
-                    : loading
+                    : saving
                     ? 'bg-gray-400 text-white cursor-not-allowed'
                     : 'bg-blue-600 text-white hover:bg-blue-700'
                 }`}
@@ -645,7 +818,7 @@ const Settings = () => {
                     <Check className="mr-2 h-5 w-5" />
                     Guardado
                   </>
-                ) : loading ? (
+                ) : saving ? (
                   <>
                     <RefreshCw className="mr-2 h-5 w-5 animate-spin" />
                     Guardando...
@@ -658,6 +831,23 @@ const Settings = () => {
                 )}
               </motion.button>
             </div>
+
+            {/* Error Alert */}
+            {error && (
+              <div className="mt-4 bg-red-50 border border-red-200 rounded-md p-4">
+                <div className="flex">
+                  <AlertTriangle className="h-5 w-5 text-red-400" />
+                  <div className="ml-3">
+                    <h3 className="text-sm font-medium text-red-800">
+                      Error
+                    </h3>
+                    <div className="mt-2 text-sm text-red-700">
+                      <p>{error}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
