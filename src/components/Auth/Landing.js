@@ -1,12 +1,12 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { 
-  BarChart3, 
-  Sparkles, 
-  ArrowRight, 
-  Play, 
-  TrendingUp, 
+import {
+  BarChart3,
+  Sparkles,
+  ArrowRight,
+  Play,
+  TrendingUp,
   Radio,
   Shield,
   Zap,
@@ -14,7 +14,11 @@ import {
   Star,
   Users,
   Target,
-  Clock
+  Clock,
+  Mail,
+  Phone,
+  MapPin,
+  Send
 } from 'lucide-react';
 
 const Landing = () => {
@@ -71,6 +75,53 @@ const Landing = () => {
     }
   ];
 
+  const plans = [
+    {
+      name: 'Básico',
+      price: '$99',
+      period: '/mes',
+      description: 'Perfecto para pequeñas empresas',
+      features: [
+        'Hasta 5 canales de TV/Radio',
+        'Análisis básico de correlaciones',
+        'Reportes semanales',
+        'Soporte por email'
+      ],
+      popular: false,
+      buttonText: 'Comenzar Gratis'
+    },
+    {
+      name: 'Profesional',
+      price: '$299',
+      period: '/mes',
+      description: 'Ideal para agencias medianas',
+      features: [
+        'Hasta 20 canales de TV/Radio',
+        'Análisis avanzado con IA',
+        'Reportes en tiempo real',
+        'API de integración',
+        'Soporte prioritario'
+      ],
+      popular: true,
+      buttonText: 'Más Popular'
+    },
+    {
+      name: 'Enterprise',
+      price: 'Personalizado',
+      period: '',
+      description: 'Para grandes corporaciones',
+      features: [
+        'Canales ilimitados',
+        'Análisis predictivo avanzado',
+        'Dashboard personalizado',
+        'Integración completa',
+        'Gerente de cuenta dedicado'
+      ],
+      popular: false,
+      buttonText: 'Contactar Ventas'
+    }
+  ];
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative overflow-hidden">
       {/* Animated Background Elements */}
@@ -93,7 +144,10 @@ const Landing = () => {
           <div className="hidden md:flex items-center space-x-8">
             <a href="#features" className="text-slate-300 hover:text-white transition-colors">Características</a>
             <a href="#stats" className="text-slate-300 hover:text-white transition-colors">Estadísticas</a>
+            <a href="#about" className="text-slate-300 hover:text-white transition-colors">Somos</a>
+            <a href="#pricing" className="text-slate-300 hover:text-white transition-colors">Planes</a>
             <a href="#testimonials" className="text-slate-300 hover:text-white transition-colors">Testimonios</a>
+            <a href="#contact" className="text-slate-300 hover:text-white transition-colors">Contacto</a>
           </div>
         </div>
       </nav>
@@ -279,6 +333,159 @@ const Landing = () => {
         </div>
       </section>
 
+      {/* About Section */}
+      <section id="about" className="relative z-10 px-6 py-20">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-white mb-4">
+              ¿Quiénes Somos?
+            </h2>
+            <p className="text-xl text-slate-300 max-w-3xl mx-auto">
+              Somos el equipo detrás de la revolución en análisis de medios
+            </p>
+          </div>
+          
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <div>
+              <motion.div
+                initial={{ opacity: 0, x: -30 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.8 }}
+              >
+                <h3 className="text-2xl font-bold text-white mb-6">
+                  Transformando la Industria de Medios con Inteligencia Artificial
+                </h3>
+                <p className="text-slate-300 mb-6">
+                  En iMetrics, creemos que cada spot de TV y radio cuenta una historia.
+                  Nuestra misión es descifrar esas historias para ayudarte a tomar decisiones
+                  basadas en datos reales.
+                </p>
+                <p className="text-slate-300 mb-6">
+                  Con más de 5 años de experiencia en análisis de medios y machine learning,
+                  hemos desarrollado la plataforma más avanzada para correlacionar transmisiones
+                  tradicionales con métricas digitales.
+                </p>
+                <div className="space-y-4">
+                  <div className="flex items-center space-x-3">
+                    <CheckCircle className="h-5 w-5 text-green-400" />
+                    <span className="text-slate-300">Equipo de expertos en IA y medios</span>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <CheckCircle className="h-5 w-5 text-green-400" />
+                    <span className="text-slate-300">Tecnología de vanguardia</span>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <CheckCircle className="h-5 w-5 text-green-400" />
+                    <span className="text-slate-300">Compromiso con la innovación</span>
+                  </div>
+                </div>
+              </motion.div>
+            </div>
+            
+            <div className="relative">
+              <motion.div
+                initial={{ opacity: 0, x: 30 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.8 }}
+                className="bg-white/10 backdrop-blur-xl rounded-2xl p-8 border border-white/20"
+              >
+                <h4 className="text-xl font-bold text-white mb-6">Nuestra Visión</h4>
+                <p className="text-slate-300 mb-6">
+                  "Democratizar el acceso a insights de medios, permitiendo que cualquier
+                  empresa, sin importar su tamaño, pueda optimizar sus campañas con la
+                  precisión que ofrece la inteligencia artificial."
+                </p>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-purple-400">2020</div>
+                    <div className="text-sm text-slate-400">Fundación</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-purple-400">500+</div>
+                    <div className="text-sm text-slate-400">Clientes</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-purple-400">50+</div>
+                    <div className="text-sm text-slate-400">Países</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-purple-400">24/7</div>
+                    <div className="text-sm text-slate-400">Soporte</div>
+                  </div>
+                </div>
+              </motion.div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Pricing Section */}
+      <section id="pricing" className="relative z-10 px-6 py-20">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-white mb-4">
+              Planes y Precios
+            </h2>
+            <p className="text-xl text-slate-300 max-w-3xl mx-auto">
+              Elige el plan que mejor se adapte a tus necesidades
+            </p>
+          </div>
+          
+          <div className="grid md:grid-cols-3 gap-8">
+            {plans.map((plan, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: index * 0.1 }}
+                className={`relative bg-white/10 backdrop-blur-sm rounded-xl p-8 border transition-all duration-300 hover:bg-white/15 ${
+                  plan.popular ? 'border-purple-400 scale-105' : 'border-white/20'
+                }`}
+              >
+                {plan.popular && (
+                  <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                    <span className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-2 rounded-full text-sm font-semibold">
+                      Más Popular
+                    </span>
+                  </div>
+                )}
+                
+                <div className="text-center mb-8">
+                  <h3 className="text-2xl font-bold text-white mb-2">{plan.name}</h3>
+                  <p className="text-slate-300 mb-4">{plan.description}</p>
+                  <div className="flex items-baseline justify-center">
+                    <span className="text-4xl font-bold text-white">{plan.price}</span>
+                    <span className="text-slate-400 ml-1">{plan.period}</span>
+                  </div>
+                </div>
+                
+                <ul className="space-y-3 mb-8">
+                  {plan.features.map((feature, featureIndex) => (
+                    <li key={featureIndex} className="flex items-center space-x-3">
+                      <CheckCircle className="h-5 w-5 text-green-400 flex-shrink-0" />
+                      <span className="text-slate-300">{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+                
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => navigate('/login')}
+                  className={`w-full py-3 px-6 rounded-xl font-semibold transition-all duration-200 ${
+                    plan.popular
+                      ? 'bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-lg'
+                      : 'bg-white/10 hover:bg-white/20 border border-white/20 text-white'
+                  }`}
+                >
+                  {plan.buttonText}
+                </motion.button>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Testimonials Section */}
       <section id="testimonials" className="relative z-10 px-6 py-20">
         <div className="max-w-7xl mx-auto">
@@ -309,6 +516,162 @@ const Landing = () => {
                 </div>
               </motion.div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Contact Section */}
+      <section id="contact" className="relative z-10 px-6 py-20">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-white mb-4">
+              ¿Tienes Preguntas?
+            </h2>
+            <p className="text-xl text-slate-300 max-w-3xl mx-auto">
+              Estamos aquí para ayudarte. Contáctanos y te responderemos pronto.
+            </p>
+          </div>
+          
+          <div className="grid lg:grid-cols-2 gap-12">
+            {/* Contact Info */}
+            <motion.div
+              initial={{ opacity: 0, x: -30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8 }}
+              className="space-y-8"
+            >
+              <div>
+                <h3 className="text-2xl font-bold text-white mb-6">Información de Contacto</h3>
+                <div className="space-y-4">
+                  <div className="flex items-center space-x-4">
+                    <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
+                      <Mail className="h-6 w-6 text-white" />
+                    </div>
+                    <div>
+                      <div className="text-white font-semibold">Email</div>
+                      <div className="text-slate-300">contacto@imetrics.com</div>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center space-x-4">
+                    <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
+                      <Phone className="h-6 w-6 text-white" />
+                    </div>
+                    <div>
+                      <div className="text-white font-semibold">Teléfono</div>
+                      <div className="text-slate-300">+1 (555) 123-4567</div>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center space-x-4">
+                    <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
+                      <MapPin className="h-6 w-6 text-white" />
+                    </div>
+                    <div>
+                      <div className="text-white font-semibold">Oficina</div>
+                      <div className="text-slate-300">San Francisco, CA</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
+                <h4 className="text-lg font-semibold text-white mb-4">Horarios de Atención</h4>
+                <div className="space-y-2 text-slate-300">
+                  <div className="flex justify-between">
+                    <span>Lunes - Viernes</span>
+                    <span>9:00 AM - 6:00 PM PST</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Sábados</span>
+                    <span>10:00 AM - 2:00 PM PST</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Domingos</span>
+                    <span>Cerrado</span>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Contact Form */}
+            <motion.div
+              initial={{ opacity: 0, x: 30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8 }}
+              className="bg-white/10 backdrop-blur-xl rounded-2xl p-8 border border-white/20"
+            >
+              <form className="space-y-6">
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-300 mb-2">
+                      Nombre
+                    </label>
+                    <input
+                      type="text"
+                      className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:border-purple-400 transition-colors"
+                      placeholder="Tu nombre"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-300 mb-2">
+                      Email
+                    </label>
+                    <input
+                      type="email"
+                      className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:border-purple-400 transition-colors"
+                      placeholder="tu@email.com"
+                    />
+                  </div>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">
+                    Empresa
+                  </label>
+                  <input
+                    type="text"
+                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:border-purple-400 transition-colors"
+                    placeholder="Nombre de tu empresa"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">
+                    Asunto
+                  </label>
+                  <select className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:border-purple-400 transition-colors">
+                    <option value="">Selecciona un asunto</option>
+                    <option value="demo">Solicitar Demo</option>
+                    <option value="pricing">Información de Precios</option>
+                    <option value="support">Soporte Técnico</option>
+                    <option value="partnership">Alianzas</option>
+                    <option value="other">Otro</option>
+                  </select>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">
+                    Mensaje
+                  </label>
+                  <textarea
+                    rows={4}
+                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:border-purple-400 transition-colors resize-none"
+                    placeholder="Cuéntanos cómo podemos ayudarte..."
+                  ></textarea>
+                </div>
+                
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  type="submit"
+                  className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center space-x-2"
+                >
+                  <Send className="h-5 w-5" />
+                  <span>Enviar Mensaje</span>
+                </motion.button>
+              </form>
+            </motion.div>
           </div>
         </div>
       </section>
