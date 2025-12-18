@@ -520,12 +520,43 @@ const Analytics = () => {
   };
 
   const handleDateRangePreset = (preset) => {
+    console.log(`🔍 DEBUG: Aplicando preset: ${preset.label}`, preset.value);
+    
     setDateRange(preset.value);
     setShowCustomDateRange(false);
+    
+    // Detectar si es un rango de un solo día (Hoy, Ayer)
+    const isSingleDayRange = (
+      preset.value.startDate === preset.value.endDate &&
+      (preset.value.startDate === 'today' ||
+       preset.value.startDate === 'yesterday' ||
+       (typeof preset.value.startDate === 'string' && preset.value.startDate === preset.value.endDate))
+    );
+    
+    console.log(`🔍 DEBUG: ¿Es rango de un solo día? ${isSingleDayRange}`);
+    
+    if (isSingleDayRange) {
+      // Si es un solo día, cambiar automáticamente a mostrar horas (24 horas)
+      console.log(`🔍 DEBUG: Cambiando automáticamente a dimensión 'dateMinute' para mostrar 24 horas`);
+      setSelectedDimensions(['dateMinute']);
+    }
   };
 
   const handleCustomDateRange = (startDate, endDate) => {
+    console.log(`🔍 DEBUG: Aplicando rango personalizado: ${startDate} - ${endDate}`);
+    
     setDateRange({ startDate, endDate });
+    
+    // Detectar si es un rango de un solo día (fechas personalizadas)
+    const isSingleDayRange = startDate === endDate;
+    
+    console.log(`🔍 DEBUG: ¿Es rango de un solo día (personalizado)? ${isSingleDayRange}`);
+    
+    if (isSingleDayRange && startDate && endDate) {
+      // Si es un solo día, cambiar automáticamente a mostrar horas (24 horas)
+      console.log(`🔍 DEBUG: Cambiando automáticamente a dimensión 'dateMinute' para mostrar 24 horas`);
+      setSelectedDimensions(['dateMinute']);
+    }
   };
 
   const handleSort = (key) => {
