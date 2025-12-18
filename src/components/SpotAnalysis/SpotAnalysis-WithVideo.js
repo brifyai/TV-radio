@@ -990,27 +990,17 @@ const SpotAnalysis = () => {
                 <h2 className="text-2xl font-bold text-gray-900">
                   Análisis de Video con IA
                 </h2>
-                {/* Indicador de fuente de datos */}
-                {videoAnalysis?.datos_analytics_reales ? (
+                {/* Solo mostrar indicador cuando hay datos reales */}
+                {videoAnalysis?.datos_analytics_reales && (
                   <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200">
                     <div className="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></div>
                     DATOS REALES
-                  </span>
-                ) : (
-                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 border border-yellow-200">
-                    <div className="w-2 h-2 bg-yellow-500 rounded-full mr-2"></div>
-                    MODO DEMOSTRACIÓN
                   </span>
                 )}
               </div>
               <p className="text-gray-600 mt-1">
                 Análisis visual avanzado del spot usando Qwen2.5-VL-72B-Instruct
               </p>
-              {videoAnalysis?.fuente_analisis && (
-                <p className="text-sm text-gray-500 mt-1">
-                  Fuente: {videoAnalysis.fuente_analisis}
-                </p>
-              )}
             </div>
           </div>
 
