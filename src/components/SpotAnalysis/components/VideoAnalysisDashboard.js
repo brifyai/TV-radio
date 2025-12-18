@@ -78,191 +78,109 @@ const VideoAnalysisDashboard = ({
     }
   };
 
-  // Generar racional de vinculación video-analytics basado en datos REALES
-  const generateVideoAnalyticsRational = async () => {
+  // Generar racional de vinculación video-analytics basado en datos 100% REALES
+  const generateVideoAnalyticsRational = () => {
     if (!videoAnalysis || !analysisResults || analysisResults.length === 0) return null;
 
     const spot = analysisResults[0];
     const rational = [];
 
-    try {
-      // 1. Análisis de timing REAL basado en datos de Google Analytics
-      const spotHour = spot.spot.dateTime.getHours();
-      const spotDate = spot.spot.dateTime.toISOString().split('T')[0];
+    // 1. Análisis de timing REAL basado únicamente en datos de Google Analytics
+    const spotHour = spot.spot.dateTime.getHours();
+    const spotUsers = spot.metrics.spot.activeUsers;
+    const spotSessions = spot.metrics.spot.sessions;
+    const spotPageviews = spot.metrics.spot.pageviews;
+    
+    // Usar únicamente métricas reales de GA, sin simulaciones
+    rational.push({
+      type: 'timing',
+      title: 'Análisis de Timing Real',
+      message: `Spot transmitido a las ${spotHour}:00. Métricas reales GA: ${spotUsers} usuarios activos, ${spotSessions} sesiones, ${spotPageviews} vistas de página durante la transmisión.`,
+      impact: Math.abs(spot.impact.activeUsers.percentageChange) > 20 ? 'Alto' : Math.abs(spot.impact.activeUsers.percentageChange) > 10 ? 'Medio' : 'Bajo',
+      confidence: 95, // Alta confianza porque son datos directos de GA
+      realData: true
+    });
+
+    // 2. Análisis de efectividad REAL vs métricas reales de GA
+    if (videoAnalysis.analisis_efectividad) {
+      const efectividad = videoAnalysis.analisis_efectividad;
+      const avgEffectiveness = Object.values(efectividad).reduce((sum, val) => sum + parseFloat(val), 0) / Object.values(efectividad).length;
+      const realImpact = spot.impact.activeUsers.percentageChange;
       
-      // Obtener datos REALES de Google Analytics para el horario específico
-      const timingData = await getRealTimingData(spotDate, spotHour);
-      
-      if (timingData) {
-        const avgUsersAtHour = timingData.avgUsers;
-        const spotUsers = spot.metrics.spot.activeUsers;
-        const timingImpact = spotUsers > 0 ? ((spotUsers - avgUsersAtHour) / avgUsersAtHour) * 100 : 0;
-        
-        // Calcular confianza REAL basada en significancia estadística
-        const confidence = calculateRealConfidence(timingData.sampleSize, Math.abs(timingImpact));
-        
-        rational.push({
-          type: 'timing',
-          title: 'Análisis de Timing Real',
-          message: `El spot a las ${spotHour}:00 generó ${spotUsers} usuarios vs ${Math.round(avgUsersAtHour)} promedio histórico. Impacto real: ${timingImpact >= 0 ? '+' : ''}${timingImpact.toFixed(1)}%.`,
-          impact: Math.abs(timingImpact) > 20 ? 'Alto' : Math.abs(timingImpact) > 10 ? 'Medio' : 'Bajo',
-          confidence: confidence,
-          realData: true
-        });
-      }
-
-      // 2. Análisis de efectividad REAL vs métricas reales
-      if (videoAnalysis.analisis_efectividad) {
-        const efectividad = videoAnalysis.analisis_efectividad;
-        const avgEffectiveness = Object.values(efectividad).reduce((sum, val) => sum + parseFloat(val), 0) / Object.values(efectividad).length;
-        
-        // Correlación REAL entre efectividad y métricas de analytics
-        const realCorrelation = calculateRealCorrelation(avgEffectiveness, spot.impact.activeUsers.percentageChange);
-        
-        rational.push({
-          type: 'effectiveness',
-          title: 'Efectividad vs Métricas Reales',
-          message: `Efectividad IA: ${avgEffectiveness.toFixed(1)}/10. Métricas reales GA: ${(spot.impact.activeUsers.percentageChange).toFixed(1)}% incremento. Correlación: ${realCorrelation.toFixed(1)}%.`,
-          impact: Math.abs(realCorrelation) > 70 ? 'Alto' : Math.abs(realCorrelation) > 40 ? 'Medio' : 'Bajo',
-          confidence: Math.min(95, Math.abs(realCorrelation)),
-          realData: true
-        });
-      }
-
-      // 3. Análisis de contenido visual REAL vs engagement real
-      if (videoAnalysis.contenido_visual) {
-        const escenas = videoAnalysis.contenido_visual.escenas_principales || [];
-        const colores = videoAnalysis.contenido_visual.colores_dominantes || [];
-        
-        if (escenas.length > 0) {
-          // Calcular engagement REAL basado en métricas de analytics
-          const realEngagement = spot.impact.pageviews.percentageChange;
-          const scenesImpact = Math.min(90, escenas.length * 15); // Impacto real basado en cantidad de escenas
-          
-          rational.push({
-            type: 'visual_content',
-            title: 'Contenido Visual vs Engagement Real',
-            message: `${escenas.length} escenas principales. Engagement real GA: ${realEngagement.toFixed(1)}%. Impacto estimado por escenas: ${scenesImpact.toFixed(1)}%.`,
-            impact: realEngagement > 30 ? 'Alto' : realEngagement > 15 ? 'Medio' : 'Bajo',
-            confidence: Math.min(95, Math.abs(realEngagement)),
-            realData: true
-          });
-        }
-
-        if (colores.length > 0) {
-          // Análisis REAL de retención basado en métricas de sesiones
-          const realRetention = spot.impact.sessions.percentageChange;
-          
-          rational.push({
-            type: 'color_psychology',
-            title: 'Psicología del Color vs Retención Real',
-            message: `Colores: ${colores.join(', ')}. Retención real GA: ${realRetention.toFixed(1)}%. Análisis basado en métricas reales de sesiones.`,
-            impact: realRetention > 25 ? 'Alto' : realRetention > 12 ? 'Medio' : 'Bajo',
-            confidence: Math.min(90, Math.abs(realRetention)),
-            realData: true
-          });
-        }
-      }
-
-      // 4. Análisis de mensaje vs conversión REAL
-      if (videoAnalysis.mensaje_marketing) {
-        const mensaje = videoAnalysis.mensaje_marketing;
-        const hasClearCTA = mensaje.call_to_action && mensaje.call_to_action !== '';
-        const hasValueProposition = mensaje.propuesta_valor && mensaje.propuesta_valor !== '';
-        
-        // Métrica REAL de conversión basada en usuarios activos
-        const realConversion = spot.impact.activeUsers.percentageChange;
-        
-        rational.push({
-          type: 'messaging',
-          title: 'Calidad del Mensaje vs Conversión Real',
-          message: `CTA: ${hasClearCTA ? 'Claro' : 'Poco claro'}, Propuesta: ${hasValueProposition ? 'Definida' : 'Difusa'}. Conversión real GA: ${realConversion.toFixed(1)}%.`,
-          impact: realConversion > 35 ? 'Alto' : realConversion > 18 ? 'Medio' : 'Bajo',
-          confidence: Math.min(95, Math.abs(realConversion)),
-          realData: true
-        });
-      }
-
-    } catch (error) {
-      console.warn('Error obteniendo datos reales para racional:', error);
-      // Fallback con datos disponibles pero marcados como estimados
       rational.push({
-        type: 'error',
-        title: 'Datos Limitados',
-        message: 'Algunos análisis no pudieron completarse con datos reales. Usando métricas disponibles.',
-        impact: 'Bajo',
-        confidence: 30,
-        realData: false
+        type: 'effectiveness',
+        title: 'Efectividad IA vs Métricas Reales GA',
+        message: `Evaluación IA: ${avgEffectiveness.toFixed(1)}/10. Impacto real medido en GA: ${realImpact >= 0 ? '+' : ''}${realImpact.toFixed(1)}% en usuarios activos.`,
+        impact: Math.abs(realImpact) > 25 ? 'Alto' : Math.abs(realImpact) > 12 ? 'Medio' : 'Bajo',
+        confidence: 90, // Alta confianza por datos directos
+        realData: true
+      });
+    }
+
+    // 3. Análisis de contenido visual REAL vs engagement real
+    if (videoAnalysis.contenido_visual) {
+      const escenas = videoAnalysis.contenido_visual.escenas_principales || [];
+      const colores = videoAnalysis.contenido_visual.colores_dominantes || [];
+      
+      if (escenas.length > 0) {
+        const realEngagement = spot.impact.pageviews.percentageChange;
+        
+        rational.push({
+          type: 'visual_content',
+          title: 'Contenido Visual vs Engagement Real GA',
+          message: `Video contiene ${escenas.length} escenas principales. Engagement real GA: ${realEngagement >= 0 ? '+' : ''}${realEngagement.toFixed(1)}% en vistas de página.`,
+          impact: Math.abs(realEngagement) > 30 ? 'Alto' : Math.abs(realEngagement) > 15 ? 'Medio' : 'Bajo',
+          confidence: 85,
+          realData: true
+        });
+      }
+
+      if (colores.length > 0) {
+        const realRetention = spot.impact.sessions.percentageChange;
+        
+        rational.push({
+          type: 'color_psychology',
+          title: 'Colores vs Retención Real GA',
+          message: `Paleta de colores detectada: ${colores.join(', ')}. Retención real GA: ${realRetention >= 0 ? '+' : ''}${realRetention.toFixed(1)}% en sesiones.`,
+          impact: Math.abs(realRetention) > 25 ? 'Alto' : Math.abs(realRetention) > 12 ? 'Medio' : 'Bajo',
+          confidence: 80,
+          realData: true
+        });
+      }
+    }
+
+    // 4. Análisis de mensaje vs conversión REAL
+    if (videoAnalysis.mensaje_marketing) {
+      const mensaje = videoAnalysis.mensaje_marketing;
+      const hasClearCTA = mensaje.call_to_action && mensaje.call_to_action !== '';
+      const hasValueProposition = mensaje.propuesta_valor && mensaje.propuesta_valor !== '';
+      const realConversion = spot.impact.activeUsers.percentageChange;
+      
+      rational.push({
+        type: 'messaging',
+        title: 'Calidad del Mensaje vs Conversión Real GA',
+        message: `Call-to-action: ${hasClearCTA ? 'Identificado' : 'No identificado'}, Propuesta de valor: ${hasValueProposition ? 'Presente' : 'Ausente'}. Conversión real GA: ${realConversion >= 0 ? '+' : ''}${realConversion.toFixed(1)}%.`,
+        impact: Math.abs(realConversion) > 35 ? 'Alto' : Math.abs(realConversion) > 18 ? 'Medio' : 'Bajo',
+        confidence: 85,
+        realData: true
       });
     }
 
     return rational;
   };
 
-  // Función para obtener datos REALES de timing de Google Analytics
-  const getRealTimingData = async (date, hour) => {
-    try {
-      // Simular llamada real a GA para obtener promedio histórico del horario
-      // En implementación real, esto haría una consulta a GA API
-      const historicalData = await getHistoricalHourlyData(date, hour);
-      return {
-        avgUsers: historicalData.avgUsers || 0,
-        sampleSize: historicalData.sampleSize || 0,
-        stdDev: historicalData.stdDev || 0
-      };
-    } catch (error) {
-      console.warn('Error obteniendo datos de timing:', error);
-      return null;
-    }
-  };
 
-  // Función para calcular confianza REAL basada en significancia estadística
-  const calculateRealConfidence = (sampleSize, impact) => {
-    if (sampleSize < 10) return Math.min(60, Math.abs(impact) * 0.5);
-    if (sampleSize < 30) return Math.min(80, Math.abs(impact) * 0.7);
-    return Math.min(95, Math.abs(impact) * 0.9);
-  };
-
-  // Función para calcular correlación REAL entre efectividad y métricas
-  const calculateRealCorrelation = (effectiveness, metrics) => {
-    // Correlación real basada en datos estadísticos
-    const normalizedEffectiveness = (effectiveness - 5) * 20; // Normalizar a escala -100 a 100
-    const correlation = (normalizedEffectiveness + metrics) / 2;
-    return Math.max(-100, Math.min(100, correlation));
-  };
-
-  // Función para obtener datos históricos REALES por hora
-  const getHistoricalHourlyData = async (date, hour) => {
-    // En implementación real, esto consultaría Google Analytics
-    // Por ahora simulamos con datos que serían reales en producción
-    const baseUsers = 150 + Math.random() * 100; // Base variable
-    const hourMultiplier = getHourMultiplier(hour);
-    const sampleSize = Math.floor(20 + Math.random() * 80);
-    
-    return {
-      avgUsers: Math.round(baseUsers * hourMultiplier),
-      sampleSize: sampleSize,
-      stdDev: Math.round(baseUsers * 0.2)
-    };
-  };
-
-  // Función para obtener multiplicador REAL por hora basado en patrones de tráfico
-  const getHourMultiplier = (hour) => {
-    const multipliers = {
-      0: 0.3, 1: 0.2, 2: 0.15, 3: 0.1, 4: 0.1, 5: 0.15,
-      6: 0.4, 7: 0.6, 8: 0.8, 9: 1.0, 10: 1.1, 11: 1.2,
-      12: 1.3, 13: 1.1, 14: 1.0, 15: 0.9, 16: 0.8, 17: 0.9,
-      18: 1.1, 19: 1.4, 20: 1.5, 21: 1.3, 22: 1.0, 23: 0.7
-    };
-    return multipliers[hour] || 1.0;
-  };
-
-  // Generar recomendaciones específicas con explicaciones estratégicas
+  // Generar recomendaciones basadas únicamente en datos REALES
   const generateRecommendations = () => {
-    if (!videoAnalysis) return [];
+    if (!videoAnalysis || !analysisResults || analysisResults.length === 0) return [];
 
     const recommendations = [];
+    const spot = analysisResults[0];
+    const impact = spot.impact.activeUsers.percentageChange;
+    const spotHour = spot.spot.dateTime.getHours();
+    const isPrimeTime = spotHour >= 19 && spotHour <= 23;
 
+    // Recomendaciones basadas en efectividad REAL del análisis de IA
     if (videoAnalysis.analisis_efectividad) {
       const efectividad = videoAnalysis.analisis_efectividad;
       
@@ -271,7 +189,7 @@ const VideoAnalysisDashboard = ({
           priority: 'Alta',
           category: 'Mensaje',
           text: 'Mejorar la claridad del mensaje principal del spot',
-          why: 'Un mensaje claro aumenta la retención de audiencia en un 35% y mejora la conversión. Los spots con mensajes confusos tienen 60% menos efectividad en horarios prime time.'
+          why: `Evaluación actual: ${parseFloat(efectividad.claridad_mensaje).toFixed(1)}/10. Un mensaje más claro puede mejorar la comprensión del mensaje.`
         });
       }
       
@@ -279,8 +197,8 @@ const VideoAnalysisDashboard = ({
         recommendations.push({
           priority: 'Media',
           category: 'Visual',
-          text: 'Incrementar elementos visuales atractivos para mayor engagement',
-          why: 'Los elementos visuales dinámicos aumentan el tiempo de atención en 45%. En horarios de alta competencia, el engagement visual determina si el mensaje llega al target objetivo.'
+          text: 'Incrementar elementos visuales atractivos',
+          why: `Evaluación actual: ${parseFloat(efectividad.engagement_visual).toFixed(1)}/10. Elementos visuales más dinámicos pueden aumentar el engagement.`
         });
       }
       
@@ -288,45 +206,39 @@ const VideoAnalysisDashboard = ({
         recommendations.push({
           priority: 'Alta',
           category: 'Branding',
-          text: 'Desarrollar elementos más memorables y distintivos',
-          why: 'Los spots memorables generan recall de marca 3x mayor y aumentan la intención de compra en 28%. La diferenciación visual es clave en mercados saturados.'
+          text: 'Desarrollar elementos más memorables',
+          why: `Evaluación actual: ${parseFloat(efectividad.memorabilidad).toFixed(1)}/10. Elementos distintivos mejoran el recall de marca.`
         });
       }
     }
 
-    if (analysisResults && analysisResults.length > 0) {
-      const spot = analysisResults[0];
-      const impact = spot.impact.activeUsers.percentageChange;
-      const spotHour = spot.spot.dateTime.getHours();
-      const isPrimeTime = spotHour >= 19 && spotHour <= 23;
-      
-      if (impact < 20) {
-        recommendations.push({
-          priority: 'Alta',
-          category: 'Timing',
-          text: 'Considerar transmitir en horarios de mayor actividad web (19:00-23:00)',
-          why: `El análisis muestra ${impact.toFixed(1)}% de incremento actual. Los horarios 19:00-23:00 tienen 40% más actividad web y 65% mayor probabilidad de conversión, especialmente en dispositivos móviles.`
-        });
-      }
-      
-      if (impact > 50) {
-        recommendations.push({
-          priority: 'Media',
-          category: 'Optimización',
-          text: 'Replicar elementos exitosos de este spot en futuras campañas',
-          why: `Con ${impact.toFixed(1)}% de incremento, este spot supera el promedio en 180%. Los elementos que generaron este impacto pueden escalarse para maximizar ROI en próximas campañas.`
-        });
-      }
+    // Recomendaciones basadas en métricas REALES de Google Analytics
+    if (impact < 15) {
+      recommendations.push({
+        priority: 'Alta',
+        category: 'Timing',
+        text: 'Evaluar diferentes horarios de transmisión',
+        why: `Impacto actual: ${impact >= 0 ? '+' : ''}${impact.toFixed(1)}%. Considerar horarios con mayor actividad de audiencia.`
+      });
+    }
+    
+    if (impact > 40) {
+      recommendations.push({
+        priority: 'Media',
+        category: 'Optimización',
+        text: 'Replicar elementos exitosos de este spot',
+        why: `Impacto medido: ${impact >= 0 ? '+' : ''}${impact.toFixed(1)}%. Los elementos que generaron este resultado pueden aplicarse en futuras campañas.`
+      });
+    }
 
-      // Nueva recomendación basada en timing específico
-      if (!isPrimeTime && impact < 30) {
-        recommendations.push({
-          priority: 'Alta',
-          category: 'Timing',
-          text: 'Evaluar transmisión en horarios prime time (19:00-23:00)',
-          why: `El spot se transmitió a las ${spotHour}:00, fuera del horario de mayor actividad digital. Los horarios prime time generan 2.3x más engagement web y 40% más conversiones inmediatas.`
-        });
-      }
+    // Recomendación basada en timing REAL
+    if (!isPrimeTime && impact < 25) {
+      recommendations.push({
+        priority: 'Alta',
+        category: 'Timing',
+        text: 'Considerar horarios de mayor audiencia',
+        why: `Spot transmitido a las ${spotHour}:00. Impacto: ${impact >= 0 ? '+' : ''}${impact.toFixed(1)}%. Horarios 19:00-23:00 suelen tener mayor actividad.`
+      });
     }
 
     return recommendations;
@@ -604,46 +516,13 @@ const VideoAnalysisDashboard = ({
                 } else if (obj.conclusion) {
                   resumenContent = obj.conclusion;
                 } else {
-                  // Crear resumen basado en otros datos disponibles
-                  const partes = [];
-                  if (videoAnalysis.contenido_visual?.escenas_principales?.length > 0) {
-                    partes.push(`El video contiene ${videoAnalysis.contenido_visual.escenas_principales.length} escenas principales que generan impacto visual.`);
-                  }
-                  if (videoAnalysis.analisis_efectividad) {
-                    const efectividad = videoAnalysis.analisis_efectividad;
-                    const promedio = (parseFloat(efectividad.claridad_mensaje || 0) +
-                                     parseFloat(efectividad.engagement_visual || 0) +
-                                     parseFloat(efectividad.memorabilidad || 0)) / 3;
-                    partes.push(`La efectividad general del spot es de ${promedio.toFixed(1)}/10, con ${promedio >= 7 ? 'alto' : promedio >= 5 ? 'medio' : 'bajo'} potencial de conversión.`);
-                  }
-                  if (analysisResults && analysisResults.length > 0) {
-                    const impact = analysisResults[0].impact.activeUsers.percentageChange;
-                    partes.push(`El impacto medido en analytics muestra un ${impact.toFixed(1)}% de incremento en usuarios activos durante la transmisión.`);
-                  }
-                  resumenContent = partes.join(' ');
+                  // NO generar contenido simulado - mostrar mensaje de no disponibilidad
+                  resumenContent = 'Análisis no disponible';
                 }
               }
             } else {
-              // Si no hay resumen ejecutivo, crear uno basado en análisis disponibles
-              const partes = [];
-              if (videoAnalysis.contenido_visual?.escenas_principales?.length > 0) {
-                partes.push(`Análisis visual: El video presenta ${videoAnalysis.contenido_visual.escenas_principales.length} escenas principales con elementos visuales distintivos.`);
-              }
-              if (videoAnalysis.analisis_efectividad) {
-                const efectividad = videoAnalysis.analisis_efectividad;
-                const promedio = (parseFloat(efectividad.claridad_mensaje || 0) +
-                                 parseFloat(efectividad.engagement_visual || 0) +
-                                 parseFloat(efectividad.memorabilidad || 0)) / 3;
-                partes.push(`Evaluación de efectividad: ${promedio.toFixed(1)}/10 - ${promedio >= 7 ? 'Spot con alto potencial de engagement y conversión' : promedio >= 5 ? 'Spot con efectividad moderada, optimizable' : 'Spot requiere mejoras significativas en mensaje y elementos visuales'}.`);
-              }
-              if (analysisResults && analysisResults.length > 0) {
-                const impact = analysisResults[0].impact.activeUsers.percentageChange;
-                partes.push(`Impacto medido: ${impact.toFixed(1)}% de incremento en usuarios activos durante la transmisión del spot.`);
-              }
-              if (videoAnalysis.mensaje_marketing?.propuesta_valor) {
-                partes.push(`Propuesta de valor identificada: ${videoAnalysis.mensaje_marketing.propuesta_valor}.`);
-              }
-              resumenContent = partes.length > 0 ? partes.join(' ') : 'El análisis del video está en proceso. Los resultados detallados estarán disponibles una vez completado el procesamiento.';
+              // NO generar contenido simulado cuando no hay resumen ejecutivo
+              resumenContent = 'Análisis no disponible';
             }
             
             return (

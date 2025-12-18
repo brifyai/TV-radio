@@ -267,8 +267,22 @@ Analiza el video y responde únicamente con el JSON válido, sin texto adicional
     if (!analyticsData) {
       return {
         ...parsedAnalysis,
-        datos_analytics: 'simulados',
-        advertencia: 'Los datos de Analytics mostrados son simulados para demostración'
+        datos_analytics: 'no_disponibles',
+        advertencia: 'No hay datos de Google Analytics disponibles para este análisis',
+        metricas_reales: {
+          usuarios_activos: null,
+          sesiones: null,
+          vistas_pagina: null,
+          incremento_usuarios: null,
+          incremento_sesiones: null,
+          incremento_vistas: null,
+          vinculacion_directa: false
+        },
+        correlacion_real: {
+          efectividad_calculada: 'No calculable',
+          factores_influyentes: 'No identificables sin datos de Analytics',
+          recomendaciones_basadas_en_datos: 'Requiere datos de Analytics para generar recomendaciones específicas'
+        }
       };
     }
 

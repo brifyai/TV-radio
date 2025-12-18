@@ -41,6 +41,10 @@ import ConversionAnalysisDashboard from './components/ConversionAnalysisDashboar
 import PredictiveAnalyticsDashboard from './components/PredictiveAnalyticsDashboard';
 import VideoAnalysisDashboard from './components/VideoAnalysisDashboard';
 
+// Importar hook de validación de integridad de datos
+import { useDataIntegrity, useAnalyticsDataIntegrity, useVideoAnalysisIntegrity } from '../../hooks/useDataIntegrity';
+import DataIntegrityWarning from '../UI/DataIntegrityWarning';
+
 const SpotAnalysis = () => {
   const { accounts, properties, getAnalyticsData, isConnected } = useGoogleAnalytics();
   
@@ -66,6 +70,31 @@ const SpotAnalysis = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const spotsPerPage = 10;
   const [showReloadPrompt, setShowReloadPrompt] = useState(false);
+
+  // HOOKS DE VALIDACIÓN DE INTEGRIDAD DE DATOS
+  // Validar datos de análisis de spots
+  const {
+    data: validatedAnalysisResults,
+    validationResult: analysisValidationResult,
+    showWarning: showAnalysisWarning,
+    dismissWarning: dismissAnalysisWarning
+  } = useAnalyticsDataIntegrity(analysisResults, 'spot_analysis');
+
+  // Validar datos de análisis de IA
+  const {
+    data: validatedAiAnalysis,
+    validationResult: aiValidationResult,
+    showWarning: showAiWarning,
+    dismissWarning: dismissAiWarning
+  } = useDataIntegrity(aiAnalysis, 'ai_analysis');
+
+  // Validar datos de análisis predictivo
+  const {
+    data: validatedPredictiveAnalysis,
+    validationResult: predictiveValidationResult,
+    showWarning: showPredictiveWarning,
+    dismissWarning: dismissPredictiveWarning
+  } = useDataIntegrity(predictiveAnalysis, 'predictive_analysis');
 
   // Filtrar y ordenar propiedades basadas en la cuenta seleccionada
   const filteredProperties = selectedAccount
@@ -861,8 +890,39 @@ const SpotAnalysis = () => {
   // Renderizar vista moderna
   const renderModernView = () => (
     <div className="space-y-6">
+      {/* ADVERTENCIAS DE INTEGRIDAD DE DATOS */}
+      {showAnalysisWarning && (
+        <DataIntegrityWarning
+          type="critical"
+          title="Datos de Análisis Comprometidos"
+          message="Se han detectado anomalías en los datos de análisis. Los datos han sido bloqueados para garantizar la integridad."
+          violations={analysisValidationResult?.violations || []}
+          onDismiss={dismissAnalysisWarning}
+        />
+      )}
+
+      {showAiWarning && (
+        <DataIntegrityWarning
+          type="warning"
+          title="Datos de IA con Anomalías"
+          message="Se han detectado patrones sospechosos en los datos de análisis de IA."
+          violations={aiValidationResult?.violations || []}
+          onDismiss={dismissAiWarning}
+        />
+      )}
+
+      {showPredictiveWarning && (
+        <DataIntegrityWarning
+          type="warning"
+          title="Datos Predictivos con Anomalías"
+          message="Se han detectado valores fuera de rango en el análisis predictivo."
+          violations={predictiveValidationResult?.violations || []}
+          onDismiss={dismissPredictiveWarning}
+        />
+      )}
+
       {/* Dashboard de Métricas Principales */}
-      {analysisResults && (
+      {validatedAnalysisResults && validatedAnalysisResults.length > 0 && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -872,7 +932,7 @@ const SpotAnalysis = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Total Spots</p>
-                <p className="text-3xl font-bold text-gray-900">{analysisResults.length}</p>
+                <p className="text-3xl font-bold text-gray-900">{validatedAnalysisResults.length}</p>
               </div>
               <div className="p-3 bg-blue-100 rounded-full">
                 <Video className="h-6 w-6 text-blue-600" />
@@ -885,7 +945,7 @@ const SpotAnalysis = () => {
               <div>
                 <p className="text-sm font-medium text-gray-600">Impacto Promedio</p>
                 <p className="text-3xl font-bold text-green-600">
-                  +{Math.round(analysisResults.reduce((sum, r) => sum + r.impact.activeUsers.percentageChange, 0) / analysisResults.length)}%
+                  +{Math.round(validatedAnalysisResults.reduce((sum, r) => sum + (r.impact?.activeUsers?.percentageChange || 0), 0) / validatedAnalysisResults.length)}%
                 </p>
               </div>
               <div className="p-3 bg-green-100 rounded-full">
@@ -899,7 +959,7 @@ const SpotAnalysis = () => {
               <div>
                 <p className="text-sm font-medium text-gray-600">Spots con Vinculación Directa</p>
                 <p className="text-3xl font-bold text-purple-600">
-                  {analysisResults.filter(r => r.impact.activeUsers.directCorrelation).length}
+                  {validatedAnalysisResults.filter(r => r.impact?.activeUsers?.directCorrelation).length}
                 </p>
                 <p className="text-xs text-gray-500 mt-1">
                   Criterios: {'>'}15% aumento y {'>'}115% del baseline
@@ -912,13 +972,13 @@ const SpotAnalysis = () => {
           </div>
           
           {/* Spots con impacto significativo (aunque no cumplan vinculación directa) */}
-          {analysisResults.filter(r => r.impact.activeUsers.significant && !r.impact.activeUsers.directCorrelation).length > 0 && (
+          {validatedAnalysisResults.filter(r => r.impact?.activeUsers?.significant && !r.impact?.activeUsers?.directCorrelation).length > 0 && (
             <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">Spots con Impacto Significativo</p>
                   <p className="text-3xl font-bold text-orange-600">
-                    {analysisResults.filter(r => r.impact.activeUsers.significant && !r.impact.activeUsers.directCorrelation).length}
+                    {validatedAnalysisResults.filter(r => r.impact?.activeUsers?.significant && !r.impact?.activeUsers?.directCorrelation).length}
                   </p>
                   <p className="text-xs text-gray-500 mt-1">
                     Impacto {'>'}10% pero {'<'}15% o {'<'}115% del baseline
@@ -932,6 +992,16 @@ const SpotAnalysis = () => {
           )}
 
         </motion.div>
+      )}
+
+      {/* Mensaje cuando no hay datos válidos */}
+      {(!validatedAnalysisResults || validatedAnalysisResults.length === 0) && analysisResults && (
+        <DataIntegrityWarning
+          type="info"
+          title="Análisis No Disponible"
+          message="Los datos de análisis no están disponibles o han sido bloqueados por el sistema de integridad de datos."
+          onDismiss={() => {}}
+        />
       )}
 
       {/* Grid de Componentes Modernos */}

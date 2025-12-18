@@ -515,16 +515,16 @@ export class PredictiveAnalyticsService {
   // Métodos auxiliares para cálculos específicos
   
   calculateBasePerformance(spotData, historicalPatterns) {
-    // Evitar datos simulados - retornar valores vacíos
+    // NO generar datos simulados - retornar null para indicar que no hay datos
     return {
-      immediate: 0,
-      shortTerm: 0,
-      mediumTerm: 0,
-      longTerm: 0,
-      reach: 0,
-      frequency: 0,
-      engagement: 0,
-      brandAwareness: 0
+      immediate: null,
+      shortTerm: null,
+      mediumTerm: null,
+      longTerm: null,
+      reach: null,
+      frequency: null,
+      engagement: null,
+      brandAwareness: null
     };
   }
 

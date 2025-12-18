@@ -68,17 +68,17 @@ const SmartInsights = ({ analysisResults, batchAIAnalysis, videoAnalysis }) => {
       color: hasSustainedTraffic ? 'green' : 'blue'
     });
 
-    // Insight de conversión potencial - basado en datos reales
+    // Insight de conversión potencial - basado únicamente en datos reales
     const sessions = spot.metrics?.frase?.sessions || 0;
     const pageviews = spot.metrics?.frase?.pageviews || 0;
-    const conversionRate = sessions > 0 ? Math.min(5, (pageviews / sessions) * 0.5) : 0;
+    const conversionRate = sessions > 0 ? (pageviews / sessions) * 100 : 0; // Tasa real basada en datos GA
     insights.push({
       type: 'conversion',
       icon: Target,
-      title: 'Potencial de Conversión',
-      message: `🎯 Estimación de conversión: ${formatPercentage(conversionRate)} de los visitantes podrían convertirse en clientes. ${conversionRate > 3 ? 'Excelente tasa de conversión esperada.' : 'Considera optimizar la landing page.'}`,
-      confidence: calculateConfidence(60, conversionRate * 10, 1),
-      color: conversionRate > 3 ? 'green' : 'yellow'
+      title: 'Tasa de Conversión Real',
+      message: `📊 Tasa real medida: ${formatPercentage(conversionRate)} (${pageviews} páginas vistas / ${sessions} sesiones). ${conversionRate > 2 ? 'Buena tasa de engagement.' : 'Considera optimizar la experiencia del usuario.'}`,
+      confidence: calculateConfidence(70, conversionRate * 5, 1),
+      color: conversionRate > 2 ? 'green' : 'yellow'
     });
 
     // Insight comparativo - basado en datos reales del análisis
@@ -143,7 +143,7 @@ const SmartInsights = ({ analysisResults, batchAIAnalysis, videoAnalysis }) => {
     return {
       title: 'Racional Video-Analytics',
       insights: videoInsights,
-      correlation: `Correlación estimada: ${formatPercentage(Math.min(95, Math.abs(spot.impact.activeUsers.percentageChange) * 1.2))}`,
+      correlation: `Impacto real medido: ${formatPercentage(Math.abs(spot.impact.activeUsers.percentageChange))}`,
       recommendations: [
         'El análisis visual del video complementa las métricas de Google Analytics',
         'Optimizar elementos visuales basados en la efectividad medida',

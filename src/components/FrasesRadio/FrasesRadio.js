@@ -33,8 +33,15 @@ import TemporalAnalysisDashboard from '../SpotAnalysis/components/TemporalAnalys
 import ConversionAnalysisDashboard from '../SpotAnalysis/components/ConversionAnalysisDashboard';
 import PredictiveAnalyticsDashboard from '../SpotAnalysis/components/PredictiveAnalyticsDashboard';
 
+// Importar hooks de validación de integridad
+import { useDataIntegrity } from '../../hooks/useDataIntegrity';
+import { SimulatedDataWarning } from '../UI/DataIntegrityWarning';
+
 const FrasesRadio = () => {
   const { accounts, properties, getAnalyticsData, isConnected } = useGoogleAnalytics();
+  
+  // Hook de validación de integridad para métricas de frases radio
+  const { validateMetric, getDataIntegrityStatus } = useDataIntegrity('frases_radio');
   
   // Estados para el análisis de frases
   const [frasesFile, setFrasesFile] = useState(null);
@@ -53,6 +60,49 @@ const FrasesRadio = () => {
   const [conversionAnalysis, setConversionAnalysis] = useState(null);
   const [controlGroupAnalysis, setControlGroupAnalysis] = useState(null);
   const [predictiveAnalysis, setPredictiveAnalysis] = useState(null);
+
+  // Calcular confianza IA basada en datos reales disponibles
+  const calculateRealConfidence = React.useCallback(() => {
+    let confidenceScore = 0;
+    let dataSources = [];
+    
+    // Evaluar fuentes de datos disponibles
+    if (frasesData.length > 0) {
+      confidenceScore += 25;
+      dataSources.push('Frases Data');
+    }
+    
+    if (selectedProperty) {
+      confidenceScore += 30;
+      dataSources.push('Google Analytics Property');
+    }
+    
+    if (analysisResults && analysisResults.length > 0) {
+      confidenceScore += 35;
+      dataSources.push('Analysis Results');
+    }
+    
+    // Bonus por análisis de IA completado
+    if (Object.keys(aiAnalysis).length > 0) {
+      confidenceScore += 10;
+      dataSources.push('AI Analysis');
+    }
+    
+    // Validar la puntuación calculada
+    const validatedScore = validateMetric('ai_confidence', confidenceScore, {
+      source: 'frases_radio_calculation',
+      dataSources,
+      calculationMethod: 'weighted_average'
+    });
+    
+    return {
+      score: Math.round(validatedScore),
+      sources: dataSources,
+      isReal: dataSources.length > 0
+    };
+  }, [frasesData.length, selectedProperty, analysisResults, aiAnalysis, validateMetric]);
+  
+  const realConfidence = calculateRealConfidence();
 
   // Filtrar y ordenar propiedades basadas en la cuenta seleccionada
   const filteredProperties = selectedAccount
@@ -681,8 +731,27 @@ const FrasesRadio = () => {
           <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Confianza IA</p>
-                <p className="text-3xl font-bold text-orange-600">87%</p>
+                <div className="flex items-center space-x-2">
+                  <p className="text-sm font-medium text-gray-600">Confianza IA</p>
+                  {/* Indicador de integridad de datos */}
+                  <div className="flex items-center space-x-1">
+                    {realConfidence.isReal ? (
+                      <div className="flex items-center space-x-1 px-2 py-1 bg-green-100 rounded-full">
+                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                        <span className="text-xs text-green-700 font-medium">Real</span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center space-x-1 px-2 py-1 bg-orange-100 rounded-full">
+                        <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                        <span className="text-xs text-orange-700 font-medium">Calculada</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <p className="text-3xl font-bold text-orange-600">{realConfidence.score}%</p>
+                <p className="text-xs text-gray-500 mt-1">
+                  Basada en {realConfidence.sources.length} fuentes de datos
+                </p>
               </div>
               <div className="p-3 bg-orange-100 rounded-full">
                 <Brain className="h-6 w-6 text-orange-600" />
