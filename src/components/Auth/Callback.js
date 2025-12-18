@@ -32,24 +32,28 @@ const Callback = () => {
         console.log('  - code:', code ? 'found' : 'not found');
         console.log('  - analytics:', isAnalyticsCallback);
 
-        // CRITICAL: Si es callback de Google Analytics, preservar sesión original
+        // CRITICAL: Si es callback de Google Analytics, preservar sesión original COMPLETAMENTE
         if (isAnalyticsCallback && code) {
           console.log('📊 Procesando conexión de Google Analytics SIN modificar sesión principal...');
           try {
-            // Preservar la sesión actual antes de cualquier operación de Google
+            // CRITICAL: Preservar la sesión actual ANTES de cualquier operación
             const { data: { session: currentSession } } = await supabase.auth.getSession();
             
             if (!currentSession) {
               throw new Error('No hay sesión activa. Por favor, inicia sesión primero.');
             }
             
-            console.log('🔒 Sesión original preservada:', currentSession.user.email);
+            console.log('🔒 Sesión original preservada:', {
+              id: currentSession.user.id,
+              email: currentSession.user.email
+            });
             
-            // Procesar Google Analytics SIN intercambiar la sesión
+            // CRITICAL: Procesar Google Analytics usando exchangeCodeForTokens (NO exchangeCodeForSession)
+            // Esto evita crear una nueva sesión de Supabase
             await handleAnalyticsCallback(code);
             console.log('✅ Google Analytics conectado exitosamente SIN modificar sesión principal');
             
-            // Redirigir al dashboard manteniendo la sesión original
+            // CRITICAL: Redirigir manteniendo la sesión original intacta
             setTimeout(() => {
               navigate('/dashboard', { replace: true });
             }, 500);
