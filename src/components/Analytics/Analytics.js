@@ -766,10 +766,16 @@ const Analytics = () => {
     return acc;
   }, {});
 
-  if (loading && !currentProperty) {
+  // Show loading spinner while connecting or loading properties
+  if (loading || (isConnected && properties.length === 0)) {
     return (
       <div className="flex items-center justify-center h-64">
-        <LoadingSpinner size="lg" />
+        <div className="text-center">
+          <LoadingSpinner size="lg" />
+          <p className="mt-4 text-sm text-gray-500">
+            {loading ? 'Conectando con Google Analytics...' : 'Cargando propiedades...'}
+          </p>
+        </div>
       </div>
     );
   }
@@ -838,7 +844,8 @@ const Analytics = () => {
     );
   }
 
-  if (!currentProperty) {
+  // Only show "property not found" if we have properties loaded and the specific property doesn't exist
+  if (properties.length > 0 && !currentProperty) {
     return (
       <div className="text-center py-12">
         <AlertCircle className="mx-auto h-12 w-12 text-gray-400" />
