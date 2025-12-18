@@ -520,7 +520,7 @@ const Landing = () => {
                     </div>
                     <div>
                       <div className="text-white font-semibold">Email</div>
-                      <div className="text-slate-300">contacto@imetrics.com</div>
+                      <div className="text-slate-300">contacto@imetrics.cl</div>
                     </div>
                   </div>
                   
@@ -639,7 +639,7 @@ const Landing = () => {
             transition={{ duration: 0.8 }}
             className="bg-white/10 backdrop-blur-xl rounded-2xl p-12 border border-white/20"
           >
-            <h2 className="text-4xl font-bold text-white mb-4 whitespace-nowrap">
+            <h2 className="text-4xl font-bold text-white mb-4 break-words">
               ¿Listo para Transformar tu Estrategia de Medios?
             </h2>
             <p className="text-xl text-slate-300 mb-8">

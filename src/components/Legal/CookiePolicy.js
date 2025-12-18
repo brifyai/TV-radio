@@ -337,11 +337,11 @@ const CookiePolicy = () => {
                 <ul className="space-y-2">
                   <li className="flex items-center">
                     <span className="text-teal-400 mr-2">📧</span>
-                    <span><strong>Email:</strong> privacidad@imetrics.com</span>
+                    <span><strong>Email:</strong> contacto@imetrics.cl</span>
                   </li>
                   <li className="flex items-center">
                     <span className="text-teal-400 mr-2">🌐</span>
-                    <span><strong>Sitio web:</strong> tvradio2.netlify.app</span>
+                    <span><strong>Sitio web:</strong> imetrics.cl</span>
                   </li>
                 </ul>
                 

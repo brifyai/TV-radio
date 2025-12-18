@@ -84,8 +84,8 @@ const PrivacyPolicy = () => {
                   1. Responsable del Tratamiento
                 </h2>
                 <p className="mb-4"><strong className="text-white">iMetrics</strong> ("nosotros", "nuestro", "la aplicación")</p>
-                <p className="mb-4"><strong>Email:</strong> contacto@imetrics.com</p>
-                <p className="mb-4"><strong>Sitio web:</strong> tvradio2.netlify.app</p>
+                <p className="mb-4"><strong>Email:</strong> contacto@imetrics.cl</p>
+                <p className="mb-4"><strong>Sitio web:</strong> imetrics.cl</p>
                 
                 <div className="bg-white/5 rounded-lg p-4 border border-white/10">
                   <h4 className="text-white font-semibold mb-2 flex items-center">
@@ -270,7 +270,7 @@ const PrivacyPolicy = () => {
                   </div>
                 </div>
                 
-                <p className="mb-2"><strong>Para ejercer estos derechos:</strong> Contacta en contacto@imetrics.com</p>
+                <p className="mb-2"><strong>Para ejercer estos derechos:</strong> Contacta en contacto@imetrics.cl</p>
                 <p>Responderemos dentro de los <strong className="text-purple-400">30 días</strong> requeridos por ley.</p>
               </motion.section>
 
@@ -315,11 +315,11 @@ const PrivacyPolicy = () => {
                 <ul className="space-y-2">
                   <li className="flex items-center">
                     <span className="text-pink-400 mr-2">📧</span>
-                    <span><strong>Correo electrónico:</strong> contacto@imetrics.com</span>
+                    <span><strong>Correo electrónico:</strong> contacto@imetrics.cl</span>
                   </li>
                   <li className="flex items-center">
                     <span className="text-pink-400 mr-2">🌐</span>
-                    <span><strong>Sitio web:</strong> tvradio2.netlify.app</span>
+                    <span><strong>Sitio web:</strong> imetrics.cl</span>
                   </li>
                 </ul>
                 

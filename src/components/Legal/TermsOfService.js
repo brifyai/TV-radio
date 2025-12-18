@@ -101,7 +101,7 @@ const TermsOfService = () => {
                   <FileText className="h-6 w-6 mr-3 text-blue-400" />
                   1. Introducción
                 </h2>
-                <p className="mb-4">Bienvenido a iMetrics ("nosotros", "nuestro" o "la Compañía"). Estos Términos de Servicio ("Términos") rigen su acceso y uso de nuestro sitio web tvradio2.netlify.app y nuestros servicios de análisis de correlación TV-Web y Radio-Web con métricas en tiempo real (colectivamente, el "Servicio").</p>
+                <p className="mb-4">Bienvenido a iMetrics ("nosotros", "nuestro" o "la Compañía"). Estos Términos de Servicio ("Términos") rigen su acceso y uso de nuestro sitio web imetrics.cl y nuestros servicios de análisis de correlación TV-Web y Radio-Web con métricas en tiempo real (colectivamente, el "Servicio").</p>
                 <p className="mb-4">Al acceder o utilizar el Servicio, usted acepta estar sujeto a estos Términos. Si no está de acuerdo con alguna parte de los términos, no podrá acceder al Servicio.</p>
               </motion.section>
 
@@ -346,7 +346,7 @@ const TermsOfService = () => {
                   <Mail className="h-6 w-6 mr-3 text-purple-400" />
                   13. Contacto
                 </h2>
-                <p className="mb-4">Si tiene alguna pregunta sobre estos Términos, contáctenos en contacto@imetrics.com.</p>
+                <p className="mb-4">Si tiene alguna pregunta sobre estos Términos, contáctenos en contacto@imetrics.cl.</p>
               </motion.section>
 
             </div>
