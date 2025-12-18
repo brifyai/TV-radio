@@ -177,9 +177,9 @@ const VideoAnalysisDashboard = ({
     
     const recommendations = [];
     
-    // Si no hay datos, no generar recomendaciones
-    if (!videoAnalysis || !analysisResults || analysisResults.length === 0) {
-      console.log('⚠️ No hay datos suficientes para análisis causal');
+    // Si no hay datos de análisis, no generar recomendaciones
+    if (!analysisResults || analysisResults.length === 0) {
+      console.log('⚠️ No hay datos de análisis para generar recomendaciones');
       return recommendations;
     }
 
@@ -301,7 +301,7 @@ const VideoAnalysisDashboard = ({
       }
 
       // ANÁLISIS CAUSAL 2: Factores específicos que influyeron en el resultado
-      if (videoAnalysis.contenido_visual?.barreras_visuales && videoAnalysis.contenido_visual.barreras_visuales.length > 0) {
+      if (videoAnalysis?.contenido_visual?.barreras_visuales && videoAnalysis.contenido_visual.barreras_visuales.length > 0) {
         recommendations.push({
           priority: 'Alta',
           category: 'Barrera Identificada',
@@ -310,7 +310,7 @@ const VideoAnalysisDashboard = ({
         });
       }
 
-      if (videoAnalysis.contenido_auditivo?.call_to_action_auditivo) {
+      if (videoAnalysis?.contenido_auditivo?.call_to_action_auditivo) {
         recommendations.push({
           priority: 'Media',
           category: 'Factor de Audio',

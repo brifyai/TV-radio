@@ -119,6 +119,18 @@ export function useDataIntegrity(data, context = 'unknown', options = {}) {
   // Validar datos cuando cambien
   useEffect(() => {
     if (data !== undefined) {
+      // Para análisis de IA, usar validación más permisiva
+      if (context === 'ai_analysis') {
+        const result = dataIntegrityValidator.validateDataIntegrity(data, context);
+        setValidationResult({
+          ...result,
+          wasReplaced: false, // No reemplazar datos de IA
+          originalData: data
+        });
+        setValidatedData(data); // Mantener los datos originales
+        return;
+      }
+      
       validateData(data, context);
     }
   }, [data, context, validateData]);
