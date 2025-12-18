@@ -501,7 +501,7 @@ const SpotAnalysis = () => {
     console.log('🎥 Video cargado:', file.name);
   }, []);
 
-  // Analizar video con chutes.ai
+  // Analizar video con chutes.ai usando datos reales de Analytics
   const analyzeVideoWithAI = useCallback(async () => {
     if (!videoFile) {
       alert('Por favor, selecciona un video primero');
@@ -524,37 +524,57 @@ const SpotAnalysis = () => {
     setVideoAnalysis(null);
 
     try {
-      console.log('🎬 Iniciando análisis de video con chutes.ai...');
+      console.log('🎬 Iniciando análisis de video con chutes.ai + Analytics reales...');
       
-      // Simular progreso
+      // Simular progreso inicial
       const progressInterval = setInterval(() => {
         setVideoAnalysisProgress(prev => {
-          if (prev >= 90) {
+          if (prev >= 30) {
             clearInterval(progressInterval);
-            return 90;
+            return 30;
           }
-          return prev + 10;
+          return prev + 5;
         });
-      }, 1000);
+      }, 500);
 
-      // Realizar análisis de video
-      const result = await videoAnalysisService.analyzeVideo(videoFile, spotData);
+      // Si hay datos de spots y análisis de spots, obtener métricas reales
+      let analyticsData = null;
+      if (spotsData.length > 0 && analysisResults && analysisResults.length > 0) {
+        // Usar los datos reales del primer spot analizado
+        const firstSpotAnalysis = analysisResults[0];
+        analyticsData = {
+          activeUsers: firstSpotAnalysis.metrics?.spot?.activeUsers || 0,
+          sessions: firstSpotAnalysis.metrics?.spot?.sessions || 0,
+          pageviews: firstSpotAnalysis.metrics?.spot?.pageviews || 0,
+          referenceDay: {
+            activeUsers: firstSpotAnalysis.metrics?.previousDay?.activeUsers || 0,
+            sessions: firstSpotAnalysis.metrics?.previousDay?.sessions || 0,
+            pageviews: firstSpotAnalysis.metrics?.previousDay?.pageviews || 0
+          },
+          impact: firstSpotAnalysis.impact || {}
+        };
+        console.log('📊 Usando datos reales de Analytics:', analyticsData);
+      } else {
+        console.log('⚠️ No hay datos de Analytics disponibles, usando modo demostración');
+      }
+
+      // Realizar análisis de video con datos reales de Analytics
+      const result = await videoAnalysisService.analyzeVideo(videoFile, spotData, analyticsData);
       
-      clearInterval(progressInterval);
       setVideoAnalysisProgress(100);
       
       if (result.success) {
-        // Parsear la respuesta JSON
-        const parsedAnalysis = videoAnalysisService.parseAnalysisResponse(result.analysis);
         setVideoAnalysis({
-          ...parsedAnalysis,
-          rawResponse: result.analysis,
+          ...result.analysis,
+          rawResponse: result.rawAnalysis,
           model: result.model,
           tokensUsed: result.tokensUsed,
           timestamp: result.timestamp,
-          cost: videoAnalysisService.getEstimatedCost(videoFile.size / (1024 * 1024)) // MB to cost
+          cost: videoAnalysisService.getEstimatedCost(videoFile.size / (1024 * 1024)), // MB to cost
+          datos_analytics_reales: result.hasRealAnalytics,
+          fuente_analisis: result.hasRealAnalytics ? 'chutes.ai + Google Analytics API' : 'chutes.ai (modo demostración)'
         });
-        console.log('✅ Análisis de video completado:', parsedAnalysis);
+        console.log('✅ Análisis de video con Analytics completado:', result.analysis);
       } else {
         throw new Error(result.error || 'Error desconocido en el análisis');
       }
@@ -565,13 +585,14 @@ const SpotAnalysis = () => {
       setVideoAnalysis({
         error: true,
         resumen_ejecutivo: 'Error al procesar el video',
-        mensaje_error: error.message
+        mensaje_error: error.message,
+        datos_analytics_reales: false
       });
     } finally {
       setAnalyzingVideo(false);
       setTimeout(() => setVideoAnalysisProgress(0), 2000);
     }
-  }, [videoFile, spotsData, videoAnalysisService]);
+  }, [videoFile, spotsData, analysisResults, videoAnalysisService]);
 
   // Parsear fecha y hora (mantener para compatibilidad) - CONVERTIDO A useCallback
   const parseDateTime = useCallback((fecha, hora) => {
@@ -964,13 +985,32 @@ const SpotAnalysis = () => {
             <div className="p-3 bg-gradient-to-r from-purple-500 to-pink-600 rounded-xl mr-4">
               <Sparkles className="h-6 w-6 text-white" />
             </div>
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900">
-                Análisis de Video con IA
-              </h2>
+            <div className="flex-1">
+              <div className="flex items-center space-x-3">
+                <h2 className="text-2xl font-bold text-gray-900">
+                  Análisis de Video con IA
+                </h2>
+                {/* Indicador de fuente de datos */}
+                {videoAnalysis?.datos_analytics_reales ? (
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200">
+                    <div className="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></div>
+                    DATOS REALES
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 border border-yellow-200">
+                    <div className="w-2 h-2 bg-yellow-500 rounded-full mr-2"></div>
+                    MODO DEMOSTRACIÓN
+                  </span>
+                )}
+              </div>
               <p className="text-gray-600 mt-1">
                 Análisis visual avanzado del spot usando Qwen2.5-VL-72B-Instruct
               </p>
+              {videoAnalysis?.fuente_analisis && (
+                <p className="text-sm text-gray-500 mt-1">
+                  Fuente: {videoAnalysis.fuente_analisis}
+                </p>
+              )}
             </div>
           </div>
 
