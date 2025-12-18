@@ -95,65 +95,44 @@ const SpotAnalysis = () => {
     
     // Extraer headers y encontrar índices de las columnas que necesitamos
     const headers = lines[0].split(delimiter).map(h => h.trim());
-    console.log('📋 Headers CSV encontrados:', headers);
     
-    // Búsqueda ULTRA-SIMPLIFICADA - debug exhaustivo
+    // Búsqueda simplificada de columnas
     const findColumnIndex = (headers, possibleNames) => {
-      console.log('🔍 === INICIO BÚSQUEDA DE COLUMNAS ===');
-      console.log('🔍 Headers recibidos:', headers);
-      console.log('🔍 Nombres a buscar:', possibleNames);
-      
-      // PASO 1: Mostrar todos los headers con sus índices
-      console.log('🔍 === TODOS LOS HEADERS CON ÍNDICES ===');
-      headers.forEach((header, idx) => {
-        console.log(`  [${idx}] = "${header}"`);
-      });
-      
-      // PASO 2: Buscar coincidencia EXACTA (case-insensitive)
-      console.log('🔍 === BÚSQUEDA EXACTA ===');
+      // PASO 1: Buscar coincidencia EXACTA (case-insensitive)
       for (const name of possibleNames) {
-        console.log(`🔍 Buscando EXACTO: "${name}"`);
         for (let i = 0; i < headers.length; i++) {
           const header = headers[i];
           const matches = header.toLowerCase() === name.toLowerCase();
-          console.log(`  Comparando "${header}" === "${name}": ${matches}`);
           if (matches) {
-            console.log(`✅ ENCONTRADO EXACTO: "${name}" en índice ${i} (header: "${header}")`);
             return i;
           }
         }
       }
       
-      // PASO 3: Buscar coincidencia PARCIAL
-      console.log('🔍 === BÚSQUEDA PARCIAL ===');
+      // PASO 2: Buscar coincidencia PARCIAL
       for (const name of possibleNames) {
-        console.log(`🔍 Buscando PARCIAL: "${name}"`);
         for (let i = 0; i < headers.length; i++) {
           const header = headers[i];
           const matches = header.toLowerCase().includes(name.toLowerCase());
-          console.log(`  Comparando "${header}" incluye "${name}": ${matches}`);
           if (matches) {
-            console.log(`✅ ENCONTRADO PARCIAL: "${name}" en índice ${i} (header: "${header}")`);
             return i;
           }
         }
       }
       
-      console.log('⚠️ No se encontró ninguna columna en CSV');
       return -1;
     };
 
     const fechaIndex = findColumnIndex(headers, ['fecha']);
     const horaIndex = findColumnIndex(headers, ['hora inicio', 'hora_inicio', 'hora']);
     const canalIndex = findColumnIndex(headers, ['canal']);
-    // SOLUCIÓN DIRECTA: Buscar específicamente 'título programa' primero
+    // Buscar específicamente 'título programa' primero
     let tituloIndex = -1;
     
     // Buscar coincidencia EXACTA para 'título programa' (con acento)
     for (let i = 0; i < headers.length; i++) {
       if (headers[i].toLowerCase() === 'título programa') {
         tituloIndex = i;
-        console.log(`✅ ENCONTRADO DIRECTO CSV: 'título programa' en índice ${i}`);
         break;
       }
     }
@@ -161,7 +140,7 @@ const SpotAnalysis = () => {
     // Si no se encuentra, buscar otras variantes
     if (tituloIndex === -1) {
       tituloIndex = findColumnIndex(headers, [
-        'titulo programa', 'Titulo Programa', 'TITULO PROGRAMA',
+        'título programa', 'titulo programa', 'Titulo Programa', 'TITULO PROGRAMA',
         'título_programa', 'titulo_programa', 'Titulo_Programa', 'TITULO_PROGRAMA',
         'programa', 'titulo', 'show', 'program', 'nombre programa', 'nombre_programa',
         'programa nombre', 'programa_nombre', 'programa tv', 'programa_tv'
@@ -184,38 +163,12 @@ const SpotAnalysis = () => {
       'costo', 'coste', 'precio', 'amount', 'monto', 'presupuesto', 'budget'
     ]);
     
-    console.log('🔍 Índices de columnas:', {
-      fechaIndex, horaIndex, canalIndex, tituloIndex,
-      versionIndex, duracionIndex, tipoComercialIndex, inversionIndex
-    });
-    
-    // Debug: Mostrar qué headers se encontraron
-    console.log('🔍 Headers disponibles:', headers);
-    console.log('🔍 Buscando columna título programa...');
-    console.log('🔍 tituloIndex encontrado:', tituloIndex);
-    console.log('🔍 Si tituloIndex es -1, significa que no se encontró la columna');
-    
     if (fechaIndex === -1 || horaIndex === -1) {
       throw new Error('El archivo debe contener las columnas "fecha" y "hora inicio"');
     }
     
-    // Advertencia si no se encuentra la columna del título del programa
-    if (tituloIndex === -1) {
-      console.warn('⚠️ ADVERTENCIA: No se encontró la columna del título del programa');
-      console.warn('📋 Columnas disponibles:', headers);
-      console.warn('🔍 Se buscó: "titulo programa", "título programa", "programa", "titulo", etc.');
-    }
-    
     return lines.slice(1).map((line, index) => {
       const values = line.split(delimiter).map(v => v.trim());
-      
-      // DEBUG: Mostrar valores raw de la línea
-      console.log(`🔍 DEBUG CSV Línea ${index + 1}:`, {
-        line: line,
-        values: values,
-        tituloIndex: tituloIndex,
-        tituloValue: tituloIndex >= 0 ? values[tituloIndex] : 'NO ENCONTRADO'
-      });
       
       // Extraer todas las columnas necesarias
       return {
@@ -223,7 +176,6 @@ const SpotAnalysis = () => {
         hora_inicio: values[horaIndex] || '',
         canal: values[canalIndex] || '',
         titulo_programa: values[tituloIndex] || '',
-        raw_titulo: values[tituloIndex] || '', // Para debug
         tipo_comercial: values[tipoComercialIndex] || '',
         version: values[versionIndex] || '',
         duracion: values[duracionIndex] || '',
@@ -243,66 +195,44 @@ const SpotAnalysis = () => {
     
     // Primera fila como headers
     const headers = jsonData[0].map(h => (h || '').toString().trim());
-    console.log('📋 Headers Excel encontrados:', headers);
     
-    // Búsqueda ULTRA-SIMPLIFICADA - debug exhaustivo para Excel
+    // Búsqueda simplificada de columnas para Excel
     const findColumnIndex = (headers, possibleNames) => {
-      console.log('🔍 === INICIO BÚSQUEDA DE COLUMNAS EXCEL ===');
-      console.log('🔍 Headers recibidos (Excel):', headers);
-      console.log('🔍 Headers length (Excel):', headers.length);
-      console.log('🔍 Nombres a buscar (Excel):', possibleNames);
-      
-      // PASO 1: Mostrar todos los headers con sus índices
-      console.log('🔍 === TODOS LOS HEADERS EXCEL CON ÍNDICES ===');
-      headers.forEach((header, idx) => {
-        console.log(`  [${idx}] = "${header}"`);
-      });
-      
-      // PASO 2: Buscar coincidencia EXACTA (case-insensitive)
-      console.log('🔍 === BÚSQUEDA EXACTA EXCEL ===');
+      // PASO 1: Buscar coincidencia EXACTA (case-insensitive)
       for (const name of possibleNames) {
-        console.log(`🔍 Buscando EXACTO (Excel): "${name}"`);
         for (let i = 0; i < headers.length; i++) {
           const header = headers[i];
           const matches = header.toLowerCase() === name.toLowerCase();
-          console.log(`  Comparando "${header}" === "${name}": ${matches}`);
           if (matches) {
-            console.log(`✅ ENCONTRADO EXACTO (Excel): "${name}" en índice ${i} (header: "${header}")`);
             return i;
           }
         }
       }
       
-      // PASO 3: Buscar coincidencia PARCIAL
-      console.log('🔍 === BÚSQUEDA PARCIAL EXCEL ===');
+      // PASO 2: Buscar coincidencia PARCIAL
       for (const name of possibleNames) {
-        console.log(`🔍 Buscando PARCIAL (Excel): "${name}"`);
         for (let i = 0; i < headers.length; i++) {
           const header = headers[i];
           const matches = header.toLowerCase().includes(name.toLowerCase());
-          console.log(`  Comparando "${header}" incluye "${name}": ${matches}`);
           if (matches) {
-            console.log(`✅ ENCONTRADO PARCIAL (Excel): "${name}" en índice ${i} (header: "${header}")`);
             return i;
           }
         }
       }
       
-      console.log('⚠️ No se encontró ninguna columna en Excel');
       return -1;
     };
 
     const fechaIndex = findColumnIndex(headers, ['fecha']);
     const horaIndex = findColumnIndex(headers, ['hora inicio', 'hora_inicio', 'hora']);
     const canalIndex = findColumnIndex(headers, ['canal']);
-    // SOLUCIÓN DIRECTA: Buscar específicamente 'título programa' primero
+    // Buscar específicamente 'título programa' primero
     let tituloIndex = -1;
     
     // Buscar coincidencia EXACTA para 'título programa' (con acento)
     for (let i = 0; i < headers.length; i++) {
       if (headers[i].toLowerCase() === 'título programa') {
         tituloIndex = i;
-        console.log(`✅ ENCONTRADO DIRECTO: 'título programa' en índice ${i}`);
         break;
       }
     }
@@ -310,7 +240,7 @@ const SpotAnalysis = () => {
     // Si no se encuentra, buscar otras variantes
     if (tituloIndex === -1) {
       tituloIndex = findColumnIndex(headers, [
-        'titulo programa', 'Titulo Programa', 'TITULO PROGRAMA',
+        'título programa', 'titulo programa', 'Titulo Programa', 'TITULO PROGRAMA',
         'título_programa', 'titulo_programa', 'Titulo_Programa', 'TITULO_PROGRAMA',
         'programa', 'titulo', 'show', 'program', 'nombre programa', 'nombre_programa',
         'programa nombre', 'programa_nombre', 'programa tv', 'programa_tv'
@@ -333,43 +263,17 @@ const SpotAnalysis = () => {
       'costo', 'coste', 'precio', 'amount', 'monto', 'presupuesto', 'budget'
     ]);
     
-    console.log('🔍 Índices de columnas:', {
-      fechaIndex, horaIndex, canalIndex, tituloIndex,
-      versionIndex, duracionIndex, tipoComercialIndex, inversionIndex
-    });
-    
-    // Debug: Mostrar qué headers se encontraron
-    console.log('🔍 Headers disponibles (Excel):', headers);
-    console.log('🔍 Buscando columna título programa (Excel)...');
-    console.log('🔍 tituloIndex encontrado (Excel):', tituloIndex);
-    console.log('🔍 Si tituloIndex es -1, significa que no se encontró la columna');
-    
     if (fechaIndex === -1 || horaIndex === -1) {
       throw new Error('El archivo debe contener las columnas "fecha" y "hora inicio"');
     }
     
-    // Advertencia si no se encuentra la columna del título del programa
-    if (tituloIndex === -1) {
-      console.warn('⚠️ ADVERTENCIA: No se encontró la columna del título del programa (Excel)');
-      console.warn('📋 Columnas disponibles:', headers);
-      console.warn('🔍 Se buscó: "Titulo Programa", "titulo programa", "programa", "titulo", etc.');
-    }
-    
     return jsonData.slice(1).map((row, index) => {
-      // DEBUG: Mostrar valores raw de la fila
-      console.log(`🔍 DEBUG EXCEL Fila ${index + 1}:`, {
-        row: row,
-        tituloIndex: tituloIndex,
-        tituloValue: tituloIndex >= 0 ? row[tituloIndex] : 'NO ENCONTRADO'
-      });
-      
       // Extraer todas las columnas necesarias
       return {
         fecha: row[fechaIndex] || '',
         hora_inicio: row[horaIndex] || '',
         canal: row[canalIndex] || '',
         titulo_programa: row[tituloIndex] || '',
-        raw_titulo: row[tituloIndex] || '', // Para debug
         tipo_comercial: row[tipoComercialIndex] || '',
         version: row[versionIndex] || '',
         duracion: row[duracionIndex] || '',
@@ -525,18 +429,7 @@ const SpotAnalysis = () => {
             };
           }).filter(spot => spot.valid && spot.fecha && spot.hora); // Filtrar spots válidos
           
-          console.log(`✅ Se parsearon ${formattedSpots.length} spots válidos de ${spots.length} totales`);
-          console.log('📊 Primeros 3 spots parseados:', formattedSpots.slice(0, 3));
-          
-          // DEBUG ESPECÍFICO: Mostrar todos los títulos encontrados
-          console.log('🔍 DEBUG - TÍTULOS ENCONTRADOS:');
-          formattedSpots.forEach((spot, idx) => {
-            console.log(`Spot ${idx + 1}:`);
-            console.log(`  - nombre: "${spot.nombre}"`);
-            console.log(`  - titulo_programa: "${spot.titulo_programa}"`);
-            console.log(`  - debug_titulo: "${spot.debug_titulo}"`);
-            console.log(`  - raw data titulo: "${spot.raw_titulo || 'NO EXISTE'}"`);
-          });
+          // Datos parseados exitosamente
           
           resolve(formattedSpots);
         } catch (error) {
@@ -579,28 +472,15 @@ const SpotAnalysis = () => {
     try {
       const data = await parseSpotsFile(file);
       setSpotsData(data);
+      // Datos de spots cargados exitosamente
       console.log('📊 Datos de spots cargados:', data);
       
-      // ALERT MUY VISIBLE PARA DEBUG - Se ejecuta siempre
+      // Verificar si hay títulos válidos para forzar recarga si es necesario
       if (data && data.length > 0) {
-        const firstSpot = data[0];
-        const debugInfo = `🚨 DEBUG TÍTULOS SPOT 1:
-- nombre: "${firstSpot.nombre}"
-- titulo_programa: "${firstSpot.titulo_programa}"
-- raw_titulo: "${firstSpot.raw_titulo || 'NO EXISTE'}"
-- debug_titulo: "${firstSpot.debug_titulo || 'NO EXISTE'}"
-
-¿Ves el problema? El titulo_programa está vacío, por eso se usa el fallback "Spot 1"`;
-        
-        // Alert visible que no se puede perder
-        setTimeout(() => {
-          alert(debugInfo);
-        }, 1000);
-      }
-      
-      // SOLUCIÓN DEFINITIVA: Modal aparece SIEMPRE cuando se sube archivo (forzar recarga)
-      if (data && data.length > 0) {
-        setShowReloadPrompt(true);
+        const hasValidTitles = data.some(spot => spot.titulo_programa && spot.titulo_programa.trim() !== '');
+        if (!hasValidTitles) {
+          setShowReloadPrompt(true);
+        }
       }
     } catch (error) {
       console.error('❌ Error al procesar archivo de spots:', error);
