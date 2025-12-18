@@ -67,7 +67,7 @@ const Landing = () => {
   const plans = [
     {
       name: 'Básico',
-      price: '$99',
+      price: '$0',
       period: '/mes',
       description: 'Perfecto para pequeñas empresas',
       features: [
@@ -81,7 +81,7 @@ const Landing = () => {
     },
     {
       name: 'Profesional',
-      price: '$299',
+      price: '$19.990',
       period: '/mes',
       description: 'Ideal para agencias medianas',
       features: [
