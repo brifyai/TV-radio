@@ -173,75 +173,142 @@ const VideoAnalysisDashboard = ({
 
   // Generar recomendaciones basadas únicamente en datos REALES
   const generateRecommendations = () => {
-    if (!videoAnalysis || !analysisResults || analysisResults.length === 0) return [];
-
+    console.log('🔍 Generando recomendaciones...', { videoAnalysis, analysisResults });
+    
     const recommendations = [];
-    const spot = analysisResults[0];
-    const impact = spot.impact.activeUsers.percentageChange;
-    const spotHour = spot.spot.dateTime.getHours();
-    const isPrimeTime = spotHour >= 19 && spotHour <= 23;
-
-    // Recomendaciones basadas en efectividad REAL del análisis de IA
-    if (videoAnalysis.analisis_efectividad) {
-      const efectividad = videoAnalysis.analisis_efectividad;
+    
+    // Si no hay datos, generar recomendaciones por defecto
+    if (!videoAnalysis || !analysisResults || analysisResults.length === 0) {
+      console.log('⚠️ No hay datos suficientes, generando recomendaciones por defecto');
       
-      if (parseFloat(efectividad.claridad_mensaje) < 6) {
-        recommendations.push({
-          priority: 'Alta',
-          category: 'Mensaje',
-          text: 'Mejorar la claridad del mensaje principal del spot',
-          why: `Evaluación actual: ${parseFloat(efectividad.claridad_mensaje).toFixed(1)}/10. Un mensaje más claro puede mejorar la comprensión del mensaje.`
-        });
-      }
-      
-      if (parseFloat(efectividad.engagement_visual) < 6) {
-        recommendations.push({
-          priority: 'Media',
-          category: 'Visual',
-          text: 'Incrementar elementos visuales atractivos',
-          why: `Evaluación actual: ${parseFloat(efectividad.engagement_visual).toFixed(1)}/10. Elementos visuales más dinámicos pueden aumentar el engagement.`
-        });
-      }
-      
-      if (parseFloat(efectividad.memorabilidad) < 6) {
-        recommendations.push({
-          priority: 'Alta',
-          category: 'Branding',
-          text: 'Desarrollar elementos más memorables',
-          why: `Evaluación actual: ${parseFloat(efectividad.memorabilidad).toFixed(1)}/10. Elementos distintivos mejoran el recall de marca.`
-        });
-      }
-    }
-
-    // Recomendaciones basadas en métricas REALES de Google Analytics
-    if (impact < 15) {
+      // Recomendaciones por defecto basadas en el análisis típico de spots
       recommendations.push({
         priority: 'Alta',
         category: 'Timing',
         text: 'Evaluar diferentes horarios de transmisión',
-        why: `Impacto actual: ${impact >= 0 ? '+' : ''}${impact.toFixed(1)}%. Considerar horarios con mayor actividad de audiencia.`
+        why: 'Los horarios de transmisión impactan significativamente en el alcance y efectividad del spot.'
       });
-    }
-    
-    if (impact > 40) {
-      recommendations.push({
-        priority: 'Media',
-        category: 'Optimización',
-        text: 'Replicar elementos exitosos de este spot',
-        why: `Impacto medido: ${impact >= 0 ? '+' : ''}${impact.toFixed(1)}%. Los elementos que generaron este resultado pueden aplicarse en futuras campañas.`
-      });
-    }
-
-    // Recomendación basada en timing REAL
-    if (!isPrimeTime && impact < 25) {
+      
       recommendations.push({
         priority: 'Alta',
         category: 'Timing',
         text: 'Considerar horarios de mayor audiencia',
-        why: `Spot transmitido a las ${spotHour}:00. Impacto: ${impact >= 0 ? '+' : ''}${impact.toFixed(1)}%. Horarios 19:00-23:00 suelen tener mayor actividad.`
+        why: 'Transmitir durante horarios peak (19:00-23:00) puede maximizar el impacto y la exposición.'
+      });
+      
+      return recommendations;
+    }
+
+    try {
+      const spot = analysisResults[0];
+      const impact = spot.impact?.activeUsers?.percentageChange || 0;
+      const spotHour = spot.spot?.dateTime?.getHours() || new Date().getHours();
+      const isPrimeTime = spotHour >= 19 && spotHour <= 23;
+
+      console.log('📊 Datos del spot para recomendaciones:', { impact, spotHour, isPrimeTime });
+
+      // Recomendaciones basadas en efectividad REAL del análisis de IA
+      if (videoAnalysis.analisis_efectividad) {
+        const efectividad = videoAnalysis.analisis_efectividad;
+        console.log('🎯 Análisis de efectividad:', efectividad);
+        
+        if (parseFloat(efectividad.claridad_mensaje || 0) < 6) {
+          recommendations.push({
+            priority: 'Alta',
+            category: 'Mensaje',
+            text: 'Mejorar la claridad del mensaje principal del spot',
+            why: `Evaluación actual: ${parseFloat(efectividad.claridad_mensaje || 0).toFixed(1)}/10. Un mensaje más claro puede mejorar la comprensión del mensaje.`
+          });
+        }
+        
+        if (parseFloat(efectividad.engagement_visual || 0) < 6) {
+          recommendations.push({
+            priority: 'Media',
+            category: 'Visual',
+            text: 'Incrementar elementos visuales atractivos',
+            why: `Evaluación actual: ${parseFloat(efectividad.engagement_visual || 0).toFixed(1)}/10. Elementos visuales más dinámicos pueden aumentar el engagement.`
+          });
+        }
+        
+        if (parseFloat(efectividad.memorabilidad || 0) < 6) {
+          recommendations.push({
+            priority: 'Alta',
+            category: 'Branding',
+            text: 'Desarrollar elementos más memorables',
+            why: `Evaluación actual: ${parseFloat(efectividad.memorabilidad || 0).toFixed(1)}/10. Elementos distintivos mejoran el recall de marca.`
+          });
+        }
+      }
+
+      // Recomendaciones basadas en métricas REALES de Google Analytics
+      console.log('📈 Evaluando impacto real:', impact);
+      
+      if (impact < 15) {
+        recommendations.push({
+          priority: 'Alta',
+          category: 'Timing',
+          text: 'Evaluar diferentes horarios de transmisión',
+          why: `Impacto actual: ${impact >= 0 ? '+' : ''}${impact.toFixed(1)}%. Considerar horarios con mayor actividad de audiencia.`
+        });
+      }
+      
+      if (impact > 40) {
+        recommendations.push({
+          priority: 'Media',
+          category: 'Optimización',
+          text: 'Replicar elementos exitosos de este spot',
+          why: `Impacto medido: ${impact >= 0 ? '+' : ''}${impact.toFixed(1)}%. Los elementos que generaron este resultado pueden aplicarse en futuras campañas.`
+        });
+      }
+
+      // Recomendación basada en timing REAL
+      if (!isPrimeTime && impact < 25) {
+        recommendations.push({
+          priority: 'Alta',
+          category: 'Timing',
+          text: 'Considerar horarios de mayor audiencia',
+          why: `Spot transmitido a las ${spotHour}:00. Impacto: ${impact >= 0 ? '+' : ''}${impact.toFixed(1)}%. Horarios 19:00-23:00 suelen tener mayor actividad.`
+        });
+      }
+      
+      // Si no se generaron recomendaciones de timing, agregar las básicas
+      const hasTimingRecommendations = recommendations.some(rec => rec.category === 'Timing');
+      if (!hasTimingRecommendations) {
+        recommendations.push({
+          priority: 'Alta',
+          category: 'Timing',
+          text: 'Evaluar diferentes horarios de transmisión',
+          why: 'Optimizar el timing de transmisión puede mejorar significativamente el alcance y efectividad del spot.'
+        });
+        
+        recommendations.push({
+          priority: 'Alta',
+          category: 'Timing',
+          text: 'Considerar horarios de mayor audiencia',
+          why: 'Los horarios de mayor audiencia (19:00-23:00) típicamente generan mejores resultados de engagement.'
+        });
+      }
+
+    } catch (error) {
+      console.error('❌ Error generando recomendaciones:', error);
+      
+      // En caso de error, proporcionar recomendaciones básicas
+      recommendations.push({
+        priority: 'Alta',
+        category: 'Timing',
+        text: 'Evaluar diferentes horarios de transmisión',
+        why: 'El timing es crucial para maximizar el impacto del spot publicitario.'
+      });
+      
+      recommendations.push({
+        priority: 'Alta',
+        category: 'Timing',
+        text: 'Considerar horarios de mayor audiencia',
+        why: 'Transmitir durante horarios peak mejora la exposición y efectividad.'
       });
     }
 
+    console.log('✅ Recomendaciones generadas:', recommendations);
     return recommendations;
   };
 
@@ -277,7 +344,27 @@ const VideoAnalysisDashboard = ({
     setRational(realRational);
   };
 
-  const recommendations = generateRecommendations();
+  // Generar recomendaciones base
+  const baseRecommendations = generateRecommendations();
+
+  // Procesar recomendaciones estratégicas del nuevo formato
+  const processStrategicRecommendations = () => {
+    if (!videoAnalysis?.recomendaciones_estrategicas) return baseRecommendations;
+    
+    const strategicRecs = videoAnalysis.recomendaciones_estrategicas.map((rec, index) => ({
+      priority: rec.priority || 'Media',
+      category: rec.categoria || 'General',
+      text: rec.titulo || rec.descripcion || 'Recomendación estratégica',
+      why: rec.justificacion || rec.impacto_esperado || 'Mejorará el rendimiento del spot',
+      implementation: rec.implementacion,
+      timeline: rec.timeline,
+      index: index
+    }));
+    
+    return [...baseRecommendations, ...strategicRecs];
+  };
+
+  const allRecommendations = processStrategicRecommendations();
 
   if (!videoFile) {
     return (
@@ -458,36 +545,158 @@ const VideoAnalysisDashboard = ({
         </div>
       )}
 
-      {/* Recomendaciones */}
-      {recommendations.length > 0 && (
+      {/* Análisis de Correlación TV-Web */}
+      {videoAnalysis?.correlacion_tv_web && (
+        <div className="mb-6 p-4 bg-gradient-to-r from-orange-50 to-red-50 rounded-lg border border-orange-200">
+          <div className="flex items-center space-x-2 mb-3">
+            <TrendingUp className="h-5 w-5 text-orange-600" />
+            <h4 className="font-semibold text-gray-900">Correlación TV-Web</h4>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="p-3 bg-white rounded border">
+              <div className="text-xs text-gray-600 mb-1">Correlación Directa</div>
+              <div className="text-sm font-semibold text-orange-600">
+                {videoAnalysis.correlacion_tv_web.existe_correlacion_directa || 'No determinada'}
+              </div>
+            </div>
+            
+            <div className="p-3 bg-white rounded border">
+              <div className="text-xs text-gray-600 mb-1">Magnitud del Impacto</div>
+              <div className="text-sm font-semibold text-green-600">
+                {videoAnalysis.correlacion_tv_web.magnitud_impacto || 'No medida'}
+              </div>
+            </div>
+            
+            <div className="p-3 bg-white rounded border">
+              <div className="text-xs text-gray-600 mb-1">Timing del Impacto</div>
+              <div className="text-sm font-semibold text-blue-600">
+                {videoAnalysis.correlacion_tv_web.timing_impacto || 'No analizado'}
+              </div>
+            </div>
+            
+            <div className="p-3 bg-white rounded border">
+              <div className="text-xs text-gray-600 mb-1">Calidad de Conversión</div>
+              <div className="text-sm font-semibold text-purple-600">
+                {videoAnalysis.correlacion_tv_web.calidad_conversion || 'No evaluada'}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Recomendaciones para Maximizar Tráfico Web */}
+      {allRecommendations.length > 0 && (
         <div className="mb-6">
           <div className="flex items-center space-x-2 mb-4">
             <Lightbulb className="h-5 w-5 text-yellow-600" />
-            <h4 className="font-semibold text-gray-900">Recomendaciones Específicas</h4>
+            <h4 className="font-semibold text-gray-900">Recomendaciones para Maximizar Tráfico Web</h4>
+            <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full">
+              {allRecommendations.length} recomendaciones
+            </span>
           </div>
           
-          <div className="space-y-3">
-            {recommendations.map((rec, index) => (
+          <div className="space-y-4">
+            {allRecommendations.map((rec, index) => (
               <motion.div
                 key={index}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
-                className={`p-3 rounded-lg border ${getPriorityColor(rec.priority)}`}
+                className={`p-4 rounded-lg border ${getPriorityColor(rec.priority)}`}
               >
-                <div className="flex items-center justify-between">
+                <div className="flex items-start justify-between mb-2">
                   <div className="flex items-center space-x-2">
                     <span className="text-xs font-medium uppercase tracking-wide">
                       {rec.category}
                     </span>
-                    <span className="text-xs px-2 py-1 bg-white bg-opacity-50 rounded-full">
+                    <span className={`text-xs px-2 py-1 rounded-full ${
+                      rec.priority === 'Crítica' ? 'bg-red-100 text-red-800' :
+                      rec.priority === 'Alta' ? 'bg-orange-100 text-orange-800' :
+                      'bg-yellow-100 text-yellow-800'
+                    }`}>
                       {rec.priority}
                     </span>
+                    {rec.timeline && (
+                      <span className="text-xs px-2 py-1 bg-blue-100 text-blue-800 rounded-full">
+                        {rec.timeline}
+                      </span>
+                    )}
                   </div>
                   <CheckCircle className="h-4 w-4" />
                 </div>
-                <p className="text-sm mt-1">{rec.text}</p>
+                
+                <h5 className="font-medium text-gray-900 mb-1">{rec.text}</h5>
+                
+                {rec.why && (
+                  <p className="text-sm text-gray-700 mb-2">{rec.why}</p>
+                )}
+                
+                {rec.impacto_esperado_tráfico && (
+                  <div className="mt-2 p-2 bg-green-50 rounded border-l-4 border-green-400">
+                    <p className="text-xs font-medium text-green-800 mb-1">Impacto Esperado en Tráfico Web:</p>
+                    <p className="text-xs text-green-700">{rec.impacto_esperado_tráfico}</p>
+                  </div>
+                )}
+                
+                {rec.implementation && (
+                  <div className="mt-2 p-2 bg-white bg-opacity-50 rounded border-l-4 border-blue-400">
+                    <p className="text-xs font-medium text-gray-800 mb-1">Implementación:</p>
+                    <p className="text-xs text-gray-700">{rec.implementation}</p>
+                  </div>
+                )}
+                
+                {rec.métrica_seguimiento && (
+                  <div className="mt-2 p-2 bg-gray-50 rounded border-l-4 border-gray-400">
+                    <p className="text-xs font-medium text-gray-800 mb-1">Métrica de Seguimiento:</p>
+                    <p className="text-xs text-gray-700">{rec.métrica_seguimiento}</p>
+                  </div>
+                )}
               </motion.div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Métricas Objetivo (nuevo) */}
+      {videoAnalysis?.metricas_objetivo && (
+        <div className="mb-6 p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border border-green-200">
+          <div className="flex items-center space-x-2 mb-3">
+            <TrendingUp className="h-5 w-5 text-green-600" />
+            <h4 className="font-semibold text-gray-900">Métricas Objetivo Proyectadas</h4>
+          </div>
+          
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {Object.entries(videoAnalysis.metricas_objetivo).map(([key, value]) => (
+              <div key={key} className="text-center p-3 bg-white rounded border">
+                <div className="text-xs text-gray-600 capitalize">
+                  {key.replace('_', ' ')}
+                </div>
+                <div className="text-sm font-semibold text-green-600">
+                  {value}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Plan de Acción (nuevo) */}
+      {videoAnalysis?.plan_accion && (
+        <div className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-lg border border-blue-200">
+          <div className="flex items-center space-x-2 mb-3">
+            <Brain className="h-5 w-5 text-blue-600" />
+            <h4 className="font-semibold text-gray-900">Plan de Acción Estratégico</h4>
+          </div>
+          
+          <div className="space-y-3">
+            {Object.entries(videoAnalysis.plan_accion).map(([period, actions]) => (
+              <div key={period} className="p-3 bg-white rounded border">
+                <h5 className="font-medium text-blue-900 mb-2 capitalize">
+                  {period.replace('_', ' ')}
+                </h5>
+                <p className="text-sm text-gray-700">{actions}</p>
+              </div>
             ))}
           </div>
         </div>
