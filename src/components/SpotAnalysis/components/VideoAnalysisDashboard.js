@@ -468,17 +468,21 @@ const VideoAnalysisDashboard = ({
             <h4 className="font-semibold text-gray-900">Resumen Ejecutivo</h4>
           </div>
           <p className="text-sm text-gray-700 leading-relaxed">
-            {videoAnalysis.resumen_ejecutivo}
+            {typeof videoAnalysis.resumen_ejecutivo === 'string'
+              ? videoAnalysis.resumen_ejecutivo
+              : 'Análisis no disponible'}
           </p>
           
-          {videoAnalysis.tags_relevantes && videoAnalysis.tags_relevantes.length > 0 && (
+          {videoAnalysis.tags_relevantes &&
+           Array.isArray(videoAnalysis.tags_relevantes) &&
+           videoAnalysis.tags_relevantes.length > 0 && (
             <div className="mt-3 flex flex-wrap gap-2">
               {videoAnalysis.tags_relevantes.map((tag, index) => (
                 <span
                   key={index}
                   className="px-2 py-1 bg-white border border-gray-300 rounded-full text-xs text-gray-600"
                 >
-                  {tag}
+                  {typeof tag === 'string' ? tag : 'Tag no válido'}
                 </span>
               ))}
             </div>

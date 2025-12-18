@@ -1014,7 +1014,7 @@ const SpotAnalysis = () => {
           ) : (
             <div className="space-y-6">
               {/* Resumen Ejecutivo */}
-              {videoAnalysis.resumen_ejecutivo && (
+              {videoAnalysis.resumen_ejecutivo && typeof videoAnalysis.resumen_ejecutivo === 'string' && (
                 <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-4 border border-blue-200">
                   <h3 className="font-semibold text-gray-900 mb-2">Resumen Ejecutivo</h3>
                   <p className="text-gray-700">{videoAnalysis.resumen_ejecutivo}</p>
