@@ -26,15 +26,9 @@ const VideoAnalysisDashboard = ({
   const [videoAnalysisService] = useState(new ChutesVideoAnalysisService());
   const [error, setError] = useState(null);
 
-  // Analizar video cuando se proporciona
-  useEffect(() => {
-    if (videoFile && spotData && analysisResults && analysisResults.length > 0) {
-      analyzeVideoContent();
-    }
-  }, [videoFile, spotData, analysisResults, analyzeVideoContent]);
-
-  const analyzeVideoContent = async () => {
-    if (!videoFile || !spotData) return;
+  // Definir función de análisis de video antes de usarla
+  const analyzeVideoContent = React.useCallback(async () => {
+    if (!videoFile || !spotData || !analysisResults || analysisResults.length === 0) return;
 
     setAnalyzingVideo(true);
     setError(null);
@@ -76,7 +70,14 @@ const VideoAnalysisDashboard = ({
     } finally {
       setAnalyzingVideo(false);
     }
-  };
+  }, [videoFile, spotData, analysisResults, videoAnalysisService]);
+
+  // Analizar video cuando se proporciona
+  useEffect(() => {
+    if (videoFile && spotData && analysisResults && analysisResults.length > 0) {
+      analyzeVideoContent();
+    }
+  }, [videoFile, spotData, analysisResults, analyzeVideoContent]);
 
   // Generar racional de vinculación video-analytics basado en datos 100% REALES
   const generateVideoAnalyticsRational = () => {
