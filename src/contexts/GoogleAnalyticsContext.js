@@ -177,7 +177,16 @@ export const GoogleAnalyticsProvider = ({ children }) => {
         provider: 'google',
         options: {
           redirectTo: `${window.location.origin}/callback?analytics=true`,
-          scopes: 'email profile https://www.googleapis.com/auth/analytics.readonly https://www.googleapis.com/auth/analytics.edit https://www.googleapis.com/auth/analytics.manage.users.readonly'
+          scopes: 'email profile https://www.googleapis.com/auth/analytics.readonly https://www.googleapis.com/auth/analytics.edit https://www.googleapis.com/auth/analytics.manage.users.readonly',
+          // CRITICAL: Añadir metadata para identificar OAuth de Analytics
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+            include_granted_scopes: 'true'
+          },
+          data: {
+            analytics_oauth: 'true'
+          }
         }
       });
 

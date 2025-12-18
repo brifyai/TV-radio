@@ -228,13 +228,29 @@ export const databaseSchema = {
     CREATE OR REPLACE FUNCTION public.handle_new_user()
     RETURNS trigger AS $$
     BEGIN
+      -- CRITICAL: Only create user profile for primary authentication (not Analytics OAuth)
+      -- Check if this is an Analytics OAuth by looking at the provider or metadata
+      IF (new.raw_app_meta_data->>'provider' = 'google' AND
+          new.raw_user_meta_data->>'analytics_oauth' = 'true') THEN
+        -- Analytics OAuth - don't create profile, just return
+        RAISE NOTICE 'Analytics OAuth detected, skipping profile creation for user: %', new.email;
+        RETURN new;
+      END IF;
+      
+      -- Primary authentication - create/update profile
       INSERT INTO public.users (id, email, full_name, avatar_url)
       VALUES (
         new.id,
         new.email,
         new.raw_user_meta_data->>'full_name',
         new.raw_user_meta_data->>'avatar_url'
-      );
+      )
+      ON CONFLICT (id) DO UPDATE SET
+        email = EXCLUDED.email,
+        full_name = EXCLUDED.full_name,
+        avatar_url = EXCLUDED.avatar_url,
+        updated_at = NOW();
+      
       RETURN new;
     END;
     $$ LANGUAGE plpgsql SECURITY DEFINER;
