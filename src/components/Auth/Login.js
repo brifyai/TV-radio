@@ -144,7 +144,7 @@ const Login = () => {
               </p>
               
               <p className="text-lg text-slate-300 max-w-lg mx-auto lg:mx-0">
-                Transforma tus datos en insights accionables con análisis de video, correlación TV-Web y métricas en tiempo real.
+                Transforma tus datos en insights accionables con análisis de video, correlación TV-Web y Radio-Web y métricas en tiempo real.
               </p>
             </div>
 
