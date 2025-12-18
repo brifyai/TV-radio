@@ -133,55 +133,81 @@ class GoogleAnalyticsService {
   }
 
   /**
+   * Método auxiliar para reintentos automáticos
+   */
+  async retryWithBackoff(fn, maxRetries = 3, baseDelay = 1000) {
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        return await fn();
+      } catch (error) {
+        const isLastAttempt = attempt === maxRetries;
+        const shouldRetry = error.code === 'ECONNABORTED' ||
+                           error.response?.status >= 500 ||
+                           error.response?.status === 429;
+        
+        if (isLastAttempt || !shouldRetry) {
+          throw error;
+        }
+        
+        const delay = baseDelay * Math.pow(2, attempt - 1);
+        console.log(`🔄 Reintentando en ${delay}ms (intento ${attempt}/${maxRetries})...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+    }
+  }
+
+  /**
    * Get list of Google Analytics accounts - USA PROXY BACKEND
    */
   async getAccounts(accessToken) {
-  try {
-    console.log('🔍 DEBUG: Llamando al backend proxy para obtener cuentas');
-    console.log('🔍 DEBUG: API URL:', `${this.apiBaseUrl}/api/analytics/accounts`);
-    console.log('🔍 DEBUG: Entorno actual:', process.env.NODE_ENV);
-    console.log('🔍 DEBUG: URL base configurada:', this.apiBaseUrl);
-      
-      const response = await axios.get(`${this.apiBaseUrl}/api/analytics/accounts`, {
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json'
-        },
-        timeout: 15000
-      });
+    return this.retryWithBackoff(async () => {
+      try {
+        console.log('🔍 DEBUG: Llamando al backend proxy para obtener cuentas');
+        console.log('🔍 DEBUG: API URL:', `${this.apiBaseUrl}/api/analytics/accounts`);
+        console.log('🔍 DEBUG: Entorno actual:', process.env.NODE_ENV);
+        console.log('🔍 DEBUG: URL base configurada:', this.apiBaseUrl);
+           
+          const response = await axios.get(`${this.apiBaseUrl}/api/analytics/accounts`, {
+            headers: {
+              'Authorization': `Bearer ${accessToken}`,
+              'Content-Type': 'application/json'
+            },
+            timeout: 45000
+          });
 
-      console.log('✅ DEBUG: Respuesta exitosa del backend');
-      console.log('✅ DEBUG: Cuentas encontradas:', response.data.length || 0);
+          console.log('✅ DEBUG: Respuesta exitosa del backend');
+          console.log('✅ DEBUG: Cuentas encontradas:', response.data.length || 0);
 
-      return response.data;
-      
-    } catch (error) {
-      console.error('❌ ERROR DETALLADO al obtener cuentas:', {
-        message: error.message,
-        code: error.code,
-        status: error.response?.status,
-        statusText: error.response?.statusText,
-        data: error.response?.data,
-        isNetworkError: !error.response,
-        isTimeout: error.code === 'ECONNABORTED'
-      });
-      
-      if (error.code === 'ECONNABORTED') {
-        throw new Error('Error de timeout: La conexión tardó demasiado tiempo. Verifica tu conexión a internet.');
-      } else if (!error.response) {
-        throw new Error(`Error de conexión: No se puede conectar con el servidor backend en ${this.apiBaseUrl}. Verifica que el servidor esté corriendo.`);
-      } else if (error.response?.status === 401) {
-        throw new Error('Error de autenticación: el token de acceso ha expirado o es inválido. Por favor, vuelve a conectar tu cuenta de Google Analytics.');
-      } else if (error.response?.status === 403) {
-        throw new Error('Error de permisos: no tienes acceso a las cuentas de Google Analytics. Verifica los permisos de tu aplicación en Google Cloud Console.');
-      } else if (error.response?.status === 429) {
-        throw new Error('Límite de velocidad excedido: Google Analytics ha recibido demasiadas solicitudes. Por favor, espera unos minutos e intenta nuevamente.');
-      } else if (error.response?.status >= 500) {
-        throw new Error('Error del servidor: el servicio no está disponible temporalmente. Por favor, intenta más tarde.');
-      } else {
-        throw new Error(`Error al obtener cuentas: ${error.response?.data?.error || error.message}`);
-      }
-    }
+          return response.data;
+          
+        } catch (error) {
+          console.error('❌ ERROR DETALLADO al obtener cuentas:', {
+            message: error.message,
+            code: error.code,
+            status: error.response?.status,
+            statusText: error.response?.statusText,
+            data: error.response?.data,
+            isNetworkError: !error.response,
+            isTimeout: error.code === 'ECONNABORTED'
+          });
+          
+          if (error.code === 'ECONNABORTED') {
+            throw new Error('La conexión está tardando más de lo esperado. Esto puede deberse a la carga del servidor. Por favor, intenta nuevamente en unos momentos.');
+          } else if (!error.response) {
+            throw new Error(`Error de conexión: No se puede conectar con el servidor backend en ${this.apiBaseUrl}. Verifica que el servidor esté corriendo.`);
+          } else if (error.response?.status === 401) {
+            throw new Error('Error de autenticación: el token de acceso ha expirado o es inválido. Por favor, vuelve a conectar tu cuenta de Google Analytics.');
+          } else if (error.response?.status === 403) {
+            throw new Error('Error de permisos: no tienes acceso a las cuentas de Google Analytics. Verifica los permisos de tu aplicación en Google Cloud Console.');
+          } else if (error.response?.status === 429) {
+            throw new Error('Límite de velocidad excedido: Google Analytics ha recibido demasiadas solicitudes. Por favor, espera unos minutos e intenta nuevamente.');
+          } else if (error.response?.status >= 500) {
+            throw new Error('Error del servidor: el servicio no está disponible temporalmente. Por favor, intenta más tarde.');
+          } else {
+            throw new Error(`Error al obtener cuentas: ${error.response?.data?.error || error.message}`);
+          }
+        }
+    });
   }
 
   /**
@@ -243,93 +269,96 @@ class GoogleAnalyticsService {
    * Get analytics data for a specific property - USA PROXY BACKEND
    */
   async getAnalyticsData(accessToken, propertyId, metrics, dimensions, dateRange) {
-    try {
-      console.log(`🔍 DEBUG: Obteniendo datos de analytics para propiedad ${propertyId}`);
-      console.log(`🔍 DEBUG: URL completa: ${this.apiBaseUrl}/api/analytics/data/${propertyId}`);
-      console.log(`🔍 DEBUG: Entorno actual:`, process.env.NODE_ENV);
-      console.log(`🔍 DEBUG: Métricas solicitadas:`, metrics);
-      console.log(`🔍 DEBUG: Dimensiones solicitadas:`, dimensions);
-      console.log(`🔍 DEBUG: Rango de fechas:`, dateRange);
-      
-      const response = await axios.post(
-        `${this.apiBaseUrl}/api/analytics/data/${propertyId}`,
-        {
-          metrics,
-          dimensions,
-          dateRange
-        },
-        {
-          headers: {
-            'Authorization': `Bearer ${accessToken}`,
-            'Content-Type': 'application/json'
-          }
-        }
-      );
-
-      console.log(`✅ DEBUG: Respuesta recibida de Google Analytics API`);
-      console.log(`✅ DEBUG: Estructura de respuesta:`, {
-        hasRows: !!response.data.rows,
-        rowsCount: response.data.rows?.length || 0,
-        hasTotals: !!response.data.totals,
-        totalsCount: response.data.totals?.length || 0,
-        hasMaximums: !!response.data.maximums,
-        hasMinimums: !!response.data.minimums,
-        rowCount: response.data.rowCount,
-        metadata: response.data.metadata
-      });
-      
-      // Si hay datos, mostrar una muestra
-      if (response.data.rows && response.data.rows.length > 0) {
-        console.log(`🔍 DEBUG: Muestra de datos (primeras 3 filas):`, response.data.rows.slice(0, 3));
-      }
-      
-      if (response.data.totals && response.data.totals.length > 0) {
-        console.log(`🔍 DEBUG: Datos de totales:`, response.data.totals);
-      }
-
-      return response.data;
-      
-    } catch (error) {
-      console.error('❌ ERROR DETALLADO al obtener datos de analytics:', {
-        message: error.message,
-        code: error.code,
-        status: error.response?.status,
-        statusText: error.response?.statusText,
-        data: error.response?.data,
-        isNetworkError: !error.response,
-        isTimeout: error.code === 'ECONNABORTED'
-      });
-      
-      if (error.code === 'ECONNABORTED') {
-        throw new Error('Error de timeout: La conexión tardó demasiado tiempo. Verifica tu conexión a internet.');
-      } else if (!error.response) {
-        throw new Error(`Error de conexión: No se puede conectar con el servidor backend en ${this.apiBaseUrl}. Verifica que el servidor esté corriendo.`);
-      } else if (error.response?.status === 401) {
-        throw new Error('Error de autenticación: el token de acceso ha expirado o es inválido. Por favor, vuelve a conectar tu cuenta.');
-      } else if (error.response?.status === 403) {
-        throw new Error('Error de permisos: no tienes acceso a los datos de esta propiedad.');
-      } else if (error.response?.status === 400) {
-        // Mostrar el error específico que viene del servidor
-        const serverError = error.response?.data?.error || error.response?.data?.message || error.message;
-        console.log('🔍 DEBUG: Error 400 del servidor:', serverError);
-        console.log('🔍 DEBUG: Detalles completos:', error.response?.data);
+    return this.retryWithBackoff(async () => {
+      try {
+        console.log(`🔍 DEBUG: Obteniendo datos de analytics para propiedad ${propertyId}`);
+        console.log(`🔍 DEBUG: URL completa: ${this.apiBaseUrl}/api/analytics/data/${propertyId}`);
+        console.log(`🔍 DEBUG: Entorno actual:`, process.env.NODE_ENV);
+        console.log(`🔍 DEBUG: Métricas solicitadas:`, metrics);
+        console.log(`🔍 DEBUG: Dimensiones solicitadas:`, dimensions);
+        console.log(`🔍 DEBUG: Rango de fechas:`, dateRange);
         
-        // Si el error contiene información específica, mostrarla
-        if (typeof serverError === 'object' && serverError.message) {
-          throw new Error(`Solicitud inválida: ${serverError.message}`);
-        } else if (typeof serverError === 'string' && serverError.length > 0) {
-          throw new Error(`Solicitud inválida: ${serverError}`);
-        } else {
-          throw new Error('Solicitud inválida: verifica las métricas, dimensiones y rango de fechas seleccionados.');
+        const response = await axios.post(
+          `${this.apiBaseUrl}/api/analytics/data/${propertyId}`,
+          {
+            metrics,
+            dimensions,
+            dateRange
+          },
+          {
+            headers: {
+              'Authorization': `Bearer ${accessToken}`,
+              'Content-Type': 'application/json'
+            },
+            timeout: 60000
+          }
+        );
+
+        console.log(`✅ DEBUG: Respuesta recibida de Google Analytics API`);
+        console.log(`✅ DEBUG: Estructura de respuesta:`, {
+          hasRows: !!response.data.rows,
+          rowsCount: response.data.rows?.length || 0,
+          hasTotals: !!response.data.totals,
+          totalsCount: response.data.totals?.length || 0,
+          hasMaximums: !!response.data.maximums,
+          hasMinimums: !!response.data.minimums,
+          rowCount: response.data.rowCount,
+          metadata: response.data.metadata
+        });
+        
+        // Si hay datos, mostrar una muestra
+        if (response.data.rows && response.data.rows.length > 0) {
+          console.log(`🔍 DEBUG: Muestra de datos (primeras 3 filas):`, response.data.rows.slice(0, 3));
         }
-      } else if (error.response?.status === 429) {
-        throw new Error('Límite de velocidad excedido: espera unos minutos e intenta nuevamente.');
-      } else if (error.response?.status >= 500) {
-        throw new Error('Error del servidor: el servicio no está disponible temporalmente. Por favor, intenta más tarde.');
-      } else {
-        throw new Error(`Error al obtener datos de analytics: ${error.response?.data?.error || error.message}`);
+        
+        if (response.data.totals && response.data.totals.length > 0) {
+          console.log(`🔍 DEBUG: Datos de totales:`, response.data.totals);
+        }
+
+        return response.data;
+        
+      } catch (error) {
+        console.error('❌ ERROR DETALLADO al obtener datos de analytics:', {
+          message: error.message,
+          code: error.code,
+          status: error.response?.status,
+          statusText: error.response?.statusText,
+          data: error.response?.data,
+          isNetworkError: !error.response,
+          isTimeout: error.code === 'ECONNABORTED'
+        });
+        
+        if (error.code === 'ECONNABORTED') {
+          throw new Error('La conexión está tardando más de lo esperado. Esto puede deberse a la carga del servidor. Por favor, intenta nuevamente en unos momentos.');
+        } else if (!error.response) {
+          throw new Error(`Error de conexión: No se puede conectar con el servidor backend en ${this.apiBaseUrl}. Verifica que el servidor esté corriendo.`);
+        } else if (error.response?.status === 401) {
+          throw new Error('Error de autenticación: el token de acceso ha expirado o es inválido. Por favor, vuelve a conectar tu cuenta.');
+        } else if (error.response?.status === 403) {
+          throw new Error('Error de permisos: no tienes acceso a los datos de esta propiedad.');
+        } else if (error.response?.status === 400) {
+          // Mostrar el error específico que viene del servidor
+          const serverError = error.response?.data?.error || error.response?.data?.message || error.message;
+          console.log('🔍 DEBUG: Error 400 del servidor:', serverError);
+          console.log('🔍 DEBUG: Detalles completos:', error.response?.data);
+          
+          // Si el error contiene información específica, mostrarla
+          if (typeof serverError === 'object' && serverError.message) {
+            throw new Error(`Solicitud inválida: ${serverError.message}`);
+          } else if (typeof serverError === 'string' && serverError.length > 0) {
+            throw new Error(`Solicitud inválida: ${serverError}`);
+          } else {
+            throw new Error('Solicitud inválida: verifica las métricas, dimensiones y rango de fechas seleccionados.');
+          }
+        } else if (error.response?.status === 429) {
+          throw new Error('Límite de velocidad excedido: espera unos minutos e intenta nuevamente.');
+        } else if (error.response?.status >= 500) {
+          throw new Error('Error del servidor: el servicio no está disponible temporalmente. Por favor, intenta más tarde.');
+        } else {
+          throw new Error(`Error al obtener datos de analytics: ${error.response?.data?.error || error.message}`);
+        }
       }
-    }
+    });
   }
 
   /**
