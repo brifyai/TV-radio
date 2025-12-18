@@ -702,88 +702,149 @@ const VideoAnalysisDashboard = ({
         </div>
       )}
 
-      {/* Resumen Ejecutivo del Video */}
-      {videoAnalysis && (
-        <div className="p-4 bg-gradient-to-r from-gray-50 to-slate-50 rounded-lg border border-gray-200">
-          <div className="flex items-center space-x-2 mb-3">
-            <Info className="h-5 w-5 text-gray-600" />
-            <h4 className="font-semibold text-gray-900">Resumen Ejecutivo</h4>
-          </div>
-          
-          {(() => {
-            let resumenContent = 'Análisis no disponible';
+      {/* Resumen Ejecutivo 100% Real */}
+      <div className="p-4 bg-gradient-to-r from-gray-50 to-slate-50 rounded-lg border border-gray-200">
+        <div className="flex items-center space-x-2 mb-3">
+          <Info className="h-5 w-5 text-gray-600" />
+          <h4 className="font-semibold text-gray-900">Resumen Ejecutivo</h4>
+        </div>
+        
+        {(() => {
+          // Generar resumen ejecutivo 100% basado en datos reales
+          const generateRealExecutiveSummary = () => {
+            if (!analysisResults || analysisResults.length === 0) {
+              return 'No hay datos de análisis disponibles para generar resumen ejecutivo.';
+            }
+
+            const spot = analysisResults[0];
+            const spotHour = spot.spot?.dateTime?.getHours() || 'No especificada';
+            const impact = spot.impact?.activeUsers?.percentageChange || 0;
+            const usersActive = spot.metrics?.spot?.activeUsers || 0;
+            const sessions = spot.metrics?.spot?.sessions || 0;
+            const pageviews = spot.metrics?.spot?.pageviews || 0;
+
+            let summary = `Spot transmitido a las ${spotHour}:00. `;
             
-            if (videoAnalysis.resumen_ejecutivo) {
-              if (typeof videoAnalysis.resumen_ejecutivo === 'string') {
-                resumenContent = videoAnalysis.resumen_ejecutivo;
-              } else if (typeof videoAnalysis.resumen_ejecutivo === 'object') {
-                // Si es un objeto, intentar extraer información útil
-                const obj = videoAnalysis.resumen_ejecutivo;
-                if (obj.analisis_general) {
-                  resumenContent = obj.analisis_general;
-                } else if (obj.resumen) {
-                  resumenContent = obj.resumen;
-                } else if (obj.conclusion) {
-                  resumenContent = obj.conclusion;
-                } else {
-                  // NO generar contenido simulado - mostrar mensaje de no disponibilidad
-                  resumenContent = 'Análisis no disponible';
-                }
+            // Análisis de correlación TV-Web
+            if (impact > 0) {
+              summary += `Generó un incremento de +${impact.toFixed(1)}% en usuarios activos durante la transmisión. `;
+              summary += `Métricas reales: ${usersActive} usuarios activos, ${sessions} sesiones, ${pageviews} páginas vistas. `;
+              
+              if (impact > 20) {
+                summary += 'El spot demostró una CORRELACIÓN FUERTE entre la transmisión TV y el tráfico web, indicando alta efectividad para generar visitas al sitio.';
+              } else if (impact > 10) {
+                summary += 'El spot mostró una CORRELACIÓN MODERADA entre TV y web, con impacto positivo pero mejorable en generación de tráfico.';
+              } else {
+                summary += 'El spot presentó CORRELACIÓN DÉBIL entre TV y web, sugiriendo necesidad de optimización para maximizar visitas al sitio.';
               }
             } else {
-              // NO generar contenido simulado cuando no hay resumen ejecutivo
-              resumenContent = 'Análisis no disponible';
+              summary += `No se detectó incremento significativo en tráfico web durante la transmisión (${impact.toFixed(1)}%). `;
+              summary += `Métricas: ${usersActive} usuarios activos, ${sessions} sesiones, ${pageviews} páginas vistas. `;
+              summary += 'Se requiere análisis detallado del contenido del spot y timing para identificar oportunidades de mejora en la correlación TV-Web.';
             }
-            
-            return (
-              <div>
-                <p className="text-sm text-gray-700 leading-relaxed mb-3">
-                  {resumenContent}
-                </p>
-                
-                {/* Métricas clave del análisis */}
-                {videoAnalysis.analisis_efectividad && (
-                  <div className="grid grid-cols-3 gap-2 mb-3">
-                    <div className="text-center p-2 bg-white rounded border">
-                      <div className="text-xs text-gray-600">Claridad</div>
-                      <div className="text-sm font-semibold text-blue-600">
-                        {parseFloat(videoAnalysis.analisis_efectividad.claridad_mensaje || 0).toFixed(1)}/10
-                      </div>
-                    </div>
-                    <div className="text-center p-2 bg-white rounded border">
-                      <div className="text-xs text-gray-600">Engagement</div>
-                      <div className="text-sm font-semibold text-green-600">
-                        {parseFloat(videoAnalysis.analisis_efectividad.engagement_visual || 0).toFixed(1)}/10
-                      </div>
-                    </div>
-                    <div className="text-center p-2 bg-white rounded border">
-                      <div className="text-xs text-gray-600">Memorabilidad</div>
-                      <div className="text-sm font-semibold text-purple-600">
-                        {parseFloat(videoAnalysis.analisis_efectividad.memorabilidad || 0).toFixed(1)}/10
-                      </div>
+
+            // Análisis de timing
+            const isPrimeTime = spotHour >= 19 && spotHour <= 23;
+            if (isPrimeTime) {
+              summary += ' El horario de transmisión (prime time) es óptimo para maximizar audiencia y potencial de tráfico web.';
+            } else {
+              summary += ' El horario de transmisión está fuera del prime time, lo que puede limitar el alcance y la correlación con tráfico web.';
+            }
+
+            // Agregar análisis de video si está disponible
+            if (videoAnalysis?.analisis_efectividad) {
+              const efectividad = videoAnalysis.analisis_efectividad;
+              const clarity = parseFloat(efectividad.claridad_mensaje || 0);
+              const engagement = parseFloat(efectividad.engagement_visual || 0);
+              const memorability = parseFloat(efectividad.memorabilidad || 0);
+              
+              summary += ` Análisis de contenido: Claridad del mensaje ${clarity.toFixed(1)}/10, Engagement visual ${engagement.toFixed(1)}/10, Memorabilidad ${memorability.toFixed(1)}/10.`;
+              
+              if (clarity < 6 || engagement < 6) {
+                summary += ' La calidad del contenido sugiere oportunidades de mejora para incrementar la efectividad del spot en generar tráfico web.';
+              }
+            }
+
+            return summary;
+          };
+
+          const realSummary = generateRealExecutiveSummary();
+          
+          return (
+            <div>
+              <p className="text-sm text-gray-700 leading-relaxed mb-3">
+                {realSummary}
+              </p>
+              
+              {/* Métricas clave del análisis */}
+              {videoAnalysis?.analisis_efectividad && (
+                <div className="grid grid-cols-3 gap-2 mb-3">
+                  <div className="text-center p-2 bg-white rounded border">
+                    <div className="text-xs text-gray-600">Claridad</div>
+                    <div className="text-sm font-semibold text-blue-600">
+                      {parseFloat(videoAnalysis.analisis_efectividad.claridad_mensaje || 0).toFixed(1)}/10
                     </div>
                   </div>
-                )}
-              </div>
-            );
-          })()}
-          
-          {videoAnalysis.tags_relevantes &&
-           Array.isArray(videoAnalysis.tags_relevantes) &&
-           videoAnalysis.tags_relevantes.length > 0 && (
-            <div className="mt-3 flex flex-wrap gap-2">
-              {videoAnalysis.tags_relevantes.map((tag, index) => (
-                <span
-                  key={index}
-                  className="px-2 py-1 bg-white border border-gray-300 rounded-full text-xs text-gray-600"
-                >
-                  {typeof tag === 'string' ? tag : 'Tag no válido'}
-                </span>
-              ))}
+                  <div className="text-center p-2 bg-white rounded border">
+                    <div className="text-xs text-gray-600">Engagement</div>
+                    <div className="text-sm font-semibold text-green-600">
+                      {parseFloat(videoAnalysis.analisis_efectividad.engagement_visual || 0).toFixed(1)}/10
+                    </div>
+                  </div>
+                  <div className="text-center p-2 bg-white rounded border">
+                    <div className="text-xs text-gray-600">Memorabilidad</div>
+                    <div className="text-sm font-semibold text-purple-600">
+                      {parseFloat(videoAnalysis.analisis_efectividad.memorabilidad || 0).toFixed(1)}/10
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              {/* Datos de correlación TV-Web */}
+              {analysisResults && analysisResults.length > 0 && (
+                <div className="mt-3 p-3 bg-blue-50 rounded border border-blue-200">
+                  <div className="text-xs font-medium text-blue-800 mb-2">Datos de Correlación TV-Web</div>
+                  <div className="grid grid-cols-3 gap-2 text-xs">
+                    <div className="text-center">
+                      <div className="text-blue-600 font-semibold">
+                        +{analysisResults[0].impact?.activeUsers?.percentageChange?.toFixed(1) || '0'}%
+                      </div>
+                      <div className="text-blue-700">Usuarios Activos</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-green-600 font-semibold">
+                        +{analysisResults[0].impact?.sessions?.percentageChange?.toFixed(1) || '0'}%
+                      </div>
+                      <div className="text-green-700">Sesiones</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-purple-600 font-semibold">
+                        +{analysisResults[0].impact?.pageviews?.percentageChange?.toFixed(1) || '0'}%
+                      </div>
+                      <div className="text-purple-700">Páginas Vistas</div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
-          )}
-        </div>
-      )}
+          );
+        })()}
+        
+        {videoAnalysis?.tags_relevantes &&
+         Array.isArray(videoAnalysis.tags_relevantes) &&
+         videoAnalysis.tags_relevantes.length > 0 && (
+          <div className="mt-3 flex flex-wrap gap-2">
+            {videoAnalysis.tags_relevantes.map((tag, index) => (
+              <span
+                key={index}
+                className="px-2 py-1 bg-white border border-gray-300 rounded-full text-xs text-gray-600"
+              >
+                {typeof tag === 'string' ? tag : 'Tag no válido'}
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
 
       {/* Loading State */}
       {analyzingVideo && (
