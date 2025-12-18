@@ -62,6 +62,7 @@ const SpotAnalysis = () => {
   const [controlGroupAnalysis, setControlGroupAnalysis] = useState(null);
   const [predictiveAnalysis, setPredictiveAnalysis] = useState(null);
   const [expandedTimeline, setExpandedTimeline] = useState({});
+  const [expandedAIAnalysis, setExpandedAIAnalysis] = useState({});
   const [currentPage, setCurrentPage] = useState(1);
   const spotsPerPage = 10;
   const [showReloadPrompt, setShowReloadPrompt] = useState(false);
@@ -815,6 +816,14 @@ const SpotAnalysis = () => {
     }));
   }, []);
 
+  // Función para manejar el toggle del análisis de IA
+  const toggleAIAnalysis = useCallback((spotIndex) => {
+    setExpandedAIAnalysis(prev => ({
+      ...prev,
+      [spotIndex]: !prev[spotIndex]
+    }));
+  }, []);
+
   // Exportar resultados
   const exportResults = () => {
     if (!analysisResults) return;
@@ -885,17 +894,38 @@ const SpotAnalysis = () => {
             </div>
           </div>
 
-          {analysisResults.filter(r => r.impact.activeUsers.directCorrelation).length > 0 && (
+          <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Spots con Vinculación Directa</p>
+                <p className="text-3xl font-bold text-purple-600">
+                  {analysisResults.filter(r => r.impact.activeUsers.directCorrelation).length}
+                </p>
+                <p className="text-xs text-gray-500 mt-1">
+                  Criterios: {'>'}15% aumento y {'>'}115% del baseline
+                </p>
+              </div>
+              <div className="p-3 bg-purple-100 rounded-full">
+                <Target className="h-6 w-6 text-purple-600" />
+              </div>
+            </div>
+          </div>
+          
+          {/* Spots con impacto significativo (aunque no cumplan vinculación directa) */}
+          {analysisResults.filter(r => r.impact.activeUsers.significant && !r.impact.activeUsers.directCorrelation).length > 0 && (
             <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Spots con Vinculación Directa</p>
-                  <p className="text-3xl font-bold text-purple-600">
-                    {analysisResults.filter(r => r.impact.activeUsers.directCorrelation).length}
+                  <p className="text-sm font-medium text-gray-600">Spots con Impacto Significativo</p>
+                  <p className="text-3xl font-bold text-orange-600">
+                    {analysisResults.filter(r => r.impact.activeUsers.significant && !r.impact.activeUsers.directCorrelation).length}
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Impacto {'>'}10% pero {'<'}15% o {'<'}115% del baseline
                   </p>
                 </div>
-                <div className="p-3 bg-purple-100 rounded-full">
-                  <Target className="h-6 w-6 text-purple-600" />
+                <div className="p-3 bg-orange-100 rounded-full">
+                  <TrendingUp className="h-6 w-6 text-orange-600" />
                 </div>
               </div>
             </div>
@@ -942,11 +972,6 @@ const SpotAnalysis = () => {
           </div>
           
           {/* Tercera fila: Gráfico de tráfico por hora en ancho completo */}
-          <div className="w-full">
-            <TrafficChart analysisResults={analysisResults} />
-          </div>
-          
-          {/* Segunda fila: Gráfico de tráfico por hora en ancho completo */}
           <div className="w-full">
             <TrafficChart analysisResults={analysisResults} />
           </div>
@@ -1306,29 +1331,59 @@ const SpotAnalysis = () => {
                           {/* Análisis de IA para este spot */}
                           {aiAnalysis[analysisResults.indexOf(result)] && (
                             <div className="mt-4 p-4 bg-purple-50 border border-purple-200 rounded-lg">
-                              <div className="flex items-center mb-3">
-                                <Brain className="h-5 w-5 text-purple-600 mr-2" />
-                                <h4 className="text-sm font-medium text-purple-900">Análisis Inteligente</h4>
-                              </div>
-                              <p className="text-sm text-purple-800 mb-3">{aiAnalysis[analysisResults.indexOf(result)].summary}</p>
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                  <h5 className="text-xs font-medium text-purple-700 mb-2">Insights:</h5>
-                                  <ul className="text-xs text-purple-700 list-disc list-inside space-y-1">
-                                    {(aiAnalysis[analysisResults.indexOf(result)]?.insights || []).map((insight, i) => (
-                                      <li key={i}>{insight}</li>
-                                    ))}
-                                  </ul>
+                              <div className="flex items-center justify-between mb-3">
+                                <div className="flex items-center">
+                                  <Brain className="h-5 w-5 text-purple-600 mr-2" />
+                                  <h4 className="text-sm font-medium text-purple-900">Análisis Inteligente</h4>
                                 </div>
-                                <div>
-                                  <h5 className="text-xs font-medium text-purple-700 mb-2">Recomendaciones:</h5>
-                                  <ul className="text-xs text-purple-700 list-disc list-inside space-y-1">
-                                    {(aiAnalysis[analysisResults.indexOf(result)]?.recommendations || []).map((rec, i) => (
-                                      <li key={i}>{rec}</li>
-                                    ))}
-                                  </ul>
-                                </div>
+                                <button
+                                  onClick={() => toggleAIAnalysis(analysisResults.indexOf(result))}
+                                  className="flex items-center space-x-1 px-3 py-1 text-xs font-medium text-purple-600 bg-purple-100 hover:bg-purple-200 rounded-lg transition-colors"
+                                >
+                                  {expandedAIAnalysis[analysisResults.indexOf(result)] ? (
+                                    <>
+                                      <ChevronDown className="h-4 w-4" />
+                                      <span>Colapsar</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <ChevronRight className="h-4 w-4" />
+                                      <span>Expandir</span>
+                                    </>
+                                  )}
+                                </button>
                               </div>
+                              
+                              {/* Contenido colapsable del análisis de IA */}
+                              {expandedAIAnalysis[analysisResults.indexOf(result)] && (
+                                <motion.div
+                                  initial={{ opacity: 0, height: 0 }}
+                                  animate={{ opacity: 1, height: 'auto' }}
+                                  exit={{ opacity: 0, height: 0 }}
+                                  transition={{ duration: 0.3 }}
+                                  className="overflow-hidden"
+                                >
+                                  <p className="text-sm text-purple-800 mb-3">{aiAnalysis[analysisResults.indexOf(result)].summary}</p>
+                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                      <h5 className="text-xs font-medium text-purple-700 mb-2">Insights:</h5>
+                                      <ul className="text-xs text-purple-700 list-disc list-inside space-y-1">
+                                        {(aiAnalysis[analysisResults.indexOf(result)]?.insights || []).map((insight, i) => (
+                                          <li key={i}>{insight}</li>
+                                        ))}
+                                      </ul>
+                                    </div>
+                                    <div>
+                                      <h5 className="text-xs font-medium text-purple-700 mb-2">Recomendaciones:</h5>
+                                      <ul className="text-xs text-purple-700 list-disc list-inside space-y-1">
+                                        {(aiAnalysis[analysisResults.indexOf(result)]?.recommendations || []).map((rec, i) => (
+                                          <li key={i}>{rec}</li>
+                                        ))}
+                                      </ul>
+                                    </div>
+                                  </div>
+                                </motion.div>
+                              )}
                             </div>
                           )}
                         </motion.div>
