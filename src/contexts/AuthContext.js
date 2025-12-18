@@ -47,6 +47,18 @@ export const AuthProvider = ({ children }) => {
       async (event, session) => {
         try {
           console.log('🔄 DEBUG: Auth state changed:', event);
+          
+          // CRITICAL: Detectar si es OAuth de Analytics para preservar usuario original
+          const isAnalyticsOAuth = session?.user?.user_metadata?.analytics_oauth === 'true' ||
+                                   session?.user?.app_metadata?.analytics_oauth === 'true';
+          
+          if (isAnalyticsOAuth && event === 'SIGNED_IN') {
+            console.log('🔒 DEBUG: OAuth de Analytics detectado, preservando usuario original');
+            // No actualizar usuario ni sesión para OAuth de Analytics
+            setLoading(false);
+            return;
+          }
+          
           setSession(session);
           setUser(session?.user || null);
           setLoading(false);
