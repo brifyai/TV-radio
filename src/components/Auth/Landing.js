@@ -272,38 +272,6 @@ const Landing = () => {
         </div>
       </div>
 
-      {/* Features Section */}
-      <section id="features" className="relative z-10 px-6 py-20">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-white mb-4">
-              Características Principales
-            </h2>
-            <p className="text-xl text-slate-300 max-w-3xl mx-auto">
-              Todo lo que necesitas para analizar y optimizar tus campañas de medios
-            </p>
-          </div>
-          
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {features.map((feature, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
-                className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-300"
-              >
-                <div className={`w-12 h-12 rounded-lg bg-white/10 flex items-center justify-center mb-4`}>
-                  <feature.icon className={`h-6 w-6 ${feature.color}`} />
-                </div>
-                <h3 className="text-xl font-semibold text-white mb-2">{feature.title}</h3>
-                <p className="text-slate-300">{feature.description}</p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* About Section */}
       <section id="about" className="relative z-10 px-6 py-20">
         <div className="max-w-7xl mx-auto">
@@ -390,28 +358,32 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* Stats Section */}
-      <section id="stats" className="relative z-10 px-6 py-20">
+      {/* Features Section */}
+      <section id="features" className="relative z-10 px-6 py-20">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-white mb-4">
-              Resultados que Hablan por Sí Solos
+              Características Principales
             </h2>
+            <p className="text-xl text-slate-300 max-w-3xl mx-auto">
+              Todo lo que necesitas para analizar y optimizar tus campañas de medios
+            </p>
           </div>
           
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {stats.map((stat, index) => (
+            {features.map((feature, index) => (
               <motion.div
                 key={index}
-                initial={{ opacity: 0, scale: 0.8 }}
-                whileInView={{ opacity: 1, scale: 1 }}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: index * 0.1 }}
-                className="text-center"
+                className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-300"
               >
-                <div className="text-5xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent mb-2">
-                  {stat.number}
+                <div className={`w-12 h-12 rounded-lg bg-white/10 flex items-center justify-center mb-4`}>
+                  <feature.icon className={`h-6 w-6 ${feature.color}`} />
                 </div>
-                <div className="text-slate-300">{stat.label}</div>
+                <h3 className="text-xl font-semibold text-white mb-2">{feature.title}</h3>
+                <p className="text-slate-300">{feature.description}</p>
               </motion.div>
             ))}
           </div>
