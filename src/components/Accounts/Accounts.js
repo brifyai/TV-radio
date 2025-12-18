@@ -84,14 +84,55 @@ const Accounts = () => {
 
   if (!isConnected) {
     return (
-      <div className="text-center py-12">
-        <Database className="mx-auto h-12 w-12 text-gray-400" />
-        {/* <h3 className="mt-2 text-sm font-medium text-gray-900">
-          No hay conexión con Google Analytics
-        </h3>
-        <p className="mt-1 text-sm text-gray-500">
-          Conecta tu cuenta de Google Analytics para ver tus cuentas y propiedades.
-        </p> */}
+      <div className="min-h-screen bg-gray-50">
+        {/* Header Principal */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl shadow-lg p-6 text-white mb-6"
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold mb-2">
+                Cuentas de Google Analytics
+              </h1>
+              <p className="text-blue-100">
+                Gestiona tus cuentas y propiedades de Google Analytics 4
+              </p>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Mensaje de No Conexión */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center py-16"
+        >
+          <div className="bg-white rounded-xl shadow-lg p-12 max-w-md mx-auto border border-gray-100">
+            <Database className="mx-auto h-16 w-16 text-gray-400 mb-6" />
+            <h3 className="text-xl font-medium text-gray-900 mb-4">
+              No hay conexión con Google Analytics
+            </h3>
+            <p className="text-gray-600 mb-6">
+              Conecta tu cuenta de Google Analytics para ver tus cuentas y propiedades disponibles.
+            </p>
+            <div className="space-y-3">
+              <div className="flex items-center justify-center text-sm text-gray-500">
+                <div className="w-2 h-2 bg-gray-300 rounded-full mr-2"></div>
+                Requiere autenticación con Google
+              </div>
+              <div className="flex items-center justify-center text-sm text-gray-500">
+                <div className="w-2 h-2 bg-gray-300 rounded-full mr-2"></div>
+                Acceso seguro a tus datos
+              </div>
+              <div className="flex items-center justify-center text-sm text-gray-500">
+                <div className="w-2 h-2 bg-gray-300 rounded-full mr-2"></div>
+                Configuración de una sola vez
+              </div>
+            </div>
+          </div>
+        </motion.div>
       </div>
     );
   }

@@ -128,7 +128,7 @@ const SpotAnalysis = () => {
     const horaIndex = findColumnIndex(headers, ['hora inicio', 'hora_inicio', 'hora']);
     const canalIndex = findColumnIndex(headers, ['canal']);
     
-    // Buscar específicamente 'título programa' primero
+    // Buscar específicamente 'título programa' primero - MEJORADO
     let tituloIndex = -1;
     
     // PASO 1: Buscar coincidencia EXACTA para 'título programa' (con acento)
@@ -137,6 +137,7 @@ const SpotAnalysis = () => {
       const isExactMatch = header.toLowerCase() === 'título programa';
       if (isExactMatch) {
         tituloIndex = i;
+        console.log(`✅ Columna título programa encontrada en índice ${i}: "${header}"`);
         break;
       }
     }
@@ -149,7 +150,14 @@ const SpotAnalysis = () => {
         'programa', 'titulo', 'show', 'program', 'nombre programa', 'nombre_programa',
         'programa nombre', 'programa_nombre', 'programa tv', 'programa_tv'
       ]);
+      if (tituloIndex !== -1) {
+        console.log(`✅ Columna título programa encontrada (variante) en índice ${tituloIndex}: "${headers[tituloIndex]}"`);
+      }
     }
+    
+    // PASO 3: Debug - mostrar todas las columnas encontradas
+    console.log('🔍 DEBUG - Columnas encontradas:', headers.map((h, i) => `${i}: "${h}"`).join(', '));
+    console.log(`🔍 DEBUG - Índice título programa: ${tituloIndex}`);
     const versionIndex = findColumnIndex(headers, [
       'version', 'versión', 'Version', 'VERSIÓN', 'version_', 'Version_', 'VERSIÓN_',
       'ver', 'v', 'numero version', 'numero_version', 'número versión', 'número_version'
@@ -231,7 +239,7 @@ const SpotAnalysis = () => {
     const horaIndex = findColumnIndex(headers, ['hora inicio', 'hora_inicio', 'hora']);
     const canalIndex = findColumnIndex(headers, ['canal']);
     
-    // Buscar específicamente 'título programa' primero
+    // Buscar específicamente 'título programa' primero - MEJORADO
     let tituloIndex = -1;
     
     // PASO 1: Buscar coincidencia EXACTA para 'título programa' (con acento)
@@ -240,6 +248,7 @@ const SpotAnalysis = () => {
       const isExactMatch = header.toLowerCase() === 'título programa';
       if (isExactMatch) {
         tituloIndex = i;
+        console.log(`✅ Columna título programa encontrada en índice ${i}: "${header}"`);
         break;
       }
     }
@@ -252,7 +261,14 @@ const SpotAnalysis = () => {
         'programa', 'titulo', 'show', 'program', 'nombre programa', 'nombre_programa',
         'programa nombre', 'programa_nombre', 'programa tv', 'programa_tv'
       ]);
+      if (tituloIndex !== -1) {
+        console.log(`✅ Columna título programa encontrada (variante) en índice ${tituloIndex}: "${headers[tituloIndex]}"`);
+      }
     }
+    
+    // PASO 3: Debug - mostrar todas las columnas encontradas
+    console.log('🔍 DEBUG - Columnas encontradas:', headers.map((h, i) => `${i}: "${h}"`).join(', '));
+    console.log(`🔍 DEBUG - Índice título programa: ${tituloIndex}`);
     const versionIndex = findColumnIndex(headers, [
       'version', 'versión', 'Version', 'VERSIÓN', 'version_', 'Version_', 'VERSIÓN_',
       'ver', 'v', 'numero version', 'numero_version', 'número versión', 'número_version'
@@ -422,7 +438,10 @@ const SpotAnalysis = () => {
               id: index + 1,
               fecha: spot.fecha,
               hora: spot.hora_inicio,
-              nombre: spot.titulo_programa || `Spot ${index + 1}`,
+              // MEJORADO: Generar nombre más descriptivo cuando no hay título programa
+              nombre: (spot.titulo_programa && spot.titulo_programa.trim())
+                ? spot.titulo_programa
+                : `Spot ${spot.fecha || 'Sin fecha'} ${spot.hora_inicio || 'Sin hora'}`,
               titulo_programa: spot.titulo_programa || '',
               debug_titulo: spot.titulo_programa, // Para debugging
               raw_titulo: spot.raw_titulo || '', // Para debugging
@@ -431,7 +450,9 @@ const SpotAnalysis = () => {
                 titulo_original: spot.titulo_programa,
                 titulo_vacio: !spot.titulo_programa || spot.titulo_programa.trim() === '',
                 index_spot: index + 1,
-                nombre_final: spot.titulo_programa || `Spot ${index + 1}`
+                nombre_final: (spot.titulo_programa && spot.titulo_programa.trim())
+                  ? spot.titulo_programa
+                  : `Spot ${spot.fecha || 'Sin fecha'} ${spot.hora_inicio || 'Sin hora'}`
               },
               tipo_comercial: spot.tipo_comercial || '',
               version: spot.version || '',
