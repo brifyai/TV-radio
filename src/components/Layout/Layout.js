@@ -175,8 +175,8 @@ const Layout = () => {
                   <BarChart3 className="h-7 w-7 text-white" />
                 </motion.div>
                 <div className="ml-4">
-                  <h1 className="text-xl font-bold text-white">Analytics</h1>
-                  <p className="text-xs text-slate-300">Dashboard Pro</p>
+                  <h1 className="text-xl font-bold text-white">iMetrics</h1>
+                  <p className="text-xs text-slate-300">Análisis TV-Web & Radio-Web</p>
                 </div>
               </div>
               
