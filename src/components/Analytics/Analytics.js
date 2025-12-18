@@ -528,17 +528,20 @@ const Analytics = () => {
     // Detectar si es un rango de un solo día (Hoy, Ayer)
     const isSingleDayRange = (
       preset.value.startDate === preset.value.endDate &&
-      (preset.value.startDate === 'today' ||
-       preset.value.startDate === 'yesterday' ||
-       (typeof preset.value.startDate === 'string' && preset.value.startDate === preset.value.endDate))
+      (preset.value.startDate === 'today' || preset.value.startDate === 'yesterday')
     );
     
     console.log(`🔍 DEBUG: ¿Es rango de un solo día? ${isSingleDayRange}`);
+    console.log(`🔍 DEBUG: startDate: ${preset.value.startDate}, endDate: ${preset.value.endDate}`);
     
     if (isSingleDayRange) {
       // Si es un solo día, cambiar automáticamente a mostrar horas (24 horas)
       console.log(`🔍 DEBUG: Cambiando automáticamente a dimensión 'dateMinute' para mostrar 24 horas`);
       setSelectedDimensions(['dateMinute']);
+    } else {
+      // Para rangos múltiples, volver a vista por días
+      console.log(`🔍 DEBUG: Cambiando a dimensión 'date' para rango de múltiples días`);
+      setSelectedDimensions(['date']);
     }
   };
 
