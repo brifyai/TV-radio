@@ -584,12 +584,29 @@ const SpotAnalysis = () => {
       return { activeUsers: 0, sessions: 0, pageviews: 0 };
     }
 
+    // Crear mapeo de métricas basado en los nombres, no en la posición
+    const metricMap = {};
+    if (data.metricHeaders) {
+      data.metricHeaders.forEach((header, index) => {
+        metricMap[header.name] = index;
+      });
+    }
+
     const totals = data.rows.reduce((acc, row) => {
-      return {
-        activeUsers: acc.activeUsers + (parseFloat(row.metricValues?.[0]?.value) || 0),
-        sessions: acc.sessions + (parseFloat(row.metricValues?.[1]?.value) || 0),
-        pageviews: acc.pageviews + (parseFloat(row.metricValues?.[2]?.value) || 0)
-      };
+      const result = { ...acc };
+      
+      // Mapear cada métrica por nombre en lugar de posición
+      if (metricMap.activeUsers !== undefined) {
+        result.activeUsers += parseFloat(row.metricValues?.[metricMap.activeUsers]?.value) || 0;
+      }
+      if (metricMap.sessions !== undefined) {
+        result.sessions += parseFloat(row.metricValues?.[metricMap.sessions]?.value) || 0;
+      }
+      if (metricMap.pageviews !== undefined) {
+        result.pageviews += parseFloat(row.metricValues?.[metricMap.pageviews]?.value) || 0;
+      }
+
+      return result;
     }, { activeUsers: 0, sessions: 0, pageviews: 0 });
 
     return totals;
