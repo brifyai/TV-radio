@@ -1107,7 +1107,7 @@ const SpotAnalysis = () => {
                                 <span className="flex items-center">
                                   <Clock className="h-4 w-4 mr-1" />
                                   {result?.spot?.dateTime ?
-                                    `${result.spot.dateTime.toLocaleDateString('es-CL')} ${result.spot.dateTime.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })}` :
+                                    `${result.spot.dateTime.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })} ${result.spot.dateTime.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', hour12: false })}` :
                                     'Fecha no disponible'
                                   }
                                 </span>
@@ -1282,7 +1282,7 @@ const SpotAnalysis = () => {
                                     </div>
                                     <span className="text-lg font-bold text-red-600">
                                       {result?.spot?.dateTime ?
-                                        result.spot.dateTime.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' }) :
+                                        result.spot.dateTime.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', hour12: false }) :
                                         'N/A'
                                       }
                                     </span>
@@ -1549,7 +1549,7 @@ const SpotAnalysis = () => {
                     <h3 className="font-medium text-gray-900">{result?.spot?.nombre || 'Sin nombre'}</h3>
                     <p className="text-sm text-gray-600">
                       {result?.spot?.dateTime ?
-                        `${result.spot.dateTime.toLocaleDateString('es-CL')} ${result.spot.dateTime.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })}` :
+                        `${result.spot.dateTime.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })} ${result.spot.dateTime.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', hour12: false })}` :
                         'Fecha no disponible'
                       } - {result?.spot?.canal || ''}
                     </p>
@@ -1753,7 +1753,7 @@ const SpotAnalysis = () => {
                     <h3 className="font-medium text-gray-900">{result?.spot?.nombre || 'Sin nombre'}</h3>
                     <p className="text-sm text-gray-600">
                       {result?.spot?.dateTime ?
-                        `${result.spot.dateTime.toLocaleDateString('es-CL')} ${result.spot.dateTime.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })}` :
+                        `${result.spot.dateTime.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })} ${result.spot.dateTime.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', hour12: false })}` :
                         'Fecha no disponible'
                       } - {result?.spot?.canal || ''}
                     </p>

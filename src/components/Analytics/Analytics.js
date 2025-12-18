@@ -291,6 +291,7 @@ const Analytics = () => {
         return dateValue; // Devolver el valor original si no se puede procesar
       }
       
+      // Formato DD/MM/AAAA
       return date.toLocaleDateString('es-ES', {
         day: '2-digit',
         month: '2-digit',
@@ -377,10 +378,11 @@ const Analytics = () => {
           }
           
           if (!isNaN(date.getTime())) {
-            return date.toLocaleString('es-ES', {
+            return date.toLocaleDateString('es-ES', {
               day: '2-digit',
               month: '2-digit',
-              year: 'numeric',
+              year: 'numeric'
+            }) + ' ' + date.toLocaleTimeString('es-ES', {
               hour: '2-digit',
               minute: '2-digit',
               hour12: false
@@ -659,9 +661,11 @@ const Analytics = () => {
               }
               
               if (!isNaN(date.getTime())) {
-                chartData[dim] = date.toLocaleString('es-ES', {
+                chartData[dim] = date.toLocaleDateString('es-ES', {
                   day: '2-digit',
                   month: '2-digit',
+                  year: 'numeric'
+                }) + ' ' + date.toLocaleTimeString('es-ES', {
                   hour: '2-digit',
                   minute: '2-digit',
                   hour12: false
