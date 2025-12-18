@@ -171,31 +171,15 @@ const VideoAnalysisDashboard = ({
   };
 
 
-  // Generar recomendaciones basadas únicamente en datos REALES
+  // ANÁLISIS CAUSAL: Determinar si el spot funcionó y qué factores influyeron
   const generateRecommendations = () => {
-    console.log('🔍 Generando recomendaciones...', { videoAnalysis, analysisResults });
+    console.log('🔍 Generando análisis causal...', { videoAnalysis, analysisResults });
     
     const recommendations = [];
     
-    // Si no hay datos, generar recomendaciones por defecto
+    // Si no hay datos, no generar recomendaciones
     if (!videoAnalysis || !analysisResults || analysisResults.length === 0) {
-      console.log('⚠️ No hay datos suficientes, generando recomendaciones por defecto');
-      
-      // Recomendaciones por defecto basadas en el análisis típico de spots
-      recommendations.push({
-        priority: 'Alta',
-        category: 'Timing',
-        text: 'Evaluar diferentes horarios de transmisión',
-        why: 'Los horarios de transmisión impactan significativamente en el alcance y efectividad del spot.'
-      });
-      
-      recommendations.push({
-        priority: 'Alta',
-        category: 'Timing',
-        text: 'Considerar horarios de mayor audiencia',
-        why: 'Transmitir durante horarios peak (19:00-23:00) puede maximizar el impacto y la exposición.'
-      });
-      
+      console.log('⚠️ No hay datos suficientes para análisis causal');
       return recommendations;
     }
 
@@ -205,110 +189,141 @@ const VideoAnalysisDashboard = ({
       const spotHour = spot.spot?.dateTime?.getHours() || new Date().getHours();
       const isPrimeTime = spotHour >= 19 && spotHour <= 23;
 
-      console.log('📊 Datos del spot para recomendaciones:', { impact, spotHour, isPrimeTime });
+      console.log('📊 Datos del spot para análisis causal:', { impact, spotHour, isPrimeTime });
 
-      // Recomendaciones basadas en efectividad REAL del análisis de IA
-      if (videoAnalysis.analisis_efectividad) {
-        const efectividad = videoAnalysis.analisis_efectividad;
-        console.log('🎯 Análisis de efectividad:', efectividad);
-        
-        if (parseFloat(efectividad.claridad_mensaje || 0) < 6) {
-          recommendations.push({
-            priority: 'Alta',
-            category: 'Mensaje',
-            text: 'Mejorar la claridad del mensaje principal del spot',
-            why: `Evaluación actual: ${parseFloat(efectividad.claridad_mensaje || 0).toFixed(1)}/10. Un mensaje más claro puede mejorar la comprensión del mensaje.`
-          });
-        }
-        
-        if (parseFloat(efectividad.engagement_visual || 0) < 6) {
+      // ANÁLISIS CAUSAL 1: ¿El spot funcionó o no?
+      if (impact > 20) {
+        // SPOT EXITOSO - Identificar qué factores causaron el éxito
+        recommendations.push({
+          priority: 'Alta',
+          category: 'Análisis de Éxito',
+          text: 'El spot SÍ funcionó - Incremento significativo en tráfico',
+          why: `Impacto medido: +${impact.toFixed(1)}%. El spot generó correlación positiva entre TV y tráfico web.`
+        });
+
+        // Analizar factores de éxito específicos
+        if (videoAnalysis.mensaje_marketing?.call_to_action) {
           recommendations.push({
             priority: 'Media',
-            category: 'Visual',
-            text: 'Incrementar elementos visuales atractivos',
-            why: `Evaluación actual: ${parseFloat(efectividad.engagement_visual || 0).toFixed(1)}/10. Elementos visuales más dinámicos pueden aumentar el engagement.`
+            category: 'Factor de Éxito',
+            text: 'Call-to-action efectivo identificado',
+            why: `El spot contenía CTA claro: "${videoAnalysis.mensaje_marketing.call_to_action}". Este elemento contribuyó al éxito del spot.`
           });
         }
-        
-        if (parseFloat(efectividad.memorabilidad || 0) < 6) {
+
+        if (videoAnalysis.contenido_visual?.elementos_generadores_tráfico) {
+          const elementos = videoAnalysis.contenido_visual.elementos_generadores_tráfico;
+          recommendations.push({
+            priority: 'Media',
+            category: 'Factor de Éxito',
+            text: 'Elementos visuales generadores de tráfico identificados',
+            why: `Elementos que motivaron visitas: ${elementos.join(', ')}. Estos elementos deben replicarse en futuros spots.`
+          });
+        }
+
+        if (isPrimeTime) {
+          recommendations.push({
+            priority: 'Baja',
+            category: 'Factor de Éxito',
+            text: 'Timing óptimo (prime time) contribuyó al éxito',
+            why: `Transmitido a las ${spotHour}:00 (horario prime). El timing adecuado maximizó la audiencia y el impacto.`
+          });
+        }
+
+      } else if (impact < -10) {
+        // SPOT FALLIDO - Identificar qué factores causaron el fracaso
+        recommendations.push({
+          priority: 'Alta',
+          category: 'Análisis de Fracaso',
+          text: 'El spot NO funcionó - Impacto negativo en tráfico',
+          why: `Impacto medido: ${impact.toFixed(1)}%. El spot generó correlación negativa entre TV y tráfico web.`
+        });
+
+        // Analizar factores de fracaso específicos
+        if (!videoAnalysis.mensaje_marketing?.call_to_action) {
           recommendations.push({
             priority: 'Alta',
-            category: 'Branding',
-            text: 'Desarrollar elementos más memorables',
-            why: `Evaluación actual: ${parseFloat(efectividad.memorabilidad || 0).toFixed(1)}/10. Elementos distintivos mejoran el recall de marca.`
+            category: 'Factor de Fracaso',
+            text: 'Ausencia de call-to-action claro',
+            why: 'El spot no contenía una llamada a la acción específica para visitar el sitio web, limitando la conversión TV-Web.'
           });
+        }
+
+        if (videoAnalysis.analisis_efectividad?.claridad_mensaje && parseFloat(videoAnalysis.analisis_efectividad.claridad_mensaje) < 5) {
+          recommendations.push({
+            priority: 'Alta',
+            category: 'Factor de Fracaso',
+            text: 'Mensaje poco claro confundió a la audiencia',
+            why: `Claridad del mensaje: ${parseFloat(videoAnalysis.analisis_efectividad.claridad_mensaje).toFixed(1)}/10. Un mensaje confuso reduce la intención de visitar el sitio.`
+          });
+        }
+
+        if (!isPrimeTime) {
+          recommendations.push({
+            priority: 'Media',
+            category: 'Factor de Fracaso',
+            text: 'Timing subóptimo limitó el alcance',
+            why: `Transmitido a las ${spotHour}:00 (fuera de prime time). El horario redujo la audiencia potencial y el impacto.`
+          });
+        }
+
+      } else {
+        // SPOT NEUTRAL - Impacto mínimo
+        recommendations.push({
+          priority: 'Media',
+          category: 'Análisis Neutral',
+          text: 'Spot con impacto mínimo - Oportunidad de mejora',
+          why: `Impacto medido: ${impact.toFixed(1)}%. El spot no generó cambios significativos en el tráfico web.`
+        });
+
+        // Analizar oportunidades de mejora
+        if (videoAnalysis.analisis_efectividad) {
+          const efectividad = videoAnalysis.analisis_efectividad;
+          
+          if (parseFloat(efectividad.engagement_visual || 0) < 7) {
+            recommendations.push({
+              priority: 'Alta',
+              category: 'Oportunidad de Mejora',
+              text: 'Incrementar engagement visual para generar más tráfico',
+              why: `Engagement visual actual: ${parseFloat(efectividad.engagement_visual || 0).toFixed(1)}/10. Elementos más dinámicos pueden aumentar la motivación de visitar el sitio.`
+            });
+          }
+
+          if (parseFloat(efectividad.memorabilidad || 0) < 6) {
+            recommendations.push({
+              priority: 'Media',
+              category: 'Oportunidad de Mejora',
+              text: 'Mejorar memorabilidad para generar recall y visitas',
+              why: `Memorabilidad actual: ${parseFloat(efectividad.memorabilidad || 0).toFixed(1)}/10. Elementos más distintivos pueden mejorar el recall y las visitas posteriores.`
+            });
+          }
         }
       }
 
-      // Recomendaciones basadas en métricas REALES de Google Analytics
-      console.log('📈 Evaluando impacto real:', impact);
-      
-      if (impact < 15) {
+      // ANÁLISIS CAUSAL 2: Factores específicos que influyeron en el resultado
+      if (videoAnalysis.contenido_visual?.barreras_visuales && videoAnalysis.contenido_visual.barreras_visuales.length > 0) {
         recommendations.push({
           priority: 'Alta',
-          category: 'Timing',
-          text: 'Evaluar diferentes horarios de transmisión',
-          why: `Impacto actual: ${impact >= 0 ? '+' : ''}${impact.toFixed(1)}%. Considerar horarios con mayor actividad de audiencia.`
-        });
-      }
-      
-      if (impact > 40) {
-        recommendations.push({
-          priority: 'Media',
-          category: 'Optimización',
-          text: 'Replicar elementos exitosos de este spot',
-          why: `Impacto medido: ${impact >= 0 ? '+' : ''}${impact.toFixed(1)}%. Los elementos que generaron este resultado pueden aplicarse en futuras campañas.`
+          category: 'Barrera Identificada',
+          text: 'Barreras visuales que limitaron el impacto',
+          why: `Elementos que impidieron conversión TV-Web: ${videoAnalysis.contenido_visual.barreras_visuales.join(', ')}. Eliminar estas barreras puede mejorar futuros resultados.`
         });
       }
 
-      // Recomendación basada en timing REAL
-      if (!isPrimeTime && impact < 25) {
+      if (videoAnalysis.contenido_auditivo?.call_to_action_auditivo) {
         recommendations.push({
-          priority: 'Alta',
-          category: 'Timing',
-          text: 'Considerar horarios de mayor audiencia',
-          why: `Spot transmitido a las ${spotHour}:00. Impacto: ${impact >= 0 ? '+' : ''}${impact.toFixed(1)}%. Horarios 19:00-23:00 suelen tener mayor actividad.`
-        });
-      }
-      
-      // Si no se generaron recomendaciones de timing, agregar las básicas
-      const hasTimingRecommendations = recommendations.some(rec => rec.category === 'Timing');
-      if (!hasTimingRecommendations) {
-        recommendations.push({
-          priority: 'Alta',
-          category: 'Timing',
-          text: 'Evaluar diferentes horarios de transmisión',
-          why: 'Optimizar el timing de transmisión puede mejorar significativamente el alcance y efectividad del spot.'
-        });
-        
-        recommendations.push({
-          priority: 'Alta',
-          category: 'Timing',
-          text: 'Considerar horarios de mayor audiencia',
-          why: 'Los horarios de mayor audiencia (19:00-23:00) típicamente generan mejores resultados de engagement.'
+          priority: 'Media',
+          category: 'Factor de Audio',
+          text: 'Call-to-action auditivo evaluado',
+          why: `CTA auditivo: ${videoAnalysis.contenido_auditivo.call_to_action_auditivo}. La efectividad del audio influye en la motivación de visitar el sitio.`
         });
       }
 
     } catch (error) {
-      console.error('❌ Error generando recomendaciones:', error);
-      
-      // En caso de error, proporcionar recomendaciones básicas
-      recommendations.push({
-        priority: 'Alta',
-        category: 'Timing',
-        text: 'Evaluar diferentes horarios de transmisión',
-        why: 'El timing es crucial para maximizar el impacto del spot publicitario.'
-      });
-      
-      recommendations.push({
-        priority: 'Alta',
-        category: 'Timing',
-        text: 'Considerar horarios de mayor audiencia',
-        why: 'Transmitir durante horarios peak mejora la exposición y efectividad.'
-      });
+      console.error('❌ Error en análisis causal:', error);
     }
 
-    console.log('✅ Recomendaciones generadas:', recommendations);
+    console.log('✅ Análisis causal completado:', recommendations);
     return recommendations;
   };
 
