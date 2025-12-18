@@ -364,7 +364,7 @@ const Landing = () => {
             </div>
             
             <div className="text-slate-400 text-sm">
-              © 2024 iMetrics. Todos los derechos reservados.
+              © 2026 iMetrics. Todos los derechos reservados.
             </div>
           </div>
         </div>
