@@ -5,16 +5,12 @@ import {
   BarChart3,
   Sparkles,
   ArrowRight,
-  Play,
   TrendingUp,
   Radio,
   Shield,
   Zap,
   CheckCircle,
   Star,
-  Users,
-  Target,
-  Clock,
   Mail,
   Phone,
   MapPin,
@@ -49,13 +45,6 @@ const Landing = () => {
       description: 'Protección garantizada de tu información y métricas',
       color: 'text-green-500'
     }
-  ];
-
-  const stats = [
-    { number: '98%', label: 'Precisión en predicciones' },
-    { number: '50+', label: 'Canales analizados' },
-    { number: '24/7', label: 'Monitoreo continuo' },
-    { number: '10K+', label: 'Spots procesados' }
   ];
 
   const testimonials = [
@@ -147,6 +136,26 @@ const Landing = () => {
             <a href="#pricing" className="text-slate-300 hover:text-white transition-colors">Planes</a>
             <a href="#testimonials" className="text-slate-300 hover:text-white transition-colors">Testimonios</a>
             <a href="#contact" className="text-slate-300 hover:text-white transition-colors">Contacto</a>
+            
+            <div className="flex items-center space-x-3 ml-6">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => navigate('/login')}
+                className="bg-white/10 hover:bg-white/20 border border-white/20 text-white font-medium py-2 px-4 rounded-lg transition-all duration-200 backdrop-blur-sm"
+              >
+                Acceso
+              </motion.button>
+              
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => navigate('/login')}
+                className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-medium py-2 px-4 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl"
+              >
+                Registro
+              </motion.button>
+            </div>
           </div>
         </div>
       </nav>
@@ -187,15 +196,6 @@ const Landing = () => {
                   >
                     <span>Comenzar Gratis</span>
                     <ArrowRight className="h-5 w-5" />
-                  </motion.button>
-                  
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    className="bg-white/10 hover:bg-white/20 border border-white/20 text-white font-semibold py-4 px-8 rounded-xl transition-all duration-200 backdrop-blur-sm flex items-center justify-center space-x-2"
-                  >
-                    <Play className="h-5 w-5" />
-                    <span>Ver Demo</span>
                   </motion.button>
                 </div>
               </motion.div>
@@ -697,8 +697,42 @@ const Landing = () => {
               <span className="text-xl font-bold text-white">iMetrics</span>
             </div>
             
-            <div className="text-slate-400 text-sm">
-              © 2026 iMetrics. Todos los derechos reservados.
+            <div className="flex flex-col md:flex-row items-center space-y-2 md:space-y-0 md:space-x-6">
+              <div className="flex items-center space-x-4 text-sm">
+                <a
+                  href="/privacidad"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    navigate('/privacidad');
+                  }}
+                  className="text-slate-400 hover:text-white transition-colors"
+                >
+                  Privacidad
+                </a>
+                <a
+                  href="/terminos"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    navigate('/terminos');
+                  }}
+                  className="text-slate-400 hover:text-white transition-colors"
+                >
+                  Términos
+                </a>
+                <a
+                  href="/cookies"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    navigate('/cookies');
+                  }}
+                  className="text-slate-400 hover:text-white transition-colors"
+                >
+                  Cookies
+                </a>
+              </div>
+              <div className="text-slate-400 text-sm">
+                © 2026 iMetrics. Todos los derechos reservados.
+              </div>
             </div>
           </div>
         </div>

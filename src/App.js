@@ -20,6 +20,11 @@ import Layout from './components/Layout/Layout';
 import SimpleLoadingSpinner from './components/UI/SimpleLoadingSpinner';
 import ErrorBoundary from './components/ErrorBoundary';
 
+// Legal Pages
+import PrivacyPolicy from './components/Legal/PrivacyPolicy';
+import TermsOfService from './components/Legal/TermsOfService';
+import CookiePolicy from './components/Legal/CookiePolicy';
+
 // Global error handler for unhandled promise rejections
 window.addEventListener('unhandledrejection', (event) => {
   console.error('❌ UNHANDLED PROMISE REJECTION:', event.reason);
@@ -101,11 +106,19 @@ function AppContent() {
           <Route path="/callback" element={<Callback />} />
           <Route path="/analytics-callback" element={<AnalyticsCallback />} />
           
+          {/* Páginas legales */}
+          <Route path="/privacidad" element={<PrivacyPolicy />} />
+          <Route path="/terminos" element={<TermsOfService />} />
+          <Route path="/cookies" element={<CookiePolicy />} />
+          
           {/* Rutas de autenticación */}
           {!session ? (
             <>
               <Route path="/" element={<Landing />} />
               <Route path="/login" element={<Login />} />
+              <Route path="/privacidad" element={<PrivacyPolicy />} />
+              <Route path="/terminos" element={<TermsOfService />} />
+              <Route path="/cookies" element={<CookiePolicy />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </>
           ) : (
@@ -119,6 +132,9 @@ function AppContent() {
               <Route path="/spot-analysis" element={<SpotAnalysis />} />
               <Route path="/frases-radio" element={<FrasesRadio />} />
               <Route path="/settings" element={<Settings />} />
+              <Route path="/privacidad" element={<PrivacyPolicy />} />
+              <Route path="/terminos" element={<TermsOfService />} />
+              <Route path="/cookies" element={<CookiePolicy />} />
               <Route path="*" element={<Navigate to="/dashboard" replace />} />
             </Route>
           )}
