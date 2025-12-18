@@ -6,6 +6,7 @@ import { GoogleAnalyticsProvider } from './contexts/GoogleAnalyticsContext';
 
 // Components
 import Login from './components/Auth/Login';
+import Register from './components/Auth/Register';
 import Landing from './components/Auth/Landing';
 import Callback from './components/Auth/Callback';
 import AnalyticsCallback from './components/Auth/AnalyticsCallback';
@@ -91,6 +92,7 @@ function AppContent() {
             <Route path="/callback" element={<Callback />} />
             <Route path="/analytics-callback" element={<AnalyticsCallback />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
             <Route path="*" element={<Navigate to="/login" replace />} />
           </Routes>
         </div>
@@ -116,6 +118,7 @@ function AppContent() {
             <>
               <Route path="/" element={<Landing />} />
               <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
               <Route path="/privacidad" element={<PrivacyPolicy />} />
               <Route path="/terminos" element={<TermsOfService />} />
               <Route path="/cookies" element={<CookiePolicy />} />

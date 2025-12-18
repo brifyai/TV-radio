@@ -197,40 +197,52 @@ export const GoogleAnalyticsProvider = ({ children }) => {
       setLoading(true);
       setError(null);
 
-      // Exchange authorization code for tokens
+      // CRITICAL: Store original user info BEFORE any Google operations
+      const originalUserId = user?.id;
+      const originalUserEmail = user?.email;
+      const originalUserName = user?.user_metadata?.full_name || user?.email?.split('@')[0];
+
+      if (!originalUserId || !originalUserEmail) {
+        throw new Error('No se pudo identificar al usuario original. Por favor, inicia sesión nuevamente.');
+      }
+
+      console.log('🔍 DEBUG: Usuario original preservado:', {
+        id: originalUserId,
+        email: originalUserEmail
+      });
+
+      // Exchange authorization code for tokens WITHOUT affecting the main session
       const tokens = await googleAnalyticsService.exchangeCodeForTokens(code, `${window.location.origin}/callback`);
 
-      // Get user info from Google
+      // Get user info from Google (but don't use it to update user session)
       const userInfo = await googleAnalyticsService.getUserInfo(tokens.access_token);
+      console.log('🔍 DEBUG: Info de Google obtenida (no se usará para sesión):', userInfo?.email);
 
-      // CRITICAL: Get the original user data BEFORE updating with Google info
-      const { data: existingUser } = await supabase
+      // CRITICAL: Store ONLY Google tokens, preserve original user session completely
+      const { error: updateError } = await supabase
         .from('users')
-        .select('email, full_name, avatar_url')
-        .eq('id', user.id)
-        .single();
+        .update({
+          google_access_token: tokens.access_token,
+          google_refresh_token: tokens.refresh_token,
+          google_token_expires_at: new Date(Date.now() + tokens.expires_in * 1000).toISOString(),
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', originalUserId); // Update by original user ID only
 
-      // Preserve original email and name, only update Google-specific fields
-      const updatedProfile = {
-        id: user.id,
-        email: existingUser?.email || user.email, // Keep original email
-        full_name: existingUser?.full_name || userInfo.name, // Keep original name or use Google if none exists
-        avatar_url: existingUser?.avatar_url || userInfo.picture, // Use Google avatar if no existing avatar
-        google_access_token: tokens.access_token,
-        google_refresh_token: tokens.refresh_token,
-        google_token_expires_at: new Date(Date.now() + tokens.expires_in * 1000).toISOString(),
-        updated_at: new Date().toISOString()
-      };
+      if (updateError) {
+        console.error('❌ Error updating user profile:', updateError);
+        throw updateError;
+      }
 
-      // Store tokens and user info in database while preserving original email/name
-      await supabase
-        .from('users')
-        .upsert(updatedProfile);
-
+      console.log('✅ DEBUG: Tokens de Google Analytics almacenados exitosamente SIN modificar sesión principal');
       setIsConnected(true);
+      
+      // Load accounts and properties for the original user
       await loadAccountsAndProperties();
+      
+      console.log('✅ DEBUG: Google Analytics vinculado exitosamente para usuario original');
     } catch (err) {
-      console.error('Error connecting Google Analytics:', err);
+      console.error('❌ Error connecting Google Analytics:', err);
       setError(err.message);
       throw err;
     } finally {

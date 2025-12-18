@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { useGoogleAnalytics } from '../../contexts/GoogleAnalyticsContext';
 import LoadingSpinner from '../UI/LoadingSpinner';
-import { Mail, Lock, AlertCircle, CheckCircle, Eye, EyeOff, BarChart3, Sparkles, ArrowRight, Shield, Zap } from 'lucide-react';
+import { Mail, Lock, User, AlertCircle, CheckCircle, Eye, EyeOff, BarChart3, Sparkles, ArrowRight, Shield, Zap } from 'lucide-react';
 
-const Login = () => {
-  const { signInWithEmail, signInWithGoogle } = useAuth();
+const Register = () => {
+  const { signUpWithEmail, signInWithGoogle } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -14,7 +13,8 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
-    password: ''
+    password: '',
+    fullName: ''
   });
 
   const handleInputChange = (e) => {
@@ -39,6 +39,10 @@ const Login = () => {
       throw new Error('La contraseña es requerida');
     }
 
+    if (!formData.fullName.trim()) {
+      throw new Error('El nombre completo es requerido');
+    }
+
     if (formData.password.length < 6) {
       throw new Error('La contraseña debe tener al menos 6 caracteres');
     }
@@ -53,8 +57,20 @@ const Login = () => {
     try {
       validateForm();
 
-      await signInWithEmail(formData.email, formData.password);
-      setSuccess('¡Inicio de sesión exitoso!');
+      await signUpWithEmail(formData.email, formData.password, formData.fullName);
+      setSuccess('¡Cuenta creada exitosamente! Revisa tu correo para confirmar tu cuenta.');
+      
+      // Clear form after successful signup
+      setFormData({
+        email: '',
+        password: '',
+        fullName: ''
+      });
+      
+      // Redirect to login after successful signup
+      setTimeout(() => {
+        navigate('/login');
+      }, 3000);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -145,17 +161,17 @@ const Login = () => {
             </div>
           </div>
 
-          {/* Right Side - Login Form */}
+          {/* Right Side - Register Form */}
           <div className="w-full max-w-md mx-auto">
             <div className="bg-white/10 backdrop-blur-xl rounded-2xl shadow-2xl p-8 border border-white/20">
               
               {/* Header */}
               <div className="text-center mb-8">
                 <h2 className="text-2xl font-bold text-white mb-2">
-                  Bienvenido de vuelta
+                  Crea tu cuenta
                 </h2>
                 <p className="text-slate-300">
-                  Accede a tu dashboard de análisis
+                  Comienza tu análisis inteligente
                 </p>
               </div>
 
@@ -180,6 +196,28 @@ const Login = () => {
               )}
 
               <form className="space-y-6" onSubmit={handleEmailAuth}>
+                {/* Full Name Field */}
+                <div className="space-y-2">
+                  <label htmlFor="fullName" className="block text-sm font-medium text-slate-200">
+                    Nombre completo
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                      <User className="h-5 w-5 text-slate-400" />
+                    </div>
+                    <input
+                      id="fullName"
+                      name="fullName"
+                      type="text"
+                      required
+                      value={formData.fullName}
+                      onChange={handleInputChange}
+                      className="w-full pl-12 pr-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent backdrop-blur-sm transition-all duration-200"
+                      placeholder="Tu nombre completo"
+                    />
+                  </div>
+                </div>
+
                 {/* Email Field */}
                 <div className="space-y-2">
                   <label htmlFor="email" className="block text-sm font-medium text-slate-200">
@@ -216,12 +254,12 @@ const Login = () => {
                       id="password"
                       name="password"
                       type={showPassword ? 'text' : 'password'}
-                      autoComplete="current-password"
+                      autoComplete="new-password"
                       required
                       value={formData.password}
                       onChange={handleInputChange}
                       className="w-full pl-12 pr-12 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent backdrop-blur-sm transition-all duration-200"
-                      placeholder="Tu contraseña"
+                      placeholder="Mínimo 6 caracteres"
                     />
                     <button
                       type="button"
@@ -235,6 +273,9 @@ const Login = () => {
                       )}
                     </button>
                   </div>
+                  <p className="text-xs text-slate-400">
+                    La contraseña debe tener al menos 6 caracteres
+                  </p>
                 </div>
 
                 {/* Submit Button */}
@@ -247,7 +288,7 @@ const Login = () => {
                     <LoadingSpinner size="sm" color="white" />
                   ) : (
                     <>
-                      <span>Iniciar Sesión</span>
+                      <span>Crear Cuenta</span>
                       <ArrowRight className="h-4 w-4" />
                     </>
                   )}
@@ -281,23 +322,23 @@ const Login = () => {
                 <span>{loading ? 'Conectando...' : 'Gmail'}</span>
               </button>
 
-              {/* Toggle to Register */}
+              {/* Toggle to Login */}
               <div className="mt-6 text-center">
                 <button
                   type="button"
                   onClick={() => {
-                    navigate('/register');
+                    navigate('/login');
                   }}
                   className="text-sm text-purple-300 hover:text-purple-200 font-medium transition-colors duration-200"
                 >
-                  ¿No tienes cuenta? Regístrate aquí
+                  ¿Ya tienes cuenta? Inicia sesión
                 </button>
               </div>
 
               {/* Additional Info */}
               <div className="mt-4 text-center">
                 <p className="text-xs text-slate-400">
-                  Al iniciar sesión, podrás conectar con Google Analytics 4
+                  Después del registro, podrás conectar con Google Analytics 4
                 </p>
               </div>
             </div>
@@ -360,4 +401,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default Register;

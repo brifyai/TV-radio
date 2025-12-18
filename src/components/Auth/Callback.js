@@ -32,8 +32,38 @@ const Callback = () => {
         console.log('  - code:', code ? 'found' : 'not found');
         console.log('  - analytics:', isAnalyticsCallback);
 
-        // Usar el método getSession de Supabase que maneja automáticamente el intercambio de código
-        console.log('Procesando callback de Supabase...');
+        // CRITICAL: Si es callback de Google Analytics, preservar sesión original
+        if (isAnalyticsCallback && code) {
+          console.log('📊 Procesando conexión de Google Analytics SIN modificar sesión principal...');
+          try {
+            // Preservar la sesión actual antes de cualquier operación de Google
+            const { data: { session: currentSession } } = await supabase.auth.getSession();
+            
+            if (!currentSession) {
+              throw new Error('No hay sesión activa. Por favor, inicia sesión primero.');
+            }
+            
+            console.log('🔒 Sesión original preservada:', currentSession.user.email);
+            
+            // Procesar Google Analytics SIN intercambiar la sesión
+            await handleAnalyticsCallback(code);
+            console.log('✅ Google Analytics conectado exitosamente SIN modificar sesión principal');
+            
+            // Redirigir al dashboard manteniendo la sesión original
+            setTimeout(() => {
+              navigate('/dashboard', { replace: true });
+            }, 500);
+            return;
+          } catch (analyticsError) {
+            console.error('❌ Error en handleAnalyticsCallback:', analyticsError);
+            setError('Error conectando Google Analytics: ' + analyticsError.message);
+            setLoading(false);
+            return;
+          }
+        }
+
+        // Flujo normal de autenticación (no Analytics)
+        console.log('Procesando callback de autenticación normal...');
         const { data, error: sessionError } = await supabase.auth.getSession();
 
         if (sessionError) {
@@ -45,27 +75,10 @@ const Callback = () => {
 
         if (data?.session) {
           console.log('✅ Sesión establecida:', data.session.user.email);
-          
-          // Si es un callback de Google Analytics, usar el contexto especializado
-          if (isAnalyticsCallback && code) {
-            console.log('📊 Procesando conexión de Google Analytics con contexto...');
-            try {
-              await handleAnalyticsCallback(code);
-              console.log('✅ Google Analytics conectado exitosamente vía contexto');
-            } catch (analyticsError) {
-              console.error('❌ Error en handleAnalyticsCallback:', analyticsError);
-              setError('Error conectando Google Analytics: ' + analyticsError.message);
-              setLoading(false);
-              return;
-            }
-          }
-          
-          // Redirigir al dashboard después de un breve delay
           setTimeout(() => {
             navigate('/dashboard', { replace: true });
           }, 500);
         } else {
-          // Si getSession no funciona, intentar con exchangeCodeForSession
           console.log('⚠️getSession no encontró sesión, intentando exchangeCodeForSession...');
           if (code) {
             const { data: exchangeData, error: exchangeError } = await supabase.auth.exchangeCodeForSession(window.location.href);
@@ -79,20 +92,6 @@ const Callback = () => {
 
             if (exchangeData?.session) {
               console.log('✅ Sesión establecida vía exchange:', exchangeData.session.user.email);
-              
-              // Si es callback de Analytics, procesar con el contexto
-              if (isAnalyticsCallback) {
-                try {
-                  await handleAnalyticsCallback(code);
-                  console.log('✅ Google Analytics conectado exitosamente vía contexto (exchange)');
-                } catch (analyticsError) {
-                  console.error('❌ Error en handleAnalyticsCallback (exchange):', analyticsError);
-                  setError('Error conectando Google Analytics: ' + analyticsError.message);
-                  setLoading(false);
-                  return;
-                }
-              }
-              
               setTimeout(() => {
                 navigate('/dashboard', { replace: true });
               }, 500);
