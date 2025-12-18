@@ -123,9 +123,14 @@ const ConfidenceMeter = ({ confidenceScore = 85, analysisData }) => {
         transition={{ delay: 0.7 }}
         className="mt-6 p-4 rounded-lg bg-gray-50"
       >
-        <p className="text-sm text-gray-700 text-center">
+        <p className="text-sm text-gray-700 text-center mb-2">
           {getConfidenceDescription(confidence)}
         </p>
+        <div className="text-xs text-gray-600 text-center border-t border-gray-200 pt-2">
+          <p className="font-medium mb-1">📊 Resumen del Análisis Estadístico:</p>
+          <p>Este nivel de confianza indica la certeza de que los resultados observados son debidos al impacto real del spot TV y no a variaciones aleatorias del tráfico web.</p>
+          <p className="mt-1"><strong>Factores evaluados:</strong> Cantidad de datos, consistencia temporal, significancia estadística y calidad del baseline de comparación.</p>
+        </div>
       </motion.div>
 
       {/* Factores de confianza */}
