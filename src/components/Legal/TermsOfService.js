@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { 
   ArrowLeft, 
@@ -17,13 +17,17 @@ import {
   Scale,
   Edit,
   Globe,
-  Mail,
-  CheckCircle
+  Mail
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const TermsOfService = () => {
   const navigate = useNavigate();
+
+  // Reset scroll position when component mounts
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative overflow-hidden">
