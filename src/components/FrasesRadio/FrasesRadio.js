@@ -121,7 +121,13 @@ const FrasesRadio = () => {
     };
   }, [frasesData.length, selectedProperty, analysisResults, aiAnalysis, validateMetric]);
   
-  const realConfidence = calculateRealConfidence();
+  const realConfidence = React.useMemo(() => calculateRealConfidence(), [
+    frasesData.length,
+    selectedProperty,
+    analysisResults,
+    aiAnalysis,
+    validateMetric
+  ]);
 
   // Filtrar y ordenar propiedades basadas en la cuenta seleccionada
   const filteredProperties = selectedAccount

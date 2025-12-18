@@ -114,7 +114,13 @@ const Dashboard = () => {
     };
   }, [accounts.length, properties.length, isConnected, validateMetric]);
 
-  const realConfidence = calculateRealConfidence();
+  const realConfidence = React.useMemo(() => calculateRealConfidence(), [
+    accounts.length,
+    properties.length,
+    isConnected,
+    validateMetric
+  ]);
+  
   const integrityStatus = React.useMemo(() => {
     return {
       isValid: true,

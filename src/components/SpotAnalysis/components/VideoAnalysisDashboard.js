@@ -188,14 +188,31 @@ const VideoAnalysisDashboard = ({
       const impact = spot.impact?.activeUsers?.percentageChange || 0;
       const spotHour = spot.spot?.dateTime?.getHours() || new Date().getHours();
       const isPrimeTime = spotHour >= 19 && spotHour <= 23;
+      const isMorning = spotHour >= 6 && spotHour < 12;
+      const isAfternoon = spotHour >= 12 && spotHour < 19;
 
       console.log('📊 Datos del spot para análisis causal:', { impact, spotHour, isPrimeTime });
+
+      // RECOMENDACIONES ESPECÍFICAS DE TIMING - ALTA PRIORIDAD
+      recommendations.push({
+        priority: 'Alta',
+        category: 'Timing',
+        text: 'Evaluar diferentes horarios de transmisión',
+        why: `El spot fue transmitido a las ${spotHour}:00. Los horarios de mayor audiencia para generar tráfico web son: 19:00-23:00 (prime time), 12:00-14:00 (almuerzo) y 20:00-22:00 (nocturno).`
+      });
+
+      recommendations.push({
+        priority: 'Alta',
+        category: 'Timing',
+        text: 'Considerar horarios de mayor audiencia',
+        why: `Horario actual: ${spotHour}:00 ${isPrimeTime ? '(Prime Time - ÓPTIMO)' : isMorning ? '(Mañana - MEDIO)' : isAfternoon ? '(Tarde - MEJORABLE)' : '(Noche - BAJO)'}. Recomendación: ${isPrimeTime ? 'Mantener este horario' : 'Probar horarios 19:00-23:00 para maximizar impacto'}.`
+      });
 
       // ANÁLISIS CAUSAL 1: ¿El spot funcionó o no?
       if (impact > 20) {
         // SPOT EXITOSO - Identificar qué factores causaron el éxito
         recommendations.push({
-          priority: 'Alta',
+          priority: 'Media',
           category: 'Análisis de Éxito',
           text: 'El spot SÍ funcionó - Incremento significativo en tráfico',
           why: `Impacto medido: +${impact.toFixed(1)}%. El spot generó correlación positiva entre TV y tráfico web.`
@@ -260,7 +277,7 @@ const VideoAnalysisDashboard = ({
 
         if (!isPrimeTime) {
           recommendations.push({
-            priority: 'Media',
+            priority: 'Alta',
             category: 'Factor de Fracaso',
             text: 'Timing subóptimo limitó el alcance',
             why: `Transmitido a las ${spotHour}:00 (fuera de prime time). El horario redujo la audiencia potencial y el impacto.`
@@ -727,8 +744,9 @@ const VideoAnalysisDashboard = ({
         {(() => {
           // Generar resumen ejecutivo 100% basado en datos reales
           const generateRealExecutiveSummary = () => {
-            if (!analysisResults || analysisResults.length === 0) {
-              return 'No hay datos de análisis disponibles para generar resumen ejecutivo.';
+            // Verificar si hay datos suficientes para el análisis
+            if (!analysisResults || analysisResults.length === 0 || !videoAnalysis) {
+              return 'Análisis no disponible';
             }
 
             const spot = analysisResults[0];
@@ -784,6 +802,17 @@ const VideoAnalysisDashboard = ({
           };
 
           const realSummary = generateRealExecutiveSummary();
+          
+          // Si no hay datos disponibles, mostrar mensaje específico
+          if (realSummary === 'Análisis no disponible') {
+            return (
+              <div className="text-center py-4">
+                <p className="text-sm text-gray-500 italic">
+                  {realSummary}
+                </p>
+              </div>
+            );
+          }
           
           return (
             <div>
