@@ -17,11 +17,12 @@ const Callback = () => {
         const urlParams = new URLSearchParams(window.location.search);
         const code = urlParams.get('code');
         const error = urlParams.get('error');
+        const errorDescription = urlParams.get('error_description');
         const isAnalyticsCallback = urlParams.get('analytics') === 'true';
         
         if (error) {
-          console.error('Error en callback de autenticación:', error);
-          setError('Error en la autenticación: ' + error);
+          console.error('Error en callback de autenticación:', error, errorDescription);
+          setError(`Error en la autenticación: ${errorDescription || error}`);
           setLoading(false);
           return;
         }
@@ -45,39 +46,24 @@ const Callback = () => {
         if (data?.session) {
           console.log('✅ Sesión establecida:', data.session.user.email);
           
-          // Si es un callback de Google Analytics, procesar los tokens de GA
-          if (isAnalyticsCallback) {
-            console.log('📊 Procesando conexión de Google Analytics...');
+          // Si es un callback de Google Analytics, usar el contexto especializado
+          if (isAnalyticsCallback && code) {
+            console.log('📊 Procesando conexión de Google Analytics con contexto...');
             try {
-              // Obtener el provider token de la sesión de Supabase
-              const providerToken = data.session.provider_token;
-              const refreshToken = data.session.provider_refresh_token;
-              
-              if (providerToken) {
-                // Guardar tokens de Google Analytics en la base de datos
-                await supabase
-                  .from('users')
-                  .update({
-                    google_access_token: providerToken,
-                    google_refresh_token: refreshToken,
-                    google_token_expires_at: new Date(Date.now() + 3600 * 1000).toISOString(), // 1 hora
-                    updated_at: new Date().toISOString()
-                  })
-                  .eq('id', data.session.user.id);
-                  
-                console.log('✅ Google Analytics conectado exitosamente');
-              } else {
-                console.warn('⚠️ No se encontró provider_token en la sesión');
-              }
+              await handleAnalyticsCallback(code);
+              console.log('✅ Google Analytics conectado exitosamente vía contexto');
             } catch (analyticsError) {
-              console.error('❌ Error guardando tokens de Analytics:', analyticsError);
+              console.error('❌ Error en handleAnalyticsCallback:', analyticsError);
               setError('Error conectando Google Analytics: ' + analyticsError.message);
               setLoading(false);
               return;
             }
           }
           
-          navigate('/dashboard', { replace: true });
+          // Redirigir al dashboard después de un breve delay
+          setTimeout(() => {
+            navigate('/dashboard', { replace: true });
+          }, 500);
         } else {
           // Si getSession no funciona, intentar con exchangeCodeForSession
           console.log('⚠️getSession no encontró sesión, intentando exchangeCodeForSession...');
@@ -93,7 +79,23 @@ const Callback = () => {
 
             if (exchangeData?.session) {
               console.log('✅ Sesión establecida vía exchange:', exchangeData.session.user.email);
-              navigate('/dashboard', { replace: true });
+              
+              // Si es callback de Analytics, procesar con el contexto
+              if (isAnalyticsCallback) {
+                try {
+                  await handleAnalyticsCallback(code);
+                  console.log('✅ Google Analytics conectado exitosamente vía contexto (exchange)');
+                } catch (analyticsError) {
+                  console.error('❌ Error en handleAnalyticsCallback (exchange):', analyticsError);
+                  setError('Error conectando Google Analytics: ' + analyticsError.message);
+                  setLoading(false);
+                  return;
+                }
+              }
+              
+              setTimeout(() => {
+                navigate('/dashboard', { replace: true });
+              }, 500);
             } else {
               setError('No se pudo establecer la sesión');
               setLoading(false);
@@ -113,7 +115,7 @@ const Callback = () => {
     // Delay para asegurar que la página esté completamente cargada
     const timer = setTimeout(handleAuthCallback, 100);
     return () => clearTimeout(timer);
-  }, [navigate]);
+  }, [navigate, handleAnalyticsCallback]);
 
   if (loading) {
     return (

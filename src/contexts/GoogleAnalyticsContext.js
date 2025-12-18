@@ -203,19 +203,29 @@ export const GoogleAnalyticsProvider = ({ children }) => {
       // Get user info from Google
       const userInfo = await googleAnalyticsService.getUserInfo(tokens.access_token);
 
-      // Store tokens and user info in database
+      // CRITICAL: Get the original user data BEFORE updating with Google info
+      const { data: existingUser } = await supabase
+        .from('users')
+        .select('email, full_name, avatar_url')
+        .eq('id', user.id)
+        .single();
+
+      // Preserve original email and name, only update Google-specific fields
+      const updatedProfile = {
+        id: user.id,
+        email: existingUser?.email || user.email, // Keep original email
+        full_name: existingUser?.full_name || userInfo.name, // Keep original name or use Google if none exists
+        avatar_url: existingUser?.avatar_url || userInfo.picture, // Use Google avatar if no existing avatar
+        google_access_token: tokens.access_token,
+        google_refresh_token: tokens.refresh_token,
+        google_token_expires_at: new Date(Date.now() + tokens.expires_in * 1000).toISOString(),
+        updated_at: new Date().toISOString()
+      };
+
+      // Store tokens and user info in database while preserving original email/name
       await supabase
         .from('users')
-        .upsert({
-          id: user.id,
-          email: user.email,
-          full_name: userInfo.name,
-          avatar_url: userInfo.picture,
-          google_access_token: tokens.access_token,
-          google_refresh_token: tokens.refresh_token,
-          google_token_expires_at: new Date(Date.now() + tokens.expires_in * 1000).toISOString(),
-          updated_at: new Date().toISOString()
-        });
+        .upsert(updatedProfile);
 
       setIsConnected(true);
       await loadAccountsAndProperties();
