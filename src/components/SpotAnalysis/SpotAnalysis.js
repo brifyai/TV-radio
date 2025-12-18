@@ -126,18 +126,21 @@ const SpotAnalysis = () => {
     const fechaIndex = findColumnIndex(headers, ['fecha']);
     const horaIndex = findColumnIndex(headers, ['hora inicio', 'hora_inicio', 'hora']);
     const canalIndex = findColumnIndex(headers, ['canal']);
+    
     // Buscar específicamente 'título programa' primero
     let tituloIndex = -1;
     
-    // Buscar coincidencia EXACTA para 'título programa' (con acento)
+    // PASO 1: Buscar coincidencia EXACTA para 'título programa' (con acento)
     for (let i = 0; i < headers.length; i++) {
-      if (headers[i].toLowerCase() === 'título programa') {
+      const header = headers[i];
+      const isExactMatch = header.toLowerCase() === 'título programa';
+      if (isExactMatch) {
         tituloIndex = i;
         break;
       }
     }
     
-    // Si no se encuentra, buscar otras variantes
+    // PASO 2: Si no se encuentra, buscar otras variantes
     if (tituloIndex === -1) {
       tituloIndex = findColumnIndex(headers, [
         'título programa', 'titulo programa', 'Titulo Programa', 'TITULO PROGRAMA',
@@ -226,18 +229,21 @@ const SpotAnalysis = () => {
     const fechaIndex = findColumnIndex(headers, ['fecha']);
     const horaIndex = findColumnIndex(headers, ['hora inicio', 'hora_inicio', 'hora']);
     const canalIndex = findColumnIndex(headers, ['canal']);
+    
     // Buscar específicamente 'título programa' primero
     let tituloIndex = -1;
     
-    // Buscar coincidencia EXACTA para 'título programa' (con acento)
+    // PASO 1: Buscar coincidencia EXACTA para 'título programa' (con acento)
     for (let i = 0; i < headers.length; i++) {
-      if (headers[i].toLowerCase() === 'título programa') {
+      const header = headers[i];
+      const isExactMatch = header.toLowerCase() === 'título programa';
+      if (isExactMatch) {
         tituloIndex = i;
         break;
       }
     }
     
-    // Si no se encuentra, buscar otras variantes
+    // PASO 2: Si no se encuentra, buscar otras variantes
     if (tituloIndex === -1) {
       tituloIndex = findColumnIndex(headers, [
         'título programa', 'titulo programa', 'Titulo Programa', 'TITULO PROGRAMA',
@@ -419,6 +425,13 @@ const SpotAnalysis = () => {
               titulo_programa: spot.titulo_programa || '',
               debug_titulo: spot.titulo_programa, // Para debugging
               raw_titulo: spot.raw_titulo || '', // Para debugging
+              // DEBUGGING MEJORADO
+              debug_info: {
+                titulo_original: spot.titulo_programa,
+                titulo_vacio: !spot.titulo_programa || spot.titulo_programa.trim() === '',
+                index_spot: index + 1,
+                nombre_final: spot.titulo_programa || `Spot ${index + 1}`
+              },
               tipo_comercial: spot.tipo_comercial || '',
               version: spot.version || '',
               duracion: spot.duracion ? parseInt(spot.duracion) : 30, // Parsear duración o usar default

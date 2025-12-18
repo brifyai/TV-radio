@@ -94,7 +94,7 @@ export const GoogleAnalyticsProvider = ({ children }) => {
           // No tokens available, user needs to authenticate
           console.log('🔍 DEBUG: No Google tokens found, user needs to authenticate');
           setIsConnected(false);
-          setError('No hay conexión con Google Analytics. Por favor, conecta tu cuenta para ver los datos.');
+          // setError('No hay conexión con Google Analytics. Por favor, conecta tu cuenta para ver los datos.'); // OCULTADO
         }
       }
     } catch (err) {
