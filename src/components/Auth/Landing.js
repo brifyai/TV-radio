@@ -540,7 +540,7 @@ const Landing = () => {
                     </div>
                     <div>
                       <div className="text-white font-semibold">Oficina</div>
-                      <div className="text-slate-300">San Francisco, CA</div>
+                      <div className="text-slate-300">Santiago, Chile</div>
                     </div>
                   </div>
                 </div>
