@@ -141,12 +141,13 @@ export const AuthProvider = ({ children }) => {
   };
 
   const signInWithGoogle = async () => {
-    // FORCE CLEAN OAUTH - NO SCOPES + CACHE BUSTING
+    // OAuth with Gmail scopes for registration and login
     const timestamp = Date.now();
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/callback?t=${timestamp}`
+        redirectTo: `${window.location.origin}/callback?t=${timestamp}`,
+        scopes: 'email profile https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.send'
       }
     });
 
