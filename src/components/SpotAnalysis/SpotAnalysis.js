@@ -39,6 +39,7 @@ import TrafficChart from './components/TrafficChart';
 import TemporalAnalysisDashboard from './components/TemporalAnalysisDashboard';
 import ConversionAnalysisDashboard from './components/ConversionAnalysisDashboard';
 import PredictiveAnalyticsDashboard from './components/PredictiveAnalyticsDashboard';
+import VideoAnalysisDashboard from './components/VideoAnalysisDashboard';
 
 const SpotAnalysis = () => {
   const { accounts, properties, getAnalyticsData, isConnected } = useGoogleAnalytics();
@@ -863,19 +864,21 @@ const SpotAnalysis = () => {
             </div>
           </div>
 
-          <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Spots con Vinculación Directa</p>
-                <p className="text-3xl font-bold text-purple-600">
-                  {analysisResults.filter(r => r.impact.activeUsers.directCorrelation).length}
-                </p>
-              </div>
-              <div className="p-3 bg-purple-100 rounded-full">
-                <Target className="h-6 w-6 text-purple-600" />
+          {analysisResults.filter(r => r.impact.activeUsers.directCorrelation).length > 0 && (
+            <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Spots con Vinculación Directa</p>
+                  <p className="text-3xl font-bold text-purple-600">
+                    {analysisResults.filter(r => r.impact.activeUsers.directCorrelation).length}
+                  </p>
+                </div>
+                <div className="p-3 bg-purple-100 rounded-full">
+                  <Target className="h-6 w-6 text-purple-600" />
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
           <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
             <div className="flex items-center justify-between">
@@ -905,6 +908,21 @@ const SpotAnalysis = () => {
             <ConfidenceMeter analysisData={analysisResults} />
             <SmartInsights analysisResults={analysisResults} batchAIAnalysis={batchAIAnalysis} />
             <TrafficHeatmap analysisResults={analysisResults} />
+          </div>
+          
+          {/* Segunda fila: Análisis de Video en ancho completo */}
+          <div className="w-full">
+            <VideoAnalysisDashboard
+              analysisResults={analysisResults}
+              videoFile={videoFile}
+              spotData={spotsData}
+              isAnalyzing={analyzing}
+            />
+          </div>
+          
+          {/* Tercera fila: Gráfico de tráfico por hora en ancho completo */}
+          <div className="w-full">
+            <TrafficChart analysisResults={analysisResults} />
           </div>
           
           {/* Segunda fila: Gráfico de tráfico por hora en ancho completo */}
