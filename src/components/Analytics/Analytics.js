@@ -335,9 +335,9 @@ const Analytics = () => {
       } else if (dimension === 'dateMinute') {
         // Formato: DD/MM/AAAA HH:MM (usando nthMinute)
         
-        // Para nthMinute, el valor es un número que representa el minuto del día (0-1439)
+        // Para nthMinute, el valor debe estar entre 0-1439 (minutos del día)
         const minuteOfDay = parseInt(value);
-        if (!isNaN(minuteOfDay)) {
+        if (!isNaN(minuteOfDay) && minuteOfDay >= 0 && minuteOfDay <= 1439) {
           const hours = Math.floor(minuteOfDay / 60);
           const minutes = minuteOfDay % 60;
           const formattedHours = hours.toString().padStart(2, '0');
@@ -374,6 +374,11 @@ const Analytics = () => {
             // Formato ISO
             date = new Date(value);
           } else {
+            // Si es un timestamp o valor numérico grande, no intentar parsearlo como fecha
+            if (value.length > 6 && !isNaN(value)) {
+              console.warn(`⚠️ Valor numérico grande para dateMinute, posiblemente timestamp: ${value}`);
+              return value; // Devolver el valor original si es un timestamp
+            }
             date = new Date(value);
           }
           
@@ -616,9 +621,9 @@ const Analytics = () => {
         } else if (dim === 'dateMinute' && dimensionValue) {
           // Formatear fecha y minuto (usando nthMinute)
           try {
-            // Para nthMinute, el valor es un número que representa el minuto del día (0-1439)
+            // Para nthMinute, el valor debe estar entre 0-1439 (minutos del día)
             const minuteOfDay = parseInt(dimensionValue);
-            if (!isNaN(minuteOfDay)) {
+            if (!isNaN(minuteOfDay) && minuteOfDay >= 0 && minuteOfDay <= 1439) {
               const hours = Math.floor(minuteOfDay / 60);
               const minutes = minuteOfDay % 60;
               const formattedHours = hours.toString().padStart(2, '0');
@@ -656,6 +661,12 @@ const Analytics = () => {
                 // Formato ISO
                 date = new Date(dimensionValue);
               } else {
+                // Si es un timestamp o valor numérico grande, no intentar parsearlo como fecha
+                if (dimensionValue.length > 6 && !isNaN(dimensionValue)) {
+                  console.warn(`⚠️ Valor numérico grande para dateMinute en gráfico, posiblemente timestamp: ${dimensionValue}`);
+                  chartData[dim] = dimensionValue; // Devolver el valor original si es un timestamp
+                  return chartData;
+                }
                 // Intentar parseo directo
                 date = new Date(dimensionValue);
               }
