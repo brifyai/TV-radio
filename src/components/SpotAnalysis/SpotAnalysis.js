@@ -636,6 +636,16 @@ const SpotAnalysis = () => {
         significant: Math.abs(percentageChange) > 10, // Para compatibilidad con métricas generales
         directCorrelation: hasDirectCorrelation // Nueva métrica para vinculación directa
       };
+      
+      // DEBUG: Mostrar valores para cada métrica
+      console.log(`🔍 DEBUG ${metric}:`, {
+        spotValue,
+        prevDayValue,
+        prevWeekValue,
+        avgReference,
+        increase,
+        percentageChange
+      });
     });
     
     return impact;
