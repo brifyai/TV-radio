@@ -104,7 +104,7 @@ const Layout = () => {
               <div className="h-8 w-8 bg-primary-600 rounded-full flex items-center justify-center">
                 <BarChart3 className="h-5 w-5 text-white" />
               </div>
-              <span className="ml-2 text-xl font-bold text-gray-900">GA4 Dashboard</span>
+              <span className="ml-2 text-xl font-bold text-gray-900">iMetrics</span>
             </div>
             
             <nav className="mt-5 px-2 space-y-1">

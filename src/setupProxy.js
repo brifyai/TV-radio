@@ -46,7 +46,7 @@ module.exports = function(app) {
       },
       onProxyReq: (proxyReq, req, res) => {
         // Add any additional headers if needed
-        proxyReq.setHeader('User-Agent', 'GA4-Dashboard/1.0');
+        proxyReq.setHeader('User-Agent', 'iMetrics/1.0');
       },
     })
   );

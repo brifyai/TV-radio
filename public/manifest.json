@@ -1,6 +1,6 @@
 {
-  "short_name": "GA4 Dashboard",
-  "name": "GA4 Dashboard - Google Analytics Multi-Usuario",
+  "short_name": "iMetrics",
+  "name": "iMetrics - Análisis Inteligente de Métricas",
   "icons": [
     {
       "src": "favicon.ico",
@@ -12,5 +12,5 @@
   "display": "standalone",
   "theme_color": "#2563eb",
   "background_color": "#ffffff",
-  "description": "Dashboard para Google Analytics 4 con autenticación multi-usuario"
+  "description": "Herramienta inteligente para análisis de métricas y analytics"
 }
