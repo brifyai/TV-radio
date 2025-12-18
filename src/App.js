@@ -6,6 +6,7 @@ import { GoogleAnalyticsProvider } from './contexts/GoogleAnalyticsContext';
 
 // Components
 import Login from './components/Auth/Login';
+import Landing from './components/Auth/Landing';
 import Callback from './components/Auth/Callback';
 import AnalyticsCallback from './components/Auth/AnalyticsCallback';
 import Dashboard from './components/Dashboard/Dashboard';
@@ -103,8 +104,9 @@ function AppContent() {
           {/* Rutas de autenticación */}
           {!session ? (
             <>
+              <Route path="/" element={<Landing />} />
               <Route path="/login" element={<Login />} />
-              <Route path="*" element={<Navigate to="/login" replace />} />
+              <Route path="*" element={<Navigate to="/" replace />} />
             </>
           ) : (
             /* Rutas protegidas (requieren autenticación) */
