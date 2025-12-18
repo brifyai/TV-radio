@@ -241,9 +241,45 @@ export const GoogleAnalyticsProvider = ({ children }) => {
   const disconnectGoogleAnalytics = async () => {
     try {
       setLoading(true);
+      setError(null);
+
+      // Get current session to access provider token
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError) {
+        console.warn('Error getting session for disconnect:', sessionError);
+      }
+
+      // Revoke Google token if available (both provider_token and stored tokens)
+      if (session?.provider_token) {
+        try {
+          await googleAnalyticsService.revokeAccessToken(session.provider_token);
+          console.log('✅ Provider token revoked successfully');
+        } catch (revokeError) {
+          console.warn('⚠️ Error revoking provider token:', revokeError);
+          // Continue with disconnect even if revoke fails
+        }
+      }
+
+      // Get stored tokens from database to revoke them too
+      const { data: userProfile } = await supabase
+        .from('users')
+        .select('google_access_token')
+        .eq('id', user.id)
+        .single();
+
+      if (userProfile?.google_access_token) {
+        try {
+          await googleAnalyticsService.revokeAccessToken(userProfile.google_access_token);
+          console.log('✅ Stored access token revoked successfully');
+        } catch (revokeError) {
+          console.warn('⚠️ Error revoking stored access token:', revokeError);
+          // Continue with disconnect even if revoke fails
+        }
+      }
 
       // Remove Google tokens from database
-      await supabase
+      const { error: dbError } = await supabase
         .from('users')
         .update({
           google_access_token: null,
@@ -253,14 +289,44 @@ export const GoogleAnalyticsProvider = ({ children }) => {
         })
         .eq('id', user.id);
 
+      if (dbError) {
+        console.error('Error removing tokens from database:', dbError);
+        throw dbError;
+      }
+
+      // Clear cached analytics data
+      try {
+        await supabase
+          .from('analytics_cache')
+          .delete()
+          .eq('user_id', user.id);
+        console.log('✅ Analytics cache cleared');
+      } catch (cacheError) {
+        console.warn('⚠️ Error clearing analytics cache:', cacheError);
+        // Continue with disconnect even if cache clear fails
+      }
+
+      // Sign out from Supabase to completely clear the session and provider_token
+      try {
+        await supabase.auth.signOut();
+        console.log('✅ User signed out successfully');
+      } catch (signOutError) {
+        console.warn('⚠️ Error signing out:', signOutError);
+        // Continue with disconnect even if sign out fails
+      }
+
       // Clear local state
       setAccounts([]);
       setProperties([]);
       setIsConnected(false);
       setError(null);
+      setErrorType(null);
+
+      console.log('✅ Google Analytics disconnected successfully');
     } catch (err) {
       console.error('Error disconnecting Google Analytics:', err);
-      setError(err.message);
+      setError('Error desconectando Google Analytics: ' + err.message);
+      throw err;
     } finally {
       setLoading(false);
     }
