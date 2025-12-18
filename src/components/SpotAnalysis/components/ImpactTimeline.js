@@ -1,42 +1,42 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { TrendingUp, TrendingDown, Target, Clock, Users, BarChart3 } from 'lucide-react';
 
 const ImpactTimeline = ({ spotData, analysisResults }) => {
-  // Generar datos de timeline basados en datos reales
-  const generateTimelineData = () => {
-    if (!analysisResults || analysisResults.length === 0) return [];
-    
-    const spot = analysisResults[0]; // Tomar el primer spot como ejemplo
-    
-    // Solo usar datos reales disponibles, evitar multiplicadores simulados
-    const timePoints = [
-      { time: 'Spot', label: 'Durante Spot', impact: spot.metrics?.spot?.activeUsers || 0, color: '#10B981' }
-    ];
-    
-    // Solo agregar puntos adicionales si hay datos reales disponibles
-    // Evitar datos simulados con multiplicadores arbitrarios
-    return timePoints;
-  };
-
-  const timelineData = generateTimelineData();
-
-  const CustomTooltip = ({ active, payload, label }) => {
-    if (active && payload && payload.length) {
-      return (
-        <div className="bg-white p-4 rounded-lg shadow-lg border border-gray-200">
-          <p className="font-semibold text-gray-900">{payload[0].payload.label}</p>
-          <p className="text-blue-600">
-            <span className="font-medium">Impacto:</span> {payload[0].value} usuarios
-          </p>
-          <p className="text-sm text-gray-500">
-            {label === 'Spot' ? 'Momento del spot' : `${label} después del spot`}
-          </p>
+  if (!analysisResults || analysisResults.length === 0) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-white rounded-xl shadow-lg p-6 border border-gray-100"
+      >
+        <div className="text-center py-8">
+          <BarChart3 className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">Timeline de Impacto</h3>
+          <p className="text-gray-600">No hay datos de análisis disponibles</p>
         </div>
-      );
-    }
-    return null;
-  };
+      </motion.div>
+    );
+  }
+
+  // Calcular estadísticas del análisis
+  const totalSpots = analysisResults.length;
+  const avgImpact = analysisResults.reduce((sum, result) =>
+    sum + (result.impact?.activeUsers?.percentageChange || 0), 0) / totalSpots;
+  const positiveImpacts = analysisResults.filter(result =>
+    (result.impact?.activeUsers?.percentageChange || 0) > 0).length;
+  const maxImpact = Math.max(...analysisResults.map(result =>
+    result.impact?.activeUsers?.percentageChange || 0));
+  const minImpact = Math.min(...analysisResults.map(result =>
+    result.impact?.activeUsers?.percentageChange || 0));
+
+  // Obtener el mejor y peor spot
+  const bestSpot = analysisResults.reduce((best, current) =>
+    (current.impact?.activeUsers?.percentageChange || 0) > (best.impact?.activeUsers?.percentageChange || 0) ? current : best
+  );
+  const worstSpot = analysisResults.reduce((worst, current) =>
+    (current.impact?.activeUsers?.percentageChange || 0) < (worst.impact?.activeUsers?.percentageChange || 0) ? current : worst
+  );
 
   return (
     <motion.div
@@ -45,161 +45,188 @@ const ImpactTimeline = ({ spotData, analysisResults }) => {
       transition={{ duration: 0.6 }}
       className="bg-white rounded-xl shadow-lg p-6 border border-gray-100"
     >
+      {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h3 className="text-xl font-bold text-gray-900">Timeline de Impacto</h3>
-          <p className="text-sm text-gray-600">Evolución del tráfico en el tiempo</p>
+          <h3 className="text-xl font-bold text-gray-900">Análisis de Impacto</h3>
+          <p className="text-sm text-gray-600">Resultados de todos los spots analizados</p>
         </div>
         <div className="flex items-center space-x-2">
-          <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-          <span className="text-sm text-gray-600">En tiempo real</span>
+          <div className={`w-3 h-3 rounded-full ${avgImpact >= 0 ? 'bg-green-500' : 'bg-red-500'}`}></div>
+          <span className="text-sm text-gray-600">
+            {avgImpact >= 0 ? 'Impacto Positivo' : 'Impacto Negativo'}
+          </span>
         </div>
       </div>
 
-      {/* Timeline Visual */}
-      <div className="mb-6">
-        <div className="flex items-center justify-between relative">
-          {timelineData.map((point, index) => (
-            <div key={index} className="flex flex-col items-center relative z-10">
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ delay: index * 0.1, duration: 0.3 }}
-                className="w-4 h-4 rounded-full border-2 border-white shadow-lg"
-                style={{ backgroundColor: point.color }}
-              />
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 + 0.2 }}
-                className="mt-2 text-center"
-              >
-                <p className="text-xs font-medium text-gray-900">{point.time}</p>
-                <p className="text-xs text-gray-500">{point.impact}</p>
-              </motion.div>
-            </div>
-          ))}
-          
-          {/* Línea conectora */}
-          <div className="absolute top-2 left-0 right-0 h-0.5 bg-gradient-to-r from-green-500 via-blue-500 via-purple-500 via-yellow-500 to-red-500"></div>
-        </div>
-      </div>
-
-      {/* Gráfico de línea */}
-      <div className="h-64">
-        <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={timelineData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-            <XAxis
-              dataKey="time"
-              tick={{ fontSize: 12, fill: '#6b7280' }}
-              axisLine={{ stroke: '#e5e7eb' }}
-            />
-            <YAxis
-              tick={{ fontSize: 12, fill: '#6b7280' }}
-              axisLine={{ stroke: '#e5e7eb' }}
-            />
-            <Tooltip content={<CustomTooltip />} />
-            <Line
-              type="monotone"
-              dataKey="impact"
-              stroke="url(#gradient)"
-              strokeWidth={3}
-              dot={{ fill: '#3B82F6', strokeWidth: 2, r: 6 }}
-              activeDot={{ r: 8, stroke: '#3B82F6', strokeWidth: 2, fill: '#fff' }}
-            />
-            <defs>
-              <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" stopColor="#10B981" />
-                <stop offset="25%" stopColor="#3B82F6" />
-                <stop offset="50%" stopColor="#8B5CF6" />
-                <stop offset="75%" stopColor="#F59E0B" />
-                <stop offset="100%" stopColor="#EF4444" />
-              </linearGradient>
-            </defs>
-          </LineChart>
-        </ResponsiveContainer>
-      </div>
-
-      {/* Resumen de Impacto */}
-      {analysisResults && analysisResults.length > 0 && (
+      {/* Métricas Principales */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
         <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border border-blue-100"
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.1 }}
+          className="bg-gradient-to-r from-blue-50 to-blue-100 p-4 rounded-lg border border-blue-200"
         >
-          <div className="flex items-start space-x-3">
-            <div className="flex-shrink-0">
-              <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                </svg>
-              </div>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-blue-800">Total Spots</p>
+              <p className="text-2xl font-bold text-blue-900">{totalSpots}</p>
             </div>
-            <div className="flex-1">
-              <h4 className="text-sm font-semibold text-gray-900 mb-2">Resumen de Impacto</h4>
-              <div className="space-y-2">
-                {(() => {
-                  const totalSpots = analysisResults.length;
-                  const avgImpact = analysisResults.reduce((sum, result) =>
-                    sum + (result.impact?.activeUsers?.percentageChange || 0), 0) / totalSpots;
-                  const positiveImpacts = analysisResults.filter(result =>
-                    (result.impact?.activeUsers?.percentageChange || 0) > 0).length;
-                  const maxImpact = Math.max(...analysisResults.map(result =>
-                    result.impact?.activeUsers?.percentageChange || 0));
-                  
-                  return (
-                    <>
-                      <p className="text-sm text-gray-700">
-                        <span className="font-medium">{totalSpots}</span> spots analizados con un impacto promedio de{' '}
-                        <span className={`font-semibold ${avgImpact >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                          {avgImpact >= 0 ? '+' : ''}{avgImpact.toFixed(1)}%
-                        </span>{' '}
-                        en usuarios activos.
-                      </p>
-                      <p className="text-sm text-gray-700">
-                        <span className="font-medium">{positiveImpacts}</span> de {totalSpots} spots ({Math.round((positiveImpacts/totalSpots)*100)}%)
-                        generaron impacto positivo, con un máximo de{' '}
-                        <span className="font-semibold text-green-600">
-                          +{maxImpact.toFixed(1)}%
-                        </span>.
-                      </p>
-                      <p className="text-sm text-gray-600 italic">
-                        {avgImpact > 10
-                          ? "Los resultados muestran un impacto significativo y positivo en el tráfico."
-                          : avgImpact > 0
-                          ? "Se observa un impacto moderado pero consistente en el comportamiento del usuario."
-                          : "El impacto es mínimo, considera revisar la estrategia de contenido o timing."
-                        }
-                      </p>
-                    </>
-                  );
-                })()}
-              </div>
-            </div>
+            <Target className="h-8 w-8 text-blue-600" />
           </div>
         </motion.div>
-      )}
 
-      {/* Estadísticas rápidas */}
-      <div className="grid grid-cols-4 gap-4 mt-6">
-        {timelineData.slice(1).map((point, index) => (
-          <motion.div
-            key={index}
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: index * 0.1 + 0.5 }}
-            className="text-center p-3 rounded-lg bg-gray-50"
-          >
-            <p className="text-xs text-gray-600 mb-1">{point.time}</p>
-            <p className="text-lg font-bold" style={{ color: point.color }}>
-              {point.impact}
-            </p>
-            <p className="text-xs text-gray-500">usuarios</p>
-          </motion.div>
-        ))}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.2 }}
+          className={`p-4 rounded-lg border ${
+            avgImpact >= 0
+              ? 'bg-gradient-to-r from-green-50 to-green-100 border-green-200'
+              : 'bg-gradient-to-r from-red-50 to-red-100 border-red-200'
+          }`}
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <p className={`text-sm font-medium ${avgImpact >= 0 ? 'text-green-800' : 'text-red-800'}`}>
+                Impacto Promedio
+              </p>
+              <p className={`text-2xl font-bold ${avgImpact >= 0 ? 'text-green-900' : 'text-red-900'}`}>
+                {avgImpact >= 0 ? '+' : ''}{avgImpact.toFixed(1)}%
+              </p>
+            </div>
+            {avgImpact >= 0 ? (
+              <TrendingUp className="h-8 w-8 text-green-600" />
+            ) : (
+              <TrendingDown className="h-8 w-8 text-red-600" />
+            )}
+          </div>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.3 }}
+          className="bg-gradient-to-r from-purple-50 to-purple-100 p-4 rounded-lg border border-purple-200"
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-purple-800">Spots Exitosos</p>
+              <p className="text-2xl font-bold text-purple-900">
+                {positiveImpacts} <span className="text-sm">({Math.round((positiveImpacts/totalSpots)*100)}%)</span>
+              </p>
+            </div>
+            <Users className="h-8 w-8 text-purple-600" />
+          </div>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.4 }}
+          className="bg-gradient-to-r from-orange-50 to-orange-100 p-4 rounded-lg border border-orange-200"
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-orange-800">Mejor Resultado</p>
+              <p className="text-2xl font-bold text-orange-900">+{maxImpact.toFixed(1)}%</p>
+            </div>
+            <TrendingUp className="h-8 w-8 text-orange-600" />
+          </div>
+        </motion.div>
       </div>
+
+      {/* Análisis Detallado */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Mejor Spot */}
+        <motion.div
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.5 }}
+          className="p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border border-green-200"
+        >
+          <div className="flex items-center mb-3">
+            <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center mr-3">
+              <TrendingUp className="h-4 w-4 text-white" />
+            </div>
+            <h4 className="font-semibold text-green-900">Spot Más Exitoso</h4>
+          </div>
+          <div className="space-y-2">
+            <p className="text-sm text-green-800">
+              <span className="font-medium">Impacto:</span> +{bestSpot.impact?.activeUsers?.percentageChange?.toFixed(1) || 0}%
+            </p>
+            <p className="text-sm text-green-700">
+              <span className="font-medium">Programa:</span> {bestSpot.spot?.titulo_programa || bestSpot.spot?.nombre || 'N/A'}
+            </p>
+            <p className="text-sm text-green-700">
+              <span className="font-medium">Fecha:</span> {bestSpot.spot?.fecha || 'N/A'} {bestSpot.spot?.hora || ''}
+            </p>
+            <p className="text-xs text-green-600 italic">
+              Este spot generó el mayor incremento en usuarios activos
+            </p>
+          </div>
+        </motion.div>
+
+        {/* Peor Spot */}
+        <motion.div
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.6 }}
+          className="p-4 bg-gradient-to-r from-red-50 to-pink-50 rounded-lg border border-red-200"
+        >
+          <div className="flex items-center mb-3">
+            <div className="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center mr-3">
+              <TrendingDown className="h-4 w-4 text-white" />
+            </div>
+            <h4 className="font-semibold text-red-900">Spot con Menor Impacto</h4>
+          </div>
+          <div className="space-y-2">
+            <p className="text-sm text-red-800">
+              <span className="font-medium">Impacto:</span> {minImpact.toFixed(1)}%
+            </p>
+            <p className="text-sm text-red-700">
+              <span className="font-medium">Programa:</span> {worstSpot.spot?.titulo_programa || worstSpot.spot?.nombre || 'N/A'}
+            </p>
+            <p className="text-sm text-red-700">
+              <span className="font-medium">Fecha:</span> {worstSpot.spot?.fecha || 'N/A'} {worstSpot.spot?.hora || ''}
+            </p>
+            <p className="text-xs text-red-600 italic">
+              Este spot tuvo el menor impacto en usuarios activos
+            </p>
+          </div>
+        </motion.div>
+      </div>
+
+      {/* Conclusión */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.7 }}
+        className="mt-6 p-4 bg-gradient-to-r from-gray-50 to-slate-50 rounded-lg border border-gray-200"
+      >
+        <div className="flex items-start space-x-3">
+          <div className="flex-shrink-0">
+            <div className="w-8 h-8 bg-gray-500 rounded-full flex items-center justify-center">
+              <BarChart3 className="w-4 h-4 text-white" />
+            </div>
+          </div>
+          <div className="flex-1">
+            <h4 className="text-sm font-semibold text-gray-900 mb-2">Conclusión del Análisis</h4>
+            <p className="text-sm text-gray-700">
+              {avgImpact > 10
+                ? "Los resultados muestran un impacto significativo y positivo en el tráfico. Los spots están funcionando bien para generar visitas al sitio web."
+                : avgImpact > 0
+                ? "Se observa un impacto moderado pero consistente. Hay oportunidades de mejora para aumentar la efectividad de los spots."
+                : "El impacto general es negativo. Es recomendable revisar la estrategia de contenido, timing y call-to-actions de los spots."
+              }
+            </p>
+            <p className="text-xs text-gray-600 mt-2">
+              <span className="font-medium">{positiveImpacts}</span> de <span className="font-medium">{totalSpots}</span> spots
+              ({Math.round((positiveImpacts/totalSpots)*100)}%) generaron impacto positivo.
+            </p>
+          </div>
+        </div>
+      </motion.div>
     </motion.div>
   );
 };
