@@ -274,6 +274,8 @@ Analiza el video y responde únicamente con el JSON válido, sin texto adicional
 
     // Calcular efectividad basada en datos reales
     const efectividadVideo = this.calculateVideoEffectiveness(parsedAnalysis, analyticsData);
+    const factoresInfluyentes = this.identifyInfluentialFactors(parsedAnalysis, analyticsData);
+    const recomendacionesBasadasEnDatos = this.generateDataDrivenRecommendations(parsedAnalysis, analyticsData);
     
     return {
       ...parsedAnalysis,
@@ -288,9 +290,9 @@ Analiza el video y responde únicamente con el JSON válido, sin texto adicional
         vinculacion_directa: analyticsData.impact?.activeUsers?.directCorrelation || false
       },
       correlacion_real: {
-        efectividad_calculada: efectividadVideo,
-        factores_influyentes: this.identifyInfluentialFactors(parsedAnalysis, analyticsData),
-        recomendaciones_basadas_en_datos: this.generateDataDrivenRecommendations(parsedAnalysis, analyticsData)
+        efectividad_calculada: efectividadVideo.toString(),
+        factores_influyentes: JSON.stringify(factoresInfluyentes),
+        recomendaciones_basadas_en_datos: JSON.stringify(recomendacionesBasadasEnDatos)
       },
       timestamp_analisis: new Date().toISOString(),
       fuente_datos: 'Google Analytics API + chutes.ai'
