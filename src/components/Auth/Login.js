@@ -2,8 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useGoogleAnalytics } from '../../contexts/GoogleAnalyticsContext';
 import LoadingSpinner from '../UI/LoadingSpinner';
-import SupabaseSetupHelper from './SupabaseSetupHelper';
-import { Mail, Lock, User, AlertCircle, CheckCircle, Eye, EyeOff, HelpCircle } from 'lucide-react';
+import { Mail, Lock, User, AlertCircle, CheckCircle, Eye, EyeOff } from 'lucide-react';
 
 const Login = () => {
   const { signInWithEmail, signUpWithEmail, signInWithGoogle } = useAuth();
@@ -13,7 +12,6 @@ const Login = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [showSetupHelper, setShowSetupHelper] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -324,24 +322,9 @@ const Login = () => {
                 : 'Después del registro, podrás conectar con Google Analytics 4'
               }
             </p>
-            
-            {/* Setup Helper Button */}
-            <button
-              type="button"
-              onClick={() => setShowSetupHelper(true)}
-              className="mt-3 inline-flex items-center text-xs text-blue-600 hover:text-blue-800 transition-colors"
-            >
-              <HelpCircle className="h-3 w-3 mr-1" />
-              ¿Cómo configurar Google Analytics en Supabase?
-            </button>
           </div>
         </div>
       </div>
-
-      {/* Setup Helper Modal */}
-      {showSetupHelper && (
-        <SupabaseSetupHelper onClose={() => setShowSetupHelper(false)} />
-      )}
     </div>
   );
 };
