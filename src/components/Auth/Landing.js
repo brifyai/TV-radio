@@ -639,7 +639,7 @@ const Landing = () => {
             transition={{ duration: 0.8 }}
             className="bg-white/10 backdrop-blur-xl rounded-2xl p-12 border border-white/20"
           >
-            <h2 className="text-4xl font-bold text-white mb-4 break-words">
+            <h2 className="text-2xl font-bold text-white mb-4 whitespace-nowrap">
               ¿Listo para Transformar tu Estrategia de Medios?
             </h2>
             <p className="text-xl text-slate-300 mb-8">
