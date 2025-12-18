@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useGoogleAnalytics } from '../../contexts/GoogleAnalyticsContext';
 import LoadingSpinner from '../UI/LoadingSpinner';
@@ -7,6 +8,7 @@ import { Mail, Lock, User, AlertCircle, CheckCircle, Eye, EyeOff, BarChart3, Spa
 const Login = () => {
   const { signInWithEmail, signUpWithEmail, signInWithGoogle } = useAuth();
   const { connectGoogleAnalytics } = useGoogleAnalytics();
+  const navigate = useNavigate();
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -373,6 +375,58 @@ const Login = () => {
           </div>
         </div>
       </div>
+
+      {/* Footer */}
+      <footer className="relative z-10 px-6 py-8 border-t border-white/10">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex flex-col md:flex-row items-center justify-between">
+            <div className="flex items-center space-x-3 mb-4 md:mb-0">
+              <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
+                <BarChart3 className="h-5 w-5 text-white" />
+              </div>
+              <span className="text-xl font-bold text-white">iMetrics</span>
+            </div>
+            
+            <div className="flex flex-col md:flex-row items-center space-y-2 md:space-y-0 md:space-x-6">
+              <div className="flex items-center space-x-4 text-sm">
+                <a
+                  href="/privacidad"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    navigate('/privacidad');
+                  }}
+                  className="text-slate-400 hover:text-white transition-colors"
+                >
+                  Privacidad
+                </a>
+                <a
+                  href="/terminos"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    navigate('/terminos');
+                  }}
+                  className="text-slate-400 hover:text-white transition-colors"
+                >
+                  Términos
+                </a>
+                <a
+                  href="/cookies"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    navigate('/cookies');
+                  }}
+                  className="text-slate-400 hover:text-white transition-colors"
+                >
+                  Cookies
+                </a>
+              </div>
+              <div className="text-slate-400 text-sm">
+                © 2026 iMetrics. Todos los derechos reservados.
+              </div>
+            </div>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 };

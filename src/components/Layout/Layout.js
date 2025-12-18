@@ -422,6 +422,58 @@ const Layout = () => {
             </div>
           </div>
         </main>
+
+        {/* Footer */}
+        <footer className="bg-white border-t border-gray-200 py-6">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex flex-col md:flex-row items-center justify-between">
+              <div className="flex items-center space-x-3 mb-4 md:mb-0">
+                <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
+                  <BarChart3 className="h-5 w-5 text-white" />
+                </div>
+                <span className="text-xl font-bold text-gray-900">iMetrics</span>
+              </div>
+              
+              <div className="flex flex-col md:flex-row items-center space-y-2 md:space-y-0 md:space-x-6">
+                <div className="flex items-center space-x-4 text-sm">
+                  <a
+                    href="/privacidad"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      navigate('/privacidad');
+                    }}
+                    className="text-gray-500 hover:text-gray-700 transition-colors"
+                  >
+                    Privacidad
+                  </a>
+                  <a
+                    href="/terminos"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      navigate('/terminos');
+                    }}
+                    className="text-gray-500 hover:text-gray-700 transition-colors"
+                  >
+                    Términos
+                  </a>
+                  <a
+                    href="/cookies"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      navigate('/cookies');
+                    }}
+                    className="text-gray-500 hover:text-gray-700 transition-colors"
+                  >
+                    Cookies
+                  </a>
+                </div>
+                <div className="text-gray-500 text-sm">
+                  © 2026 iMetrics. Todos los derechos reservados.
+                </div>
+              </div>
+            </div>
+          </div>
+        </footer>
       </div>
     </div>
   );

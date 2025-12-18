@@ -546,23 +546,6 @@ const Landing = () => {
                 </div>
               </div>
               
-              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
-                <h4 className="text-lg font-semibold text-white mb-4">Horarios de Atención</h4>
-                <div className="space-y-2 text-slate-300">
-                  <div className="flex justify-between">
-                    <span>Lunes - Viernes</span>
-                    <span>9:00 AM - 6:00 PM PST</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Sábados</span>
-                    <span>10:00 AM - 2:00 PM PST</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Domingos</span>
-                    <span>Cerrado</span>
-                  </div>
-                </div>
-              </div>
             </motion.div>
 
             {/* Contact Form */}
@@ -656,7 +639,7 @@ const Landing = () => {
             transition={{ duration: 0.8 }}
             className="bg-white/10 backdrop-blur-xl rounded-2xl p-12 border border-white/20"
           >
-            <h2 className="text-4xl font-bold text-white mb-4">
+            <h2 className="text-4xl font-bold text-white mb-4 whitespace-nowrap">
               ¿Listo para Transformar tu Estrategia de Medios?
             </h2>
             <p className="text-xl text-slate-300 mb-8">
