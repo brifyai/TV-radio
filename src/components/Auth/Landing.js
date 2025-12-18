@@ -142,9 +142,8 @@ const Landing = () => {
           </div>
           
           <div className="hidden md:flex items-center space-x-8">
-            <a href="#features" className="text-slate-300 hover:text-white transition-colors">Características</a>
-            <a href="#stats" className="text-slate-300 hover:text-white transition-colors">Estadísticas</a>
             <a href="#about" className="text-slate-300 hover:text-white transition-colors">Somos</a>
+            <a href="#features" className="text-slate-300 hover:text-white transition-colors">Características</a>
             <a href="#pricing" className="text-slate-300 hover:text-white transition-colors">Planes</a>
             <a href="#testimonials" className="text-slate-300 hover:text-white transition-colors">Testimonios</a>
             <a href="#contact" className="text-slate-300 hover:text-white transition-colors">Contacto</a>
@@ -305,34 +304,6 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* Stats Section */}
-      <section id="stats" className="relative z-10 px-6 py-20">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-white mb-4">
-              Resultados que Hablan por Sí Solos
-            </h2>
-          </div>
-          
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {stats.map((stat, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, scale: 0.8 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
-                className="text-center"
-              >
-                <div className="text-5xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent mb-2">
-                  {stat.number}
-                </div>
-                <div className="text-slate-300">{stat.label}</div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* About Section */}
       <section id="about" className="relative z-10 px-6 py-20">
         <div className="max-w-7xl mx-auto">
@@ -415,6 +386,34 @@ const Landing = () => {
                 </div>
               </motion.div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Stats Section */}
+      <section id="stats" className="relative z-10 px-6 py-20">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-white mb-4">
+              Resultados que Hablan por Sí Solos
+            </h2>
+          </div>
+          
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {stats.map((stat, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, scale: 0.8 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.6, delay: index * 0.1 }}
+                className="text-center"
+              >
+                <div className="text-5xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent mb-2">
+                  {stat.number}
+                </div>
+                <div className="text-slate-300">{stat.label}</div>
+              </motion.div>
+            ))}
           </div>
         </div>
       </section>
