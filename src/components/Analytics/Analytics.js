@@ -352,6 +352,25 @@ const Analytics = () => {
             year: 'numeric'
           }) + ` ${formattedHours}:${formattedMinutes}`;
         } else {
+          // Si el valor es numérico y está fuera del rango de nthMinute, probablemente es otro tipo de dato
+          if (!isNaN(value) && value.length > 0) {
+            console.warn(`⚠️ Valor numérico fuera de rango para nthMinute (${value}). Posiblemente es un timestamp o dateHour mal mapeado.`);
+            // Si es un valor grande, probablemente es un timestamp - devolver sin procesar
+            if (parseInt(value) > 1000000000) {
+              return value;
+            }
+            // Si es un valor mediano, podría ser dateHour (0-23) - intentar formatear como hora
+            const hourValue = parseInt(value);
+            if (hourValue >= 0 && hourValue <= 23) {
+              const today = new Date();
+              return today.toLocaleDateString('es-ES', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+              }) + ` ${hourValue.toString().padStart(2, '0')}:00`;
+            }
+          }
+          
           // Mantener compatibilidad con formatos antiguos
           let date;
           
@@ -374,11 +393,7 @@ const Analytics = () => {
             // Formato ISO
             date = new Date(value);
           } else {
-            // Si es un timestamp o valor numérico grande, no intentar parsearlo como fecha
-            if (value.length > 6 && !isNaN(value)) {
-              console.warn(`⚠️ Valor numérico grande para dateMinute, posiblemente timestamp: ${value}`);
-              return value; // Devolver el valor original si es un timestamp
-            }
+            // Último intento: parseo directo
             date = new Date(value);
           }
           
@@ -638,6 +653,27 @@ const Analytics = () => {
                 year: 'numeric'
               }) + ` ${formattedHours}:${formattedMinutes}`;
             } else {
+              // Si el valor es numérico y está fuera del rango de nthMinute, probablemente es otro tipo de dato
+              if (!isNaN(dimensionValue) && dimensionValue.length > 0) {
+                console.warn(`⚠️ Valor numérico fuera de rango para nthMinute en gráfico (${dimensionValue}). Posiblemente es un timestamp o dateHour mal mapeado.`);
+                // Si es un valor grande, probablemente es un timestamp - devolver sin procesar
+                if (parseInt(dimensionValue) > 1000000000) {
+                  chartData[dim] = dimensionValue;
+                  return chartData;
+                }
+                // Si es un valor mediano, podría ser dateHour (0-23) - intentar formatear como hora
+                const hourValue = parseInt(dimensionValue);
+                if (hourValue >= 0 && hourValue <= 23) {
+                  const today = new Date();
+                  chartData[dim] = today.toLocaleDateString('es-ES', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric'
+                  }) + ` ${hourValue.toString().padStart(2, '0')}:00`;
+                  return chartData;
+                }
+              }
+              
               // Mantener compatibilidad con formatos antiguos
               let date;
               
@@ -661,13 +697,7 @@ const Analytics = () => {
                 // Formato ISO
                 date = new Date(dimensionValue);
               } else {
-                // Si es un timestamp o valor numérico grande, no intentar parsearlo como fecha
-                if (dimensionValue.length > 6 && !isNaN(dimensionValue)) {
-                  console.warn(`⚠️ Valor numérico grande para dateMinute en gráfico, posiblemente timestamp: ${dimensionValue}`);
-                  chartData[dim] = dimensionValue; // Devolver el valor original si es un timestamp
-                  return chartData;
-                }
-                // Intentar parseo directo
+                // Último intento: parseo directo
                 date = new Date(dimensionValue);
               }
               
