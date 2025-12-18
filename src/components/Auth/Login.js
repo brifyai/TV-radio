@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useGoogleAnalytics } from '../../contexts/GoogleAnalyticsContext';
 import LoadingSpinner from '../UI/LoadingSpinner';
-import { Mail, Lock, User, AlertCircle, CheckCircle, Eye, EyeOff } from 'lucide-react';
+import { Mail, Lock, User, AlertCircle, CheckCircle, Eye, EyeOff, BarChart3, Sparkles, ArrowRight, Shield, Zap } from 'lucide-react';
 
 const Login = () => {
   const { signInWithEmail, signUpWithEmail, signInWithGoogle } = useAuth();
@@ -110,218 +110,266 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 to-primary-100 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div>
-          <div className="mx-auto h-16 w-16 bg-primary-600 rounded-full flex items-center justify-center">
-            <svg className="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-            </svg>
-          </div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            iMetrics
-          </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            {isLogin ? 'Inicia sesión para acceder a tus datos' : 'Crea tu cuenta para comenzar'}
-          </p>
-        </div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative overflow-hidden">
+      {/* Animated Background Elements */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-yellow-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000"></div>
+        <div className="absolute top-40 left-40 w-80 h-80 bg-pink-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-4000"></div>
+      </div>
 
-        <div className="bg-white rounded-lg shadow-md p-8">
-          {/* Error Alert */}
-          {error && (
-            <div className="mb-4 bg-danger-50 border border-danger-200 rounded-md p-4">
-              <div className="flex">
-                <AlertCircle className="h-5 w-5 text-danger-400" />
-                <div className="ml-3">
-                  <p className="text-sm text-danger-700">{error}</p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Success Alert */}
-          {success && (
-            <div className="mb-4 bg-success-50 border border-success-200 rounded-md p-4">
-              <div className="flex">
-                <CheckCircle className="h-5 w-5 text-success-400" />
-                <div className="ml-3">
-                  <p className="text-sm text-success-700">{success}</p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          <form className="space-y-6" onSubmit={handleEmailAuth}>
-            {/* Full Name Field - Only for Signup */}
-            {!isLogin && (
-              <div>
-                <label htmlFor="fullName" className="block text-sm font-medium text-gray-700">
-                  Nombre completo
-                </label>
-                <div className="mt-1 relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <User className="h-5 w-5 text-gray-400" />
+      {/* Main Content */}
+      <div className="relative z-10 min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-6xl w-full grid lg:grid-cols-2 gap-12 items-center">
+          
+          {/* Left Side - Branding & Features */}
+          <div className="text-center lg:text-left space-y-8">
+            <div className="space-y-6">
+              <div className="flex items-center justify-center lg:justify-start space-x-3">
+                <div className="relative">
+                  <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center shadow-2xl">
+                    <BarChart3 className="h-8 w-8 text-white" />
                   </div>
-                  <input
-                    id="fullName"
-                    name="fullName"
-                    type="text"
-                    required={!isLogin}
-                    value={formData.fullName}
-                    onChange={handleInputChange}
-                    className="appearance-none block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                    placeholder="Tu nombre completo"
-                  />
+                  <div className="absolute -top-1 -right-1 w-6 h-6 bg-yellow-400 rounded-full flex items-center justify-center">
+                    <Sparkles className="h-3 w-3 text-yellow-800" />
+                  </div>
                 </div>
+                <h1 className="text-4xl lg:text-5xl font-bold bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent">
+                  iMetrics
+                </h1>
               </div>
-            )}
-
-            {/* Email Field */}
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                Correo electrónico
-              </label>
-              <div className="mt-1 relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Mail className="h-5 w-5 text-gray-400" />
-                </div>
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  autoComplete="email"
-                  required
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  className="appearance-none block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                  placeholder="tu@email.com"
-                />
-              </div>
+              
+              <p className="text-xl lg:text-2xl text-purple-200 font-light">
+                Análisis Inteligente de Métricas
+              </p>
+              
+              <p className="text-lg text-slate-300 max-w-lg mx-auto lg:mx-0">
+                Transforma tus datos en insights accionables con análisis de video, correlación TV-Web y métricas en tiempo real.
+              </p>
             </div>
 
-            {/* Password Field */}
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                Contraseña
-              </label>
-              <div className="mt-1 relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Lock className="h-5 w-5 text-gray-400" />
+            {/* Features Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-2xl mx-auto lg:mx-0">
+              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+                <div className="w-10 h-10 bg-purple-500/20 rounded-lg flex items-center justify-center mb-3 mx-auto lg:mx-0">
+                  <Zap className="h-5 w-5 text-purple-300" />
                 </div>
-                <input
-                  id="password"
-                  name="password"
-                  type={showPassword ? 'text' : 'password'}
-                  autoComplete={isLogin ? 'current-password' : 'new-password'}
-                  required
-                  value={formData.password}
-                  onChange={handleInputChange}
-                  className="appearance-none block w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                  placeholder={isLogin ? 'Tu contraseña' : 'Mínimo 6 caracteres'}
-                />
+                <h3 className="font-semibold text-white text-sm">Análisis en Tiempo Real</h3>
+                <p className="text-slate-300 text-xs mt-1">Métricas instantáneas</p>
+              </div>
+              
+              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+                <div className="w-10 h-10 bg-pink-500/20 rounded-lg flex items-center justify-center mb-3 mx-auto lg:mx-0">
+                  <Shield className="h-5 w-5 text-pink-300" />
+                </div>
+                <h3 className="font-semibold text-white text-sm">Datos Seguros</h3>
+                <p className="text-slate-300 text-xs mt-1">Protección garantizada</p>
+              </div>
+              
+              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+                <div className="w-10 h-10 bg-yellow-500/20 rounded-lg flex items-center justify-center mb-3 mx-auto lg:mx-0">
+                  <BarChart3 className="h-5 w-5 text-yellow-300" />
+                </div>
+                <h3 className="font-semibold text-white text-sm">Insights IA</h3>
+                <p className="text-slate-300 text-xs mt-1">Recomendaciones inteligentes</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Side - Login Form */}
+          <div className="w-full max-w-md mx-auto">
+            <div className="bg-white/10 backdrop-blur-xl rounded-2xl shadow-2xl p-8 border border-white/20">
+              
+              {/* Header */}
+              <div className="text-center mb-8">
+                <h2 className="text-2xl font-bold text-white mb-2">
+                  {isLogin ? 'Bienvenido de vuelta' : 'Crea tu cuenta'}
+                </h2>
+                <p className="text-slate-300">
+                  {isLogin ? 'Accede a tu dashboard de análisis' : 'Comienza tu análisis inteligente'}
+                </p>
+              </div>
+
+              {/* Error Alert */}
+              {error && (
+                <div className="mb-6 bg-red-500/20 border border-red-500/30 rounded-xl p-4 backdrop-blur-sm">
+                  <div className="flex items-center">
+                    <AlertCircle className="h-5 w-5 text-red-300 mr-3 flex-shrink-0" />
+                    <p className="text-sm text-red-200">{error}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Success Alert */}
+              {success && (
+                <div className="mb-6 bg-green-500/20 border border-green-500/30 rounded-xl p-4 backdrop-blur-sm">
+                  <div className="flex items-center">
+                    <CheckCircle className="h-5 w-5 text-green-300 mr-3 flex-shrink-0" />
+                    <p className="text-sm text-green-200">{success}</p>
+                  </div>
+                </div>
+              )}
+
+              <form className="space-y-6" onSubmit={handleEmailAuth}>
+                {/* Full Name Field - Only for Signup */}
+                {!isLogin && (
+                  <div className="space-y-2">
+                    <label htmlFor="fullName" className="block text-sm font-medium text-slate-200">
+                      Nombre completo
+                    </label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                        <User className="h-5 w-5 text-slate-400" />
+                      </div>
+                      <input
+                        id="fullName"
+                        name="fullName"
+                        type="text"
+                        required={!isLogin}
+                        value={formData.fullName}
+                        onChange={handleInputChange}
+                        className="w-full pl-12 pr-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent backdrop-blur-sm transition-all duration-200"
+                        placeholder="Tu nombre completo"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Email Field */}
+                <div className="space-y-2">
+                  <label htmlFor="email" className="block text-sm font-medium text-slate-200">
+                    Correo electrónico
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                      <Mail className="h-5 w-5 text-slate-400" />
+                    </div>
+                    <input
+                      id="email"
+                      name="email"
+                      type="email"
+                      autoComplete="email"
+                      required
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      className="w-full pl-12 pr-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent backdrop-blur-sm transition-all duration-200"
+                      placeholder="tu@email.com"
+                    />
+                  </div>
+                </div>
+
+                {/* Password Field */}
+                <div className="space-y-2">
+                  <label htmlFor="password" className="block text-sm font-medium text-slate-200">
+                    Contraseña
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                      <Lock className="h-5 w-5 text-slate-400" />
+                    </div>
+                    <input
+                      id="password"
+                      name="password"
+                      type={showPassword ? 'text' : 'password'}
+                      autoComplete={isLogin ? 'current-password' : 'new-password'}
+                      required
+                      value={formData.password}
+                      onChange={handleInputChange}
+                      className="w-full pl-12 pr-12 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent backdrop-blur-sm transition-all duration-200"
+                      placeholder={isLogin ? 'Tu contraseña' : 'Mínimo 6 caracteres'}
+                    />
+                    <button
+                      type="button"
+                      onClick={togglePasswordVisibility}
+                      className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-300 transition-colors duration-200"
+                    >
+                      {showPassword ? (
+                        <EyeOff className="h-5 w-5" />
+                      ) : (
+                        <Eye className="h-5 w-5" />
+                      )}
+                    </button>
+                  </div>
+                  {!isLogin && (
+                    <p className="text-xs text-slate-400">
+                      La contraseña debe tener al menos 6 caracteres
+                    </p>
+                  )}
+                </div>
+
+                {/* Submit Button */}
                 <button
-                  type="button"
-                  onClick={togglePasswordVisibility}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                  type="submit"
+                  disabled={loading}
+                  className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-200 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none shadow-lg hover:shadow-xl flex items-center justify-center space-x-2"
                 >
-                  {showPassword ? (
-                    <EyeOff className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                  {loading ? (
+                    <LoadingSpinner size="sm" color="white" />
                   ) : (
-                    <Eye className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                    <>
+                      <span>{isLogin ? 'Iniciar Sesión' : 'Crear Cuenta'}</span>
+                      <ArrowRight className="h-4 w-4" />
+                    </>
                   )}
                 </button>
-              </div>
-              {!isLogin && (
-                <p className="mt-1 text-xs text-gray-500">
-                  La contraseña debe tener al menos 6 caracteres
-                </p>
-              )}
-            </div>
+              </form>
 
-            {/* Submit Button */}
-            <div>
+              {/* Divider */}
+              <div className="my-6">
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-white/20"></div>
+                  </div>
+                  <div className="relative flex justify-center text-sm">
+                    <span className="px-4 bg-transparent text-slate-400">O continúa con</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Google OAuth Button */}
               <button
-                type="submit"
+                onClick={handleGoogleAuth}
                 disabled={loading}
-                className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+                className="w-full bg-white/10 hover:bg-white/20 border border-white/20 text-white font-medium py-3 px-4 rounded-xl transition-all duration-200 backdrop-blur-sm flex items-center justify-center space-x-3 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {loading ? (
-                  <LoadingSpinner size="sm" color="white" />
-                ) : (
-                  <>
-                    {isLogin ? (
-                      <>
-                        <Lock className="h-4 w-4 mr-2" />
-                        Iniciar Sesión
-                      </>
-                    ) : (
-                      <>
-                        <User className="h-4 w-4 mr-2" />
-                        Crear Cuenta
-                      </>
-                    )}
-                  </>
-                )}
+                <svg className="w-5 h-5" viewBox="0 0 24 24">
+                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                </svg>
+                <span>{loading ? 'Conectando...' : 'Gmail'}</span>
               </button>
-            </div>
-          </form>
 
-          {/* Divider */}
-          <div className="mt-6">
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300" />
+              {/* Toggle between Login/Signup */}
+              <div className="mt-6 text-center">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsLogin(!isLogin);
+                    setError('');
+                    setSuccess('');
+                    setFormData({ email: '', password: '', fullName: '' });
+                  }}
+                  className="text-sm text-purple-300 hover:text-purple-200 font-medium transition-colors duration-200"
+                >
+                  {isLogin 
+                    ? '¿No tienes cuenta? Regístrate aquí' 
+                    : '¿Ya tienes cuenta? Inicia sesión'
+                  }
+                </button>
               </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">O continúa con</span>
+
+              {/* Additional Info */}
+              <div className="mt-4 text-center">
+                <p className="text-xs text-slate-400">
+                  {isLogin
+                    ? 'Al iniciar sesión, podrás conectar con Google Analytics 4'
+                    : 'Después del registro, podrás conectar con Google Analytics 4'
+                  }
+                </p>
               </div>
             </div>
-          </div>
-
-          {/* Google OAuth Button */}
-          <div className="mt-6">
-            <button
-              onClick={handleGoogleAuth}
-              disabled={loading}
-              className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
-            >
-              <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
-                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-              </svg>
-              {loading ? 'Conectando con Gmail...' : 'Registrarse/Iniciar sesión con Gmail'}
-            </button>
-          </div>
-
-          {/* Toggle between Login/Signup */}
-          <div className="mt-6 text-center">
-            <button
-              type="button"
-              onClick={() => {
-                setIsLogin(!isLogin);
-                setError('');
-                setSuccess('');
-                setFormData({ email: '', password: '', fullName: '' });
-              }}
-              className="text-sm text-primary-600 hover:text-primary-500 font-medium transition-colors duration-200"
-            >
-              {isLogin 
-                ? '¿No tienes cuenta? Regístrate aquí' 
-                : '¿Ya tienes cuenta? Inicia sesión'
-              }
-            </button>
-          </div>
-
-          {/* Additional Info */}
-          <div className="mt-4 text-center">
-            <p className="text-xs text-gray-500">
-              {isLogin
-                ? 'Al iniciar sesión con Gmail, podrás conectar con Google Analytics 4'
-                : 'Después del registro con Gmail, podrás conectar con Google Analytics 4'
-              }
-            </p>
           </div>
         </div>
       </div>
