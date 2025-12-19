@@ -485,9 +485,9 @@ const SpotAnalysis = () => {
               hora: spot.hora_inicio,
               // MEJORADO: Generar nombre más descriptivo cuando no hay título programa
               nombre: (spot.titulo_programa && spot.titulo_programa.trim())
-                ? spot.titulo_programa
+                ? spot.titulo_programa.toString().replace(/\s*0\s*$/, '').trim()
                 : `Spot ${spot.fecha || 'Sin fecha'} ${spot.hora_inicio || 'Sin hora'}`,
-              titulo_programa: spot.titulo_programa || '',
+              titulo_programa: spot.titulo_programa ? spot.titulo_programa.toString().replace(/\s*0\s*$/, '').trim() : '',
               debug_titulo: spot.titulo_programa, // Para debugging
               raw_titulo: spot.raw_titulo || '', // Para debugging
               // DEBUGGING MEJORADO

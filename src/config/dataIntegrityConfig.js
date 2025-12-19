@@ -31,7 +31,7 @@ export const DATA_INTEGRITY_CONFIG = {
   
   // PATRONES SOSPECHOSOS (se detectan automáticamente)
   SUSPICIOUS_PATTERNS: [
-    /35%|45%|3x|2\.3x|40%|65%/,
+    /45%|3x|2\.3x|40%/,
     /Math\.min.*\*|Math\.floor.*100|Math\.ceil.*100/,
     /simulado|fake|mock|generado|estimado.*%|predicho.*%/,
     /Math\.random|placeholder|ejemplo.*%|demo.*%/

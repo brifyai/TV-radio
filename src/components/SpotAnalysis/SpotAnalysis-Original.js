@@ -310,8 +310,8 @@ const SpotAnalysis = () => {
               id: index + 1,
               fecha: spot.fecha,
               hora: spot.hora_inicio,
-              nombre: spot.titulo_programa || `Spot ${index + 1}`,
-              titulo_programa: spot.titulo_programa || '',
+              nombre: spot.titulo_programa ? spot.titulo_programa.toString().replace(/\s*0\s*$/, '').trim() : `Spot ${index + 1}`,
+              titulo_programa: spot.titulo_programa ? spot.titulo_programa.toString().replace(/\s*0\s*$/, '').trim() : '',
               debug_titulo: spot.titulo_programa, // Para debugging
               tipo_comercial: spot.tipo_comercial || '',
               version: spot.version || '',
