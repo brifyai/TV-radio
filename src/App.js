@@ -9,7 +9,7 @@ import Login from './components/Auth/Login';
 import Register from './components/Auth/Register';
 import Landing from './components/Auth/Landing';
 import Callback from './components/Auth/Callback';
-import AnalyticsCallback from './components/Auth/AnalyticsCallback';
+import AnalyticsDirectCallback from './components/Auth/AnalyticsDirectCallback';
 import Dashboard from './components/Dashboard/Dashboard';
 import Accounts from './components/Accounts/Accounts';
 import Properties from './components/Properties/Properties';
@@ -90,7 +90,7 @@ function AppContent() {
         <div className="App">
           <Routes>
             <Route path="/callback" element={<Callback />} />
-            <Route path="/analytics-callback" element={<AnalyticsCallback />} />
+            <Route path="/analytics-callback" element={<AnalyticsDirectCallback />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="*" element={<Navigate to="/login" replace />} />
@@ -106,7 +106,7 @@ function AppContent() {
         <Routes>
           {/* Rutas públicas (sin autenticación requerida) */}
           <Route path="/callback" element={<Callback />} />
-          <Route path="/analytics-callback" element={<AnalyticsCallback />} />
+          <Route path="/analytics-callback" element={<AnalyticsDirectCallback />} />
           
           {/* Páginas legales */}
           <Route path="/privacidad" element={<PrivacyPolicy />} />

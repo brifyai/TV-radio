@@ -179,31 +179,24 @@ export const GoogleAnalyticsProvider = ({ children }) => {
         throw new Error('Debes iniciar sesión antes de conectar Google Analytics');
       }
 
-      console.log('🔒 CRITICAL: Iniciando OAuth de Analytics para usuario:', currentSession.user.email);
+      console.log('🔒 CRITICAL: Iniciando OAuth de Analytics DIRECTO para usuario:', currentSession.user.email);
       console.log('🔒 CRITICAL: Sesión actual preservada ID:', currentSession.user.id);
 
-      // Usar Supabase OAuth con scopes de Google Analytics
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/callback?analytics=true`,
-          scopes: 'email profile https://www.googleapis.com/auth/analytics.readonly https://www.googleapis.com/auth/analytics.edit https://www.googleapis.com/auth/analytics.manage.users.readonly',
-          // CRITICAL: Añadir metadata para identificar OAuth de Analytics
-          queryParams: {
-            access_type: 'offline',
-            prompt: 'consent',
-            include_granted_scopes: 'true'
-          },
-          data: {
-            analytics_oauth: 'true',
-            original_user_id: currentSession.user.id,
-            original_user_email: currentSession.user.email
-          }
-        }
-      });
-
-      if (error) throw error;
-      return data;
+      // SOLUCIÓN REAL: Usar OAuth directo de Google SIN Supabase signInWithOAuth
+      // Esto evita completamente que Supabase cambie la sesión del usuario
+      const authUrl = googleAnalyticsService.generateAuthUrl(`${window.location.origin}/analytics-callback`);
+      
+      console.log('🔒 CRITICAL: Redirigiendo a OAuth directo de Google (sin Supabase)');
+      
+      // Almacenar información del usuario original en sessionStorage para recuperación
+      sessionStorage.setItem('original_user_id', currentSession.user.id);
+      sessionStorage.setItem('original_user_email', currentSession.user.email);
+      sessionStorage.setItem('analytics_oauth_flow', 'true');
+      
+      // Redirigir directamente a Google OAuth (sin pasar por Supabase)
+      window.location.href = authUrl;
+      
+      return { success: true };
     } catch (err) {
       console.error('Error initiating Google Analytics connection:', err);
       setError(err.message);
