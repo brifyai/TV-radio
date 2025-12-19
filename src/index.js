@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
 import AppFallback from './components/AppFallback';
+import './utils/logger'; // Activar control de logging para evitar spam de 87,000+ mensajes
 
 // Add console logging to track app initialization
 console.log('🚀 APP INIT: Starting application initialization...');

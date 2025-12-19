@@ -55,12 +55,14 @@ class GoogleAnalyticsService {
     this.clientSecret = GOOGLE_CLIENT_SECRET;
     this.apiBaseUrl = API_BASE_URL;
     
-    // Debug logging para verificar la URL configurada
-    console.log('🔍 DEBUG GoogleAnalyticsService constructor:');
-    console.log('  - NODE_ENV:', process.env.NODE_ENV);
-    console.log('  - isProduction:', isProduction);
-    console.log('  - REACT_APP_API_URL:', process.env.REACT_APP_API_URL);
-    console.log('  - API_BASE_URL final:', this.apiBaseUrl);
+    // Debug logging para verificar la URL configurado (solo en desarrollo)
+    if (process.env.NODE_ENV === 'development') {
+      console.log('🔍 DEBUG GoogleAnalyticsService constructor:');
+      console.log('  - NODE_ENV:', process.env.NODE_ENV);
+      console.log('  - isProduction:', isProduction);
+      console.log('  - REACT_APP_API_URL:', process.env.REACT_APP_API_URL);
+      console.log('  - API_BASE_URL final:', this.apiBaseUrl);
+    }
   }
 
   /**
@@ -73,9 +75,11 @@ class GoogleAnalyticsService {
       'YOUR_CLIENT_ID.apps.googleusercontent.com'
     ];
     
-    console.log('🔍 DEBUG generateAuthUrl:');
-    console.log('  - client_id:', this.clientId);
-    console.log('  - redirect_uri:', redirectUri);
+    if (process.env.NODE_ENV === 'development') {
+      console.log('🔍 DEBUG generateAuthUrl:');
+      console.log('  - client_id:', this.clientId);
+      console.log('  - redirect_uri:', redirectUri);
+    }
     
     if (!this.clientId ||
         !this.clientId.includes('.apps.googleusercontent.com') ||
@@ -93,8 +97,10 @@ class GoogleAnalyticsService {
       include_granted_scopes: 'true'
     });
     
-    console.log('🔍 DEBUG: Parámetros OAuth generados:', params.toString());
-    console.log('🔍 DEBUG: URL completa:', `${GOOGLE_AUTH_BASE_URL}?${params.toString()}`);
+    if (process.env.NODE_ENV === 'development') {
+      console.log('🔍 DEBUG: Parámetros OAuth generados:', params.toString());
+      console.log('🔍 DEBUG: URL completa:', `${GOOGLE_AUTH_BASE_URL}?${params.toString()}`);
+    }
 
     return `${GOOGLE_AUTH_BASE_URL}?${params.toString()}`;
   }
@@ -105,7 +111,9 @@ class GoogleAnalyticsService {
   async exchangeCodeForTokens(code, redirectUri) {
     return retryWithBackoff(async () => {
       try {
-        console.log('🔄 DEBUG: Intentando intercambiar código por tokens...');
+        if (process.env.NODE_ENV === 'development') {
+          console.log('🔄 DEBUG: Intentando intercambiar código por tokens...');
+        }
         const response = await axios.post(GOOGLE_TOKEN_URL, {
           client_id: this.clientId,
           client_secret: this.clientSecret,
@@ -119,7 +127,9 @@ class GoogleAnalyticsService {
           timeout: 30000 // 30 segundos timeout
         });
 
-        console.log('✅ DEBUG: Tokens obtenidos exitosamente');
+        if (process.env.NODE_ENV === 'development') {
+          console.log('✅ DEBUG: Tokens obtenidos exitosamente');
+        }
         return response.data;
       } catch (error) {
         console.error('❌ Error intercambiando código por tokens:', {
@@ -214,10 +224,12 @@ class GoogleAnalyticsService {
   async getAccounts(accessToken) {
     return this.retryWithBackoff(async () => {
       try {
-        console.log('🔍 DEBUG: Llamando al backend proxy para obtener cuentas');
-        console.log('🔍 DEBUG: API URL:', `${this.apiBaseUrl}/api/analytics/accounts`);
-        console.log('🔍 DEBUG: Entorno actual:', process.env.NODE_ENV);
-        console.log('🔍 DEBUG: URL base configurada:', this.apiBaseUrl);
+        if (process.env.NODE_ENV === 'development') {
+          console.log('🔍 DEBUG: Llamando al backend proxy para obtener cuentas');
+          console.log('🔍 DEBUG: API URL:', `${this.apiBaseUrl}/api/analytics/accounts`);
+          console.log('🔍 DEBUG: Entorno actual:', process.env.NODE_ENV);
+          console.log('🔍 DEBUG: URL base configurada:', this.apiBaseUrl);
+        }
            
           const response = await axios.get(`${this.apiBaseUrl}/api/analytics/accounts`, {
             headers: {
@@ -227,8 +239,10 @@ class GoogleAnalyticsService {
             timeout: 45000
           });
 
-          console.log('✅ DEBUG: Respuesta exitosa del backend');
-          console.log('✅ DEBUG: Cuentas encontradas:', response.data.length || 0);
+          if (process.env.NODE_ENV === 'development') {
+            console.log('✅ DEBUG: Respuesta exitosa del backend');
+            console.log('✅ DEBUG: Cuentas encontradas:', response.data.length || 0);
+          }
 
           return response.data;
           
