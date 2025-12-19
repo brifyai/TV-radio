@@ -1183,7 +1183,7 @@ const SpotAnalysis = () => {
                                       Tipo Comercial: {result.spot.tipo_comercial}
                                     </span>
                                   )}
-                                  {result?.spot?.version && (
+                                  {result?.spot?.version && result.spot.version !== '0' && result.spot.version !== 0 && (
                                     <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
                                       Versión: {result.spot.version}
                                     </span>
@@ -1214,7 +1214,7 @@ const SpotAnalysis = () => {
                                 {result?.spot?.inversion && (
                                   <span className="flex items-center">
                                     <BarChart3 className="h-4 w-4 mr-1" />
-                                    Inversión: {result.spot.inversion}
+                                    Inversión: {formatCurrency(result.spot.inversion)}
                                   </span>
                                 )}
                               </div>

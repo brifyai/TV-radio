@@ -48,6 +48,19 @@ import DataIntegrityWarning from '../UI/DataIntegrityWarning';
 const SpotAnalysis = () => {
   const { accounts, properties, getAnalyticsData, isConnected } = useGoogleAnalytics();
   
+  // Función para formatear valores de moneda
+  const formatCurrency = (value) => {
+    if (!value || value === '0' || value === 0) return '$0';
+    
+    // Convertir a número si es string
+    const numValue = typeof value === 'string' ? parseFloat(value.replace(/[^\d.-]/g, '')) : value;
+    
+    if (isNaN(numValue) || numValue === 0) return '$0';
+    
+    // Formatear con separador de miles (punto) y sin decimales
+    return `$${Math.round(numValue).toLocaleString('es-CL')}`;
+  };
+  
   // Estados para el análisis de spots
   const [spotsFile, setSpotsFile] = useState(null);
   const [spotsData, setSpotsData] = useState([]);
@@ -1142,10 +1155,10 @@ const SpotAnalysis = () => {
                                   <Video className="h-4 w-4 mr-1" />
                                   {result?.spot?.canal || 'TV'}
                                 </span>
-                                {result?.spot?.inversion !== undefined && result?.spot?.inversion !== null && (
+                                {result?.spot?.inversion && (
                                   <span className="flex items-center">
                                     <BarChart3 className="h-4 w-4 mr-1" />
-                                    Inversión: ${result.spot.inversion || '0'}
+                                    Inversión: {formatCurrency(result.spot.inversion)}
                                   </span>
                                 )}
                               </div>
