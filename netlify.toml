@@ -10,21 +10,165 @@
   directory = "netlify/functions"
   node_bundler = "esbuild"
 
-# Headers para archivos estáticos
+# Headers SEO de primer nivel para HTML
+[[headers]]
+  for = "/*.html"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    X-XSS-Protection = "1; mode=block"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "geolocation=(), microphone=(), camera=()"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://www.google-analytics.com https://analytics.google.com; frame-src 'self'; manifest-src 'self'; worker-src 'self' blob:;"
+    Cache-Control = "public, max-age=3600, must-revalidate"
+    Strict-Transport-Security = "max-age=31536000; includeSubDomains; preload"
+
+# Headers para archivos JavaScript
 [[headers]]
   for = "/*.js"
   [headers.values]
-    Content-Type = "application/javascript"
+    Content-Type = "application/javascript; charset=utf-8"
     Cache-Control = "public, max-age=31536000, immutable"
+    X-Content-Type-Options = "nosniff"
 
+# Headers para archivos CSS
 [[headers]]
   for = "/*.css"
   [headers.values]
-    Content-Type = "text/css"
+    Content-Type = "text/css; charset=utf-8"
     Cache-Control = "public, max-age=31536000, immutable"
 
+# Headers para imágenes optimizadas
+[[headers]]
+  for = "/*.{jpg,jpeg,png,gif,webp,avif,svg}"
+  [headers.values]
+    Cache-Control = "public, max-age=2592000, immutable"
+    X-Content-Type-Options = "nosniff"
+
+# Headers para favicon e iconos
+[[headers]]
+  for = "/favicon.ico"
+  [headers.values]
+    Cache-Control = "public, max-age=2592000, immutable"
+    X-Content-Type-Options = "nosniff"
+
+[[headers]]
+  for = "/*.{png,ico}"
+  [headers.values]
+    Cache-Control = "public, max-age=2592000, immutable"
+    X-Content-Type-Options = "nosniff"
+
+# Headers para PWA y Service Worker
 [[headers]]
   for = "/manifest.json"
   [headers.values]
-    Content-Type = "application/json"
-    Cache-Control = "public, max-age=86400"
+    Content-Type = "application/manifest+json"
+    Cache-Control = "public, max-age=86400, must-revalidate"
+    Access-Control-Allow-Origin = "*"
+
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Content-Type = "application/javascript"
+    Cache-Control = "public, max-age=0, must-revalidate"
+    Service-Worker-Allowed = "/"
+
+# Headers para sitemap y robots
+[[headers]]
+  for = "/sitemap.xml"
+  [headers.values]
+    Content-Type = "application/xml; charset=utf-8"
+    Cache-Control = "public, max-age=3600, must-revalidate"
+
+[[headers]]
+  for = "/robots.txt"
+  [headers.values]
+    Content-Type = "text/plain; charset=utf-8"
+    Cache-Control = "public, max-age=3600, must-revalidate"
+
+# Headers para fuentes (fonts)
+[[headers]]
+  for = "/*.{woff,woff2,ttf,eot}"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+    Access-Control-Allow-Origin = "*"
+
+# Headers para archivos JSON
+[[headers]]
+  for = "/*.json"
+  [headers.values]
+    Content-Type = "application/json; charset=utf-8"
+    Cache-Control = "public, max-age=3600, must-revalidate"
+
+# Headers para API endpoints
+[[headers]]
+  for = "/api/*"
+  [headers.values]
+    Access-Control-Allow-Origin = "*"
+    Access-Control-Allow-Methods = "GET, POST, PUT, DELETE, OPTIONS"
+    Access-Control-Allow-Headers = "Content-Type, Authorization"
+    Cache-Control = "no-cache, no-store, must-revalidate"
+    Pragma = "no-cache"
+    Expires = "0"
+
+# Headers para funciones serverless
+[[headers]]
+  for = "/.netlify/functions/*"
+  [headers.values]
+    Access-Control-Allow-Origin = "*"
+    Access-Control-Allow-Methods = "GET, POST, PUT, DELETE, OPTIONS"
+    Access-Control-Allow-Headers = "Content-Type, Authorization"
+    Cache-Control = "no-cache, no-store, must-revalidate"
+
+# Headers para prevenir hotlinking de imágenes
+[[headers]]
+  for = "/og-image-*"
+  [headers.values]
+    Cache-Control = "public, max-age=3600, must-revalidate"
+    X-Content-Type-Options = "nosniff"
+
+# Redirects SEO
+[[redirects]]
+  from = "/home"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/index.html"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/dashboard.html"
+  to = "/dashboard"
+  status = 301
+
+[[redirects]]
+  from = "/analytics.html"
+  to = "/analytics"
+  status = 301
+
+# Redirect para trailing slash
+[[redirects]]
+  from = "/*"
+  to = "/:splat/"
+  status = 301
+  conditions = {Role = ["admin"]}
+
+# Redirect para www a non-www
+[[redirects]]
+  from = "https://www.tvradio2.netlify.app/*"
+  to = "https://tvradio2.netlify.app/:splat"
+  status = 301
+
+# Redirect para HTTP a HTTPS
+[[redirects]]
+  from = "http://tvradio2.netlify.app/*"
+  to = "https://tvradio2.netlify.app/:splat"
+  status = 301
+
+# Redirect para páginas no encontradas
+[[redirects]]
+  from = "/*"
+  to = "/index-seo-complete.html"
+  status = 404
