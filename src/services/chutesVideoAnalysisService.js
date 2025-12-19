@@ -4,7 +4,7 @@
  * VERSIÓN MEJORADA: Integra análisis de video con datos reales de Google Analytics
  */
 
-const CHUTES_API_KEY = 'cpk_4435ae2bc55e49bd9ad0ea879d240df4.272f8a269e1b5ec092ba273b83403b1d.Ec8wMIBp7FIpbaHcNW5niKXYcXPJ2ksJ';
+const CHUTES_API_KEY = 'cpk_f07741417dab421f995b63e2b9869206.272f8a269e1b5ec092ba273b83403b1d.u5no8AouQcBglfhegVrjdcU98kPSCkYt';
 const CHUTES_API_URL = 'https://llm.chutes.ai/v1';
 const MODEL_NAME = 'Qwen/Qwen2.5-VL-72B-Instruct';
 
@@ -50,8 +50,8 @@ class ChutesVideoAnalysisService {
                   text: prompt
                 },
                 {
-                  type: 'video_url',
-                  video_url: {
+                  type: 'image_url',
+                  image_url: {
                     url: videoBase64
                   }
                 }
@@ -90,7 +90,8 @@ class ChutesVideoAnalysisService {
         model: this.model,
         tokensUsed: data.usage?.total_tokens || 0,
         timestamp: new Date().toISOString(),
-        hasRealAnalytics: !!analyticsData
+        hasRealAnalytics: !!analyticsData,
+        apiProvider: 'Chutes AI'
       };
 
     } catch (error) {
@@ -98,7 +99,8 @@ class ChutesVideoAnalysisService {
       return {
         success: false,
         error: error.message,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        apiProvider: 'Chutes AI'
       };
     }
   }
@@ -418,7 +420,7 @@ Analiza el video y responde únicamente con el JSON válido, sin texto adicional
         recomendaciones_basadas_en_datos: JSON.stringify(recomendacionesBasadasEnDatos)
       },
       timestamp_analisis: new Date().toISOString(),
-      fuente_datos: 'Google Analytics API + chutes.ai'
+      fuente_datos: 'Google Analytics API + Chutes AI'
     };
   }
 
@@ -602,7 +604,8 @@ Analiza el video y responde únicamente con el JSON válido, sin texto adicional
       input_cost: inputCost,
       output_cost: outputCost,
       total_cost: totalCost,
-      currency: 'USD'
+      currency: 'USD',
+      api_provider: 'Chutes AI'
     };
   }
 }

@@ -4,7 +4,7 @@ import { generateAIAnalysis, generateBatchAIAnalysis } from '../../services/aiAn
 import { TemporalAnalysisService } from '../../services/temporalAnalysisService';
 import conversionAnalysisService from '../../services/conversionAnalysisService';
 import { predictiveAnalyticsService } from '../../services/predictiveAnalyticsService';
-import OpenRouterVideoAnalysisService from '../../services/openRouterVideoAnalysisService';
+import ChutesVideoAnalysisService from '../../services/chutesVideoAnalysisService';
 import * as XLSX from 'xlsx';
 import { motion } from 'framer-motion';
 import {

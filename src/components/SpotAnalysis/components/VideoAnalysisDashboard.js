@@ -13,7 +13,7 @@ import {
   AlertTriangle,
   Info
 } from 'lucide-react';
-import OpenRouterVideoAnalysisService from '../../../services/openRouterVideoAnalysisService';
+import ChutesVideoAnalysisService from '../../../services/chutesVideoAnalysisService';
 
 const VideoAnalysisDashboard = ({ 
   analysisResults, 
@@ -23,7 +23,7 @@ const VideoAnalysisDashboard = ({
 }) => {
   const [videoAnalysis, setVideoAnalysis] = useState(null);
   const [analyzingVideo, setAnalyzingVideo] = useState(false);
-  const [videoAnalysisService] = useState(new OpenRouterVideoAnalysisService());
+  const [videoAnalysisService] = useState(new ChutesVideoAnalysisService());
   const [error, setError] = useState(null);
 
   // Definir función de análisis de video antes de usarla
@@ -103,9 +103,11 @@ const VideoAnalysisDashboard = ({
     });
 
     // 2. Análisis de efectividad REAL vs métricas reales de GA
-    if (videoAnalysis.analisis_efectividad) {
+    if (videoAnalysis?.analisis_efectividad) {
       const efectividad = videoAnalysis.analisis_efectividad;
-      const avgEffectiveness = Object.values(efectividad).reduce((sum, val) => sum + parseFloat(val), 0) / Object.values(efectividad).length;
+      const avgEffectiveness = efectividad && Object.values(efectividad).length > 0
+        ? Object.values(efectividad).reduce((sum, val) => sum + parseFloat(val || 0), 0) / Object.values(efectividad).length
+        : 0;
       const realImpact = spot.impact.activeUsers.percentageChange;
       
       rational.push({
@@ -119,7 +121,7 @@ const VideoAnalysisDashboard = ({
     }
 
     // 3. Análisis de contenido visual REAL vs engagement real
-    if (videoAnalysis.contenido_visual) {
+    if (videoAnalysis?.contenido_visual) {
       const escenas = videoAnalysis.contenido_visual.escenas_principales || [];
       const colores = videoAnalysis.contenido_visual.colores_dominantes || [];
       
@@ -266,7 +268,7 @@ const VideoAnalysisDashboard = ({
           });
         }
 
-        if (videoAnalysis.analisis_efectividad?.claridad_mensaje && parseFloat(videoAnalysis.analisis_efectividad.claridad_mensaje) < 5) {
+        if (videoAnalysis?.analisis_efectividad?.claridad_mensaje && parseFloat(videoAnalysis.analisis_efectividad.claridad_mensaje) < 5) {
           recommendations.push({
             priority: 'Alta',
             category: 'Factor de Fracaso',
@@ -294,10 +296,10 @@ const VideoAnalysisDashboard = ({
         });
 
         // Analizar oportunidades de mejora
-        if (videoAnalysis.analisis_efectividad) {
+        if (videoAnalysis?.analisis_efectividad) {
           const efectividad = videoAnalysis.analisis_efectividad;
           
-          if (parseFloat(efectividad.engagement_visual || 0) < 7) {
+          if (efectividad && parseFloat(efectividad.engagement_visual || 0) < 7) {
             recommendations.push({
               priority: 'Alta',
               category: 'Oportunidad de Mejora',
@@ -306,7 +308,7 @@ const VideoAnalysisDashboard = ({
             });
           }
 
-          if (parseFloat(efectividad.memorabilidad || 0) < 6) {
+          if (efectividad && parseFloat(efectividad.memorabilidad || 0) < 6) {
             recommendations.push({
               priority: 'Media',
               category: 'Oportunidad de Mejora',
@@ -895,7 +897,7 @@ const VideoAnalysisDashboard = ({
             }
 
             // Agregar análisis de video si está disponible
-            if (videoAnalysis?.analisis_efectividad) {
+            if (videoAnalysis && videoAnalysis.analisis_efectividad) {
               const efectividad = videoAnalysis.analisis_efectividad;
               const clarity = parseFloat(efectividad.claridad_mensaje || 0);
               const engagement = parseFloat(efectividad.engagement_visual || 0);
@@ -931,7 +933,7 @@ const VideoAnalysisDashboard = ({
               </p>
               
               {/* Métricas clave del análisis */}
-              {videoAnalysis?.analisis_efectividad && (
+              {videoAnalysis && videoAnalysis.analisis_efectividad && (
                 <div className="grid grid-cols-3 gap-2 mb-3">
                   <div className="text-center p-2 bg-white rounded border">
                     <div className="text-xs text-gray-600">Claridad</div>
