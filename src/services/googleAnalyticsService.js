@@ -20,6 +20,35 @@ const GOOGLE_SCOPES = [
   'https://www.googleapis.com/auth/analytics.manage.users.readonly'
 ];
 
+/**
+ * Retry function with exponential backoff
+ */
+const retryWithBackoff = async (fn, maxRetries = 3, initialDelay = 1000) => {
+  let lastError;
+  
+  for (let i = 0; i < maxRetries; i++) {
+    try {
+      return await fn();
+    } catch (error) {
+      lastError = error;
+      
+      if (i === maxRetries - 1) {
+        // Last retry, throw the error
+        throw error;
+      }
+      
+      // Calculate delay with exponential backoff
+      const delay = initialDelay * Math.pow(2, i);
+      console.log(`⏳ Reintentando en ${delay}ms (intento ${i + 1}/${maxRetries})...`);
+      
+      // Wait before retrying
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
+  }
+  
+  throw lastError;
+};
+
 class GoogleAnalyticsService {
   constructor() {
     this.clientId = GOOGLE_CLIENT_ID;
@@ -74,24 +103,44 @@ class GoogleAnalyticsService {
    * Exchange authorization code for access and refresh tokens
    */
   async exchangeCodeForTokens(code, redirectUri) {
-    try {
-      const response = await axios.post(GOOGLE_TOKEN_URL, {
-        client_id: this.clientId,
-        client_secret: this.clientSecret,
-        code,
-        grant_type: 'authorization_code',
-        redirect_uri: redirectUri
-      }, {
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded'
-        }
-      });
+    return retryWithBackoff(async () => {
+      try {
+        console.log('🔄 DEBUG: Intentando intercambiar código por tokens...');
+        const response = await axios.post(GOOGLE_TOKEN_URL, {
+          client_id: this.clientId,
+          client_secret: this.clientSecret,
+          code,
+          grant_type: 'authorization_code',
+          redirect_uri: redirectUri
+        }, {
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+          },
+          timeout: 30000 // 30 segundos timeout
+        });
 
-      return response.data;
-    } catch (error) {
-      console.error('Error exchanging code for tokens:', error.response?.data || error.message);
-      throw new Error('Failed to exchange authorization code for tokens');
-    }
+        console.log('✅ DEBUG: Tokens obtenidos exitosamente');
+        return response.data;
+      } catch (error) {
+        console.error('❌ Error intercambiando código por tokens:', {
+          status: error.response?.status,
+          statusText: error.response?.statusText,
+          data: error.response?.data,
+          message: error.message
+        });
+        
+        // Manejo específico de errores comunes
+        if (error.response?.status === 503) {
+          throw new Error('Servicio de Google temporalmente no disponible. Por favor, intenta nuevamente en unos minutos.');
+        } else if (error.response?.status === 400) {
+          throw new Error('Código de autorización inválido o expirado. Por favor, intenta conectar nuevamente.');
+        } else if (error.code === 'ECONNABORTED') {
+          throw new Error('La conexión está tardando demasiado. Por favor, verifica tu conexión e intenta nuevamente.');
+        } else {
+          throw new Error(`Error al intercambiar código por tokens: ${error.response?.data?.error_description || error.message}`);
+        }
+      }
+    }, 3, 2000); // 3 reintentos con 2 segundos de espera inicial
   }
 
   /**

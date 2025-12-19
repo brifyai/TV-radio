@@ -276,7 +276,21 @@ export const GoogleAnalyticsProvider = ({ children }) => {
       console.log('✅ CRITICAL: Google Analytics vinculado exitosamente para usuario original');
     } catch (err) {
       console.error('❌ Error connecting Google Analytics:', err);
-      setError(err.message);
+      
+      // Manejo específico de errores 503 y otros errores comunes
+      let userFriendlyMessage = err.message;
+      
+      if (err.message.includes('Servicio de Google temporalmente no disponible')) {
+        userFriendlyMessage = 'El servicio de Google Analytics está temporalmente no disponible. Por favor, espera unos minutos e intenta nuevamente.';
+      } else if (err.message.includes('Código de autorización inválido o expirado')) {
+        userFriendlyMessage = 'El código de autorización ha expirado. Por favor, intenta conectar tu cuenta de Analytics nuevamente.';
+      } else if (err.message.includes('La conexión está tardando demasiado')) {
+        userFriendlyMessage = 'La conexión está tardando demasiado. Verifica tu conexión a internet e intenta nuevamente.';
+      } else if (err.message.includes('Failed to exchange authorization code for tokens')) {
+        userFriendlyMessage = 'Hubo un problema al conectar con Google Analytics. Por favor, intenta nuevamente.';
+      }
+      
+      setError(userFriendlyMessage);
       throw err;
     } finally {
       setLoading(false);
