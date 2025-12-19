@@ -23,85 +23,132 @@ class ChutesVideoAnalysisService {
    * @returns {Promise<Object>} Resultado del análisis con correlación real
    */
   async analyzeVideo(videoFile, spotData, analyticsData = null) {
-    try {
-      console.log('🎬 Iniciando análisis de video con chutes.ai + Analytics reales...');
-      
-      // Convertir video a base64
-      const videoBase64 = await this.fileToBase64(videoFile);
-      
-      // Preparar el prompt para análisis de spot TV con datos reales de Analytics
-      const prompt = this.createSpotAnalysisPromptWithAnalytics(spotData, analyticsData);
-      
-      // Realizar la llamada a la API
-      const response = await fetch(`${this.baseUrl}/chat/completions`, {
-        method: 'POST',
-        headers: {
+    const maxRetries = 3;
+    const retryDelay = 2000; // 2 segundos entre reintentos
+    
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        console.log(`🎬 Iniciando análisis de video con Chutes AI (intento ${attempt}/${maxRetries}) + Analytics reales...`);
+        
+        // Convertir video a base64
+        const videoBase64 = await this.fileToBase64(videoFile);
+        
+        // Preparar el prompt para análisis de spot TV con datos reales de Analytics
+        const prompt = this.createSpotAnalysisPromptWithAnalytics(spotData, analyticsData);
+        
+        // Preparar headers con información adicional
+        const headers = {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.apiKey}`
-        },
-        body: JSON.stringify({
-          model: this.model,
-          messages: [
-            {
-              role: 'user',
-              content: [
-                {
-                  type: 'text',
-                  text: prompt
-                },
-                {
-                  type: 'image_url',
-                  image_url: {
-                    url: videoBase64
+          'Authorization': `Bearer ${this.apiKey}`,
+          'User-Agent': 'TV-Radio-Analysis-System/1.0'
+        };
+        
+        // Realizar la llamada a la API con timeout
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 segundos timeout
+        
+        const response = await fetch(`${this.baseUrl}/chat/completions`, {
+          method: 'POST',
+          headers: headers,
+          body: JSON.stringify({
+            model: this.model,
+            messages: [
+              {
+                role: 'user',
+                content: [
+                  {
+                    type: 'text',
+                    text: prompt
+                  },
+                  {
+                    type: 'image_url',
+                    image_url: {
+                      url: videoBase64
+                    }
                   }
-                }
-              ]
-            }
-          ],
-          max_tokens: 3000,
-          temperature: 0.3
-        })
-      });
+                ]
+              }
+            ],
+            max_tokens: 3000,
+            temperature: 0.3,
+            stream: false
+          }),
+          signal: controller.signal
+        });
+        
+        clearTimeout(timeoutId);
 
-      if (!response.ok) {
-        throw new Error(`Error de API: ${response.status} ${response.statusText}`);
+        console.log(`📡 Respuesta de API: ${response.status} ${response.statusText}`);
+
+        if (!response.ok) {
+          const errorText = await response.text().catch(() => '');
+          let errorMessage = `Error de API Chutes AI: ${response.status} ${response.statusText}`;
+          
+          try {
+            const errorData = JSON.parse(errorText);
+            errorMessage += ` - ${errorData.error?.message || errorData.message || ''}`;
+          } catch {
+            errorMessage += ` - ${errorText}`;
+          }
+          
+          // Si es error 503, 429 o 5xx, reintentar
+          if ((response.status === 503 || response.status === 429 || response.status >= 500) && attempt < maxRetries) {
+            console.warn(`⚠️ ${errorMessage}. Reintentando en ${retryDelay}ms...`);
+            await new Promise(resolve => setTimeout(resolve, retryDelay));
+            continue;
+          }
+          
+          throw new Error(errorMessage);
+        }
+
+        const data = await response.json();
+        
+        if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+          throw new Error('Respuesta inválida de la API Chutes AI');
+        }
+
+        const analysisResult = data.choices[0].message.content;
+        
+        console.log('✅ Análisis de video con Analytics completado exitosamente');
+        
+        // Parsear el análisis y combinar con datos reales
+        const parsedAnalysis = this.parseAnalysisResponse(analysisResult);
+        
+        // Agregar datos reales de Analytics al análisis
+        const enrichedAnalysis = this.enrichAnalysisWithRealData(parsedAnalysis, analyticsData);
+        
+        return {
+          success: true,
+          analysis: enrichedAnalysis,
+          rawAnalysis: analysisResult,
+          model: this.model,
+          tokensUsed: data.usage?.total_tokens || 0,
+          timestamp: new Date().toISOString(),
+          hasRealAnalytics: !!analyticsData,
+          apiProvider: 'Chutes AI',
+          attempt: attempt
+        };
+
+      } catch (error) {
+        console.error(`❌ Error en análisis de video (intento ${attempt}/${maxRetries}):`, error);
+        
+        // Si es el último intento, retornar el error
+        if (attempt === maxRetries) {
+          return {
+            success: false,
+            error: error.message,
+            timestamp: new Date().toISOString(),
+            apiProvider: 'Chutes AI',
+            attempts: attempt,
+            suggestion: this.getErrorSuggestion(error.message)
+          };
+        }
+        
+        // Esperar antes del siguiente intento
+        if (error.name !== 'AbortError') {
+          await new Promise(resolve => setTimeout(resolve, retryDelay));
+        }
       }
-
-      const data = await response.json();
-      
-      if (!data.choices || !data.choices[0] || !data.choices[0].message) {
-        throw new Error('Respuesta inválida de la API');
-      }
-
-      const analysisResult = data.choices[0].message.content;
-      
-      console.log('✅ Análisis de video con Analytics completado:', analysisResult);
-      
-      // Parsear el análisis y combinar con datos reales
-      const parsedAnalysis = this.parseAnalysisResponse(analysisResult);
-      
-      // Agregar datos reales de Analytics al análisis
-      const enrichedAnalysis = this.enrichAnalysisWithRealData(parsedAnalysis, analyticsData);
-      
-      return {
-        success: true,
-        analysis: enrichedAnalysis,
-        rawAnalysis: analysisResult,
-        model: this.model,
-        tokensUsed: data.usage?.total_tokens || 0,
-        timestamp: new Date().toISOString(),
-        hasRealAnalytics: !!analyticsData,
-        apiProvider: 'Chutes AI'
-      };
-
-    } catch (error) {
-      console.error('❌ Error en análisis de video:', error);
-      return {
-        success: false,
-        error: error.message,
-        timestamp: new Date().toISOString(),
-        apiProvider: 'Chutes AI'
-      };
     }
   }
 
@@ -607,6 +654,30 @@ Analiza el video y responde únicamente con el JSON válido, sin texto adicional
       currency: 'USD',
       api_provider: 'Chutes AI'
     };
+  }
+
+  /**
+   * Obtener sugerencia basada en el tipo de error
+   * @param {string} errorMessage - Mensaje de error
+   * @returns {string} Sugerencia para el usuario
+   */
+  getErrorSuggestion(errorMessage) {
+    if (errorMessage.includes('503') || errorMessage.includes('Service Unavailable')) {
+      return 'El servicio de Chutes AI está temporalmente no disponible. Por favor, intente nuevamente en unos minutos.';
+    }
+    if (errorMessage.includes('429') || errorMessage.includes('rate limit')) {
+      return 'Se ha excedido el límite de solicitudes. Por favor, espere unos minutos antes de intentar nuevamente.';
+    }
+    if (errorMessage.includes('401') || errorMessage.includes('Unauthorized')) {
+      return 'Error de autenticación. Verifique la configuración de la API key.';
+    }
+    if (errorMessage.includes('timeout') || errorMessage.includes('AbortError')) {
+      return 'La solicitud tardó demasiado tiempo. Intente con un video más pequeño o verifique su conexión.';
+    }
+    if (errorMessage.includes('model') || errorMessage.includes('not found')) {
+      return 'El modelo especificado no está disponible. Verifique la configuración del modelo.';
+    }
+    return 'Error en el servicio de análisis. Por favor, intente nuevamente más tarde.';
   }
 }
 

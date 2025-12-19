@@ -34,7 +34,7 @@ const VideoAnalysisDashboard = ({
     setError(null);
 
     try {
-      console.log('🎬 Iniciando análisis de video...');
+      console.log('🎬 Iniciando análisis de video con Chutes AI...');
       
       // Usar el primer spot como referencia para el análisis
       const referenceSpot = analysisResults[0];
@@ -58,11 +58,26 @@ const VideoAnalysisDashboard = ({
           rawAnalysis: result.analysis,
           model: result.model,
           tokensUsed: result.tokensUsed,
+          timestamp: result.timestamp,
+          apiProvider: result.apiProvider,
+          attempt: result.attempt
+        });
+        console.log('✅ Análisis de video completado exitosamente');
+      } else {
+        const errorMessage = result.error || 'Error en el análisis del video';
+        const suggestion = result.suggestion || '';
+        const fullError = suggestion ? `${errorMessage}\n\n💡 Sugerencia: ${suggestion}` : errorMessage;
+        
+        // Log adicional para debugging
+        console.error('🔍 Detalles del error:', {
+          error: result.error,
+          suggestion: result.suggestion,
+          attempts: result.attempts,
+          apiProvider: result.apiProvider,
           timestamp: result.timestamp
         });
-        console.log('✅ Análisis de video completado');
-      } else {
-        throw new Error(result.error);
+        
+        throw new Error(fullError);
       }
     } catch (err) {
       console.error('❌ Error en análisis de video:', err);
@@ -459,11 +474,28 @@ const VideoAnalysisDashboard = ({
           animate={{ opacity: 1, scale: 1 }}
           className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg"
         >
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2 mb-2">
             <AlertTriangle className="h-5 w-5 text-red-600" />
             <span className="text-sm font-medium text-red-800">Error en análisis</span>
           </div>
-          <p className="text-sm text-red-700 mt-1">{error}</p>
+          <div className="text-sm text-red-700 whitespace-pre-line">
+            {error.split('\n\n💡 Sugerencia:').map((part, index) => (
+              <div key={index}>
+                {part}
+                {index === 0 && error.includes('💡 Sugerencia:') && (
+                  <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded">
+                    <div className="flex items-center space-x-1 mb-1">
+                      <Lightbulb className="h-4 w-4 text-yellow-600" />
+                      <span className="text-xs font-medium text-yellow-800">Sugerencia:</span>
+                    </div>
+                    <div className="text-xs text-yellow-700">
+                      {error.split('\n\n💡 Sugerencia:')[1]}
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
         </motion.div>
       )}
 
