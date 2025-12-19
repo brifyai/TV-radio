@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import {
   Video,
@@ -25,45 +25,44 @@ const VideoAnalysisDashboard = ({
   const [analyzingVideo, setAnalyzingVideo] = useState(false);
   const [videoAnalysisService] = useState(new ChutesVideoAnalysisService());
   const [error, setError] = useState(null);
-  const [retryCount, setRetryCount] = useState(0);
   // eslint-disable-next-line no-unused-vars
   const [lastAttemptTime, setLastAttemptTime] = useState(null);
   const [isPermanentlyFailed, setIsPermanentlyFailed] = useState(false);
   const [hasAttemptedAnalysis, setHasAttemptedAnalysis] = useState(false);
+  
+  // NUEVO: Sistema de bloqueo robusto para evitar bucles infinitos
+  const analysisLockRef = useRef(false);
+  const permanentBlockRef = useRef(false);
+  const attemptCountRef = useRef(0);
 
   // Definir función de análisis de video antes de usarla
   const analyzeVideoContent = React.useCallback(async () => {
     if (!videoFile || !spotData || !analysisResults || analysisResults.length === 0) return;
 
-    // BLOQUEO TOTAL: Evitar cualquier análisis si ya hay un error permanente
-    if (isPermanentlyFailed) {
-      return; // Salir inmediatamente sin logs
-    }
-
-    // Evitar múltiples análisis simultáneos
-    if (analyzingVideo || hasAttemptedAnalysis) {
-      return; // Salir sin logs para evitar spam
-    }
-
-    // Marcar que se ha intentado el análisis
-    setHasAttemptedAnalysis(true);
-
-    // POLÍTICA MÁS AGRESIVA: Solo 1 intento máximo para evitar bucles
-    const MAX_RETRIES = 1; // Reducido a 1 para eliminar completamente los bucles
-    
-    if (retryCount >= MAX_RETRIES) {
-      console.warn('🚫 MÁXIMO DE INTENTOS ALCANZADO - Análisis de video desactivado permanentemente');
-      setIsPermanentlyFailed(true);
-      setError('⚠️ El análisis de video se ha desactivado después de un intento fallido para evitar bucles infinitos.');
+    // BLOQUEO ROBUSTO: Verificar múltiples condiciones para evitar bucles
+    if (permanentBlockRef.current || analysisLockRef.current || isPermanentlyFailed) {
+      console.log('🚫 Análisis bloqueado permanentemente para evitar bucles infinitos');
       return;
     }
 
+    // Incrementar contador de intentos y verificar límite
+    attemptCountRef.current += 1;
+    if (attemptCountRef.current > 1) {
+      console.log('🚫 LÍMITE DE INTENTOS ALCANZADO - Bloqueando análisis permanentemente');
+      permanentBlockRef.current = true;
+      setIsPermanentlyFailed(true);
+      setError('⚠️ Análisis de video desactivado permanentemente para evitar bucles infinitos.');
+      return;
+    }
+
+    // Marcar como en proceso para evitar ejecuciones concurrentes
+    analysisLockRef.current = true;
     setAnalyzingVideo(true);
     setError(null);
     setLastAttemptTime(Date.now());
 
     try {
-      console.log(`🎬 Iniciando análisis de video con Chutes AI (único intento permitido)...`);
+      console.log(`🎬 Iniciando análisis de video con Chutes AI (INTENTO ÚNICO - ANTI-BUCLE)...`);
       
       // Usar el primer spot como referencia para el análisis
       const referenceSpot = analysisResults[0];
@@ -92,72 +91,50 @@ const VideoAnalysisDashboard = ({
           attempt: result.attempt
         });
         console.log('✅ Análisis de video completado exitosamente');
-        setRetryCount(0); // Resetear contador en éxito
-        setIsPermanentlyFailed(false); // Resetear estado permanente
+        setIsPermanentlyFailed(false);
       } else {
         const errorMessage = result.error || 'Error en el análisis del video';
         const suggestion = result.suggestion || '';
         const fullError = suggestion ? `${errorMessage}\n\n💡 Sugerencia: ${suggestion}` : errorMessage;
         
-        // Incrementar contador de reintentos
-        const newRetryCount = retryCount + 1;
-        setRetryCount(newRetryCount);
-        
-        // POLÍTICA ZERO-TOLERANCE: Cualquier error marca como fallido permanente
-        console.warn('🚫 ERROR DETECTADO - Marcando análisis de video como fallido permanentemente');
+        // BLOQUEO PERMANENTE en cualquier error
+        console.warn('🚫 ERROR DETECTADO - Bloqueando análisis permanentemente para evitar bucles');
+        permanentBlockRef.current = true;
         setIsPermanentlyFailed(true);
-        setError(`${fullError}\n\n⚠️ Análisis desactivado permanentemente para evitar bucles.`);
-        return; // Salir inmediatamente
+        setError(`${fullError}\n\n⚠️ Análisis desactivado permanentemente.`);
+        return;
       }
     } catch (err) {
       console.error('❌ Error en análisis de video:', err);
       
-      // Incrementar contador de reintentos
-      const newRetryCount = retryCount + 1;
-      setRetryCount(newRetryCount);
-      
-      // POLÍTICA ZERO-TOLERANCE: Cualquier excepción marca como fallido permanente
-      console.warn('🚫 EXCEPCIÓN DETECTADA - Marcando análisis de video como fallido permanentemente');
+      // BLOQUEO PERMANENTE en cualquier excepción
+      console.warn('🚫 EXCEPCIÓN DETECTADA - Bloqueando análisis permanentemente');
+      permanentBlockRef.current = true;
       setIsPermanentlyFailed(true);
-      setError(`${err.message}\n\n⚠️ Análisis desactivado permanentemente para evitar bucles.`);
+      setError(`${err.message}\n\n⚠️ Análisis desactivado permanentemente.`);
     } finally {
       setAnalyzingVideo(false);
+      analysisLockRef.current = false; // Liberar bloqueo
     }
-  }, [videoFile, spotData, analysisResults, videoAnalysisService, retryCount, isPermanentlyFailed, analyzingVideo, hasAttemptedAnalysis]);
+  }, [videoFile, spotData, analysisResults, videoAnalysisService, isPermanentlyFailed]);
 
-  // Analizar video cuando se proporciona (POLÍTICA MÁS RESTRICCTIVA)
+  // Analizar video cuando se proporciona (POLÍTICA ANTI-BUCLE EXTREMA)
   useEffect(() => {
-    // BLOQUEO TOTAL: No ejecutar si ya hay algún estado que indique problema
-    if (isPermanentlyFailed || hasAttemptedAnalysis || analyzingVideo || error) {
+    // BLOQUEO TOTAL: No ejecutar bajo ninguna circunstancia si hay problemas
+    if (permanentBlockRef.current || analysisLockRef.current || isPermanentlyFailed || hasAttemptedAnalysis || analyzingVideo || error) {
       return; // Salir inmediatamente sin logs
     }
 
-    // Solo ejecutar si hay datos necesarios y no hay análisis previo
-    if (videoFile && spotData && analysisResults && analysisResults.length > 0 && !videoAnalysis && retryCount === 0) {
-      console.log('🎬 Iniciando análisis de video (único intento permitido)');
+    // Solo ejecutar UNA VEZ si hay datos necesarios y no hay análisis previo
+    if (videoFile && spotData && analysisResults && analysisResults.length > 0 && !videoAnalysis && attemptCountRef.current === 0) {
+      console.log('🎬 Iniciando análisis de video (EJECUCIÓN ÚNICA - ANTI-BUCLE)');
+      setHasAttemptedAnalysis(true);
       analyzeVideoContent();
     }
-  }, [videoFile, spotData, analysisResults, videoAnalysis, retryCount, isPermanentlyFailed, hasAttemptedAnalysis, analyzingVideo, error, analyzeVideoContent]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [videoFile, spotData, analysisResults, videoAnalysis, isPermanentlyFailed, hasAttemptedAnalysis, analyzingVideo, error, analyzeVideoContent]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ELIMINAR EFECTO DE REINTENTO AUTOMÁTICO - Ya no se permite reintentos automáticos
-  // useEffect(() => {
-  //   const retryTimer = setTimeout(() => {
-  //     if (isPermanentlyFailed && lastAttemptTime) {
-  //       const TIME_BETWEEN_RETRIES = 5 * 60 * 1000; // 5 minutos
-  //       const timeSinceLastAttempt = Date.now() - lastAttemptTime;
-  //
-  //       if (timeSinceLastAttempt >= TIME_BETWEEN_RETRIES) {
-  //         console.log('🔄 Reiniciando análisis de video después del tiempo de espera');
-  //         setIsPermanentlyFailed(false);
-  //         setRetryCount(0);
-  //         setError(null);
-  //         setHasAttemptedAnalysis(false); // Permitir nuevo intento
-  //       }
-  //     }
-  //   }, 30000); // Verificar cada 30 segundos en lugar de continuamente
-
-  //   return () => clearTimeout(retryTimer);
-  // }, [isPermanentlyFailed, lastAttemptTime]);
+  // ELIMINAR COMPLETAMENTE EFECTOS DE REINTENTO AUTOMÁTICO
+  // NO hay useEffect de reintentos - esto elimina completamente los bucles
 
   // Generar racional de vinculación video-analytics basado en datos 100% REALES
   const generateVideoAnalyticsRational = React.useCallback(() => {
@@ -548,7 +525,6 @@ const VideoAnalysisDashboard = ({
               <button
                 onClick={() => {
                   setError(null);
-                  setRetryCount(0);
                   setIsPermanentlyFailed(false);
                   setHasAttemptedAnalysis(false);
                   setVideoAnalysis(null);

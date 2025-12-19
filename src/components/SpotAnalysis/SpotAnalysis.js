@@ -1014,24 +1014,38 @@ const SpotAnalysis = () => {
           </div>
           
           {/* Spots con impacto significativo (aunque no cumplan vinculación directa) */}
-          {validatedAnalysisResults.filter(r => r.impact?.activeUsers?.significant && !r.impact?.activeUsers?.directCorrelation).length > 0 && (
-            <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Spots con Impacto Significativo</p>
-                  <p className="text-3xl font-bold text-orange-600">
-                    {validatedAnalysisResults.filter(r => r.impact?.activeUsers?.significant && !r.impact?.activeUsers?.directCorrelation).length}
-                  </p>
-                  <p className="text-xs text-gray-500 mt-1">
-                    Impacto {'>'}10% pero {'<'}15% o {'<'}115% del baseline
-                  </p>
-                </div>
-                <div className="p-3 bg-orange-100 rounded-full">
-                  <TrendingUp className="h-6 w-6 text-orange-600" />
+          {(() => {
+            // CORREGIR: Filtrar spots con impacto >10% pero que NO cumplan vinculación directa
+            const significantButNotDirect = validatedAnalysisResults.filter(r => {
+              const impact = r.impact?.activeUsers;
+              if (!impact) return false;
+              
+              const hasSignificantImpact = Math.abs(impact.percentageChange) > 10;
+              const hasDirectCorrelation = impact.directCorrelation;
+              
+              // Significativo pero NO vinculación directa
+              return hasSignificantImpact && !hasDirectCorrelation;
+            });
+            
+            return significantButNotDirect.length > 0 && (
+              <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">Spots con Impacto Significativo</p>
+                    <p className="text-3xl font-bold text-orange-600">
+                      {significantButNotDirect.length}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Impacto {'>'}10% pero SIN vinculación directa ({'>'}15% y {'>'}115% baseline)
+                    </p>
+                  </div>
+                  <div className="p-3 bg-orange-100 rounded-full">
+                    <TrendingUp className="h-6 w-6 text-orange-600" />
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
+            );
+          })()}
 
         </motion.div>
       )}
@@ -1131,7 +1145,7 @@ const SpotAnalysis = () => {
                                   )}
                                   {result?.spot?.version && result.spot.version !== '0' && result.spot.version !== 0 && (
                                     <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                                      Versión: {result.spot.version.toString().replace(/^0+/, '').replace(/0+$/, '').trim() || result.spot.version}
+                                      Versión: {result.spot.version.toString().replace(/\s*0\s*$/, '').trim() || result.spot.version}
                                     </span>
                                   )}
                                   {result?.spot?.duracion && (
