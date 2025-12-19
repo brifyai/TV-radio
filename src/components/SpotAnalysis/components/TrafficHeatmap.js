@@ -21,14 +21,19 @@ const TrafficHeatmap = ({ analysisResults }) => {
           // Calcular intensidad basada en datos reales del análisis
           let intensity = 0;
           
-          // Usar métricas reales del spot para calcular intensidad
-          if (spotData.metrics && spotData.metrics.frase) {
-            const baseTraffic = spotData.metrics.frase.activeUsers || 0;
-            const sessions = spotData.metrics.frase.sessions || 0;
-            const pageviews = spotData.metrics.frase.pageviews || 0;
+          // Usar métricas reales del spot para calcular intensidad - CORREGIDO
+          if (spotData.metrics && spotData.metrics.spot) {
+            const baseTraffic = spotData.metrics.spot.activeUsers || 0;
+            const sessions = spotData.metrics.spot.sessions || 0;
+            const pageviews = spotData.metrics.spot.pageviews || 0;
             
-            // Calcular intensidad basada en datos reales
-            intensity = Math.min(100, (baseTraffic + sessions + pageviews) / 10);
+            // Validar que los datos sean realistas antes de usarlos
+            const totalMetrics = baseTraffic + sessions + pageviews;
+            if (totalMetrics > 0 && totalMetrics < 100000) { // Validar rango realista
+              intensity = Math.min(100, totalMetrics / 10);
+            } else {
+              intensity = 20; // Base muy baja si los datos son inválidos
+            }
           } else {
             // Si no hay datos reales, usar patrones basados en horarios típicos
             intensity = 20; // Base muy baja sin datos

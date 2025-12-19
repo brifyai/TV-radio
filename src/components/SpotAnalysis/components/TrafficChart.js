@@ -13,15 +13,21 @@ const TrafficChart = ({ analysisResults }) => {
       for (let hour = 0; hour < 24; hour++) {
         let intensity = 0;
         
-        // Usar datos reales del análisis para calcular intensidad
+        // Usar datos reales del análisis para calcular intensidad - CON VALIDACIÓN
         analysisResults.forEach(result => {
           if (result.metrics && result.metrics.spot) {
             const baseTraffic = result.metrics.spot.activeUsers || 0;
             const sessions = result.metrics.spot.sessions || 0;
             const pageviews = result.metrics.spot.pageviews || 0;
             
-            // Calcular intensidad basada en datos reales
-            intensity += Math.min(100, (baseTraffic + sessions + pageviews) / 10);
+            // Validar que los datos sean realistas antes de usarlos
+            const totalMetrics = baseTraffic + sessions + pageviews;
+            if (totalMetrics > 0 && totalMetrics < 100000) { // Validar rango realista
+              intensity += Math.min(100, totalMetrics / 10);
+            } else {
+              // Si los datos son inválidos, usar intensidad base muy baja
+              intensity += 5;
+            }
           }
         });
         
@@ -177,19 +183,25 @@ const TrafficChart = ({ analysisResults }) => {
         <div className="text-center p-3 rounded-lg bg-red-50">
           <p className="text-xs text-red-600 mb-1">Hora Pico</p>
           <p className="text-lg font-bold text-red-700">
-            {hourlyData.reduce((max, curr) => curr.intensity > max.intensity ? curr : max).hour}
+            {analysisResults && analysisResults.length > 0
+              ? hourlyData.reduce((max, curr) => curr.intensity > max.intensity ? curr : max).hour
+              : 'Sin datos'}
           </p>
         </div>
         <div className="text-center p-3 rounded-lg bg-blue-50">
           <p className="text-xs text-blue-600 mb-1">Promedio Diario</p>
           <p className="text-lg font-bold text-blue-700">
-            {Math.round(hourlyData.reduce((sum, curr) => sum + curr.intensity, 0) / hourlyData.length)}%
+            {analysisResults && analysisResults.length > 0
+              ? `${Math.round(hourlyData.reduce((sum, curr) => sum + curr.intensity, 0) / hourlyData.length)}%`
+              : 'N/A'}
           </p>
         </div>
         <div className="text-center p-3 rounded-lg bg-yellow-50">
           <p className="text-xs text-yellow-600 mb-1">Spots Programados</p>
           <p className="text-lg font-bold text-yellow-700">
-            {hourlyData.filter(h => h.hasSpot).length}
+            {analysisResults && analysisResults.length > 0
+              ? hourlyData.filter(h => h.hasSpot).length
+              : '0'}
           </p>
         </div>
       </motion.div>
@@ -202,8 +214,13 @@ const TrafficChart = ({ analysisResults }) => {
         className="mt-4 p-3 bg-gray-50 rounded-lg"
       >
         <p className="text-xs text-gray-600 text-center">
-          💡 <strong>Tip:</strong> Los puntos rojos indican horas pico, 
+          💡 <strong>Tip:</strong> Los puntos rojos indican horas pico,
           los puntos amarillos muestran horarios con spots programados.
+          {analysisResults && analysisResults.length === 0 && (
+            <span className="block mt-1 text-orange-600">
+              ⚠️ Conecta Google Analytics para ver datos reales
+            </span>
+          )}
         </p>
       </motion.div>
     </motion.div>

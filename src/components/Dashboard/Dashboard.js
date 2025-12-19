@@ -50,8 +50,8 @@ const Dashboard = () => {
     const suspiciousPatterns = [35, 45, 65, 87, 95]; // Valores comúnmente simulados
     if (suspiciousPatterns.includes(Math.round(value))) {
       console.warn(`🚨 Patrón sospechoso en métrica ${metricName}: ${value}%`);
-      // Ajustar ligeramente para evitar patrones obvios
-      return Math.max(0, Math.min(100, value + (Math.random() - 0.5) * 10));
+      // Rechazar valores sospechosos en lugar de ajustarlos
+      return 0;
     }
     
     return value;
@@ -96,9 +96,11 @@ const Dashboard = () => {
       dataSources.push('Active GA Connection');
     }
     
-    // Bonus por datos de análisis recientes (simulado pero transparente)
-    confidenceScore += 10;
-    dataSources.push('Recent Analysis Data');
+    // Bonus por datos de análisis recientes (solo si hay datos reales)
+    if (accounts.length > 0 && properties.length > 0) {
+      confidenceScore += 10;
+      dataSources.push('Recent Analysis Data');
+    }
     
     // Validar la puntuación calculada
     const validatedScore = validateMetric('ai_confidence', confidenceScore, {

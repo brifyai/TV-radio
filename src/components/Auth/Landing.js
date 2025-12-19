@@ -59,7 +59,7 @@ const Landing = () => {
       name: 'Carlos Rodríguez',
       role: 'Analista Digital',
       company: 'MediaPro',
-      content: 'Las recomendaciones de timing han aumentado nuestro ROI en un 40%. Increíble herramienta.',
+      content: 'La plataforma nos permite analizar datos reales de nuestras campañas. Herramienta útil.',
       rating: 5
     }
   ];
@@ -226,8 +226,8 @@ const Landing = () => {
                         <span className="text-slate-300 text-sm">Correlación TV-Web</span>
                         <TrendingUp className="h-4 w-4 text-green-400" />
                       </div>
-                      <div className="text-2xl font-bold text-white">+127%</div>
-                      <div className="text-xs text-green-400">↑ 23% vs ayer</div>
+                      <div className="text-2xl font-bold text-white">+0%</div>
+                      <div className="text-xs text-green-400">Sin datos reales</div>
                     </div>
                     
                     <div className="bg-white/5 rounded-lg p-4">
@@ -235,8 +235,8 @@ const Landing = () => {
                         <span className="text-slate-300 text-sm">Spots Analizados</span>
                         <Radio className="h-4 w-4 text-blue-400" />
                       </div>
-                      <div className="text-2xl font-bold text-white">1,247</div>
-                      <div className="text-xs text-blue-400">Esta semana</div>
+                      <div className="text-2xl font-bold text-white">0</div>
+                      <div className="text-xs text-blue-400">Sin datos reales</div>
                     </div>
                     
                     <div className="bg-white/5 rounded-lg p-4">
@@ -244,8 +244,8 @@ const Landing = () => {
                         <span className="text-slate-300 text-sm">Precisión IA</span>
                         <Zap className="h-4 w-4 text-yellow-400" />
                       </div>
-                      <div className="text-2xl font-bold text-white">98.7%</div>
-                      <div className="text-xs text-yellow-400">Última actualización</div>
+                      <div className="text-2xl font-bold text-white">0%</div>
+                      <div className="text-xs text-yellow-400">Sin datos reales</div>
                     </div>
                   </div>
                 </div>

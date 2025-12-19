@@ -33,19 +33,22 @@ export class ConversionAnalysisService extends TemporalAnalysisService {
     }
   }
 
-  // Datos vacíos de conversión
+  // Datos vacíos de conversión - mejorados con indicadores claros
   getEmptyConversionData() {
     return {
       rows: [{
-        date: '',
+        date: new Date().toISOString().split('T')[0],
         conversions: 0,
         goalCompletionsAll: 0,
         transactions: 0,
         ecommercePurchases: 0,
         purchaseRevenue: 0,
         conversionRate: '0.00',
-        averageOrderValue: 0
-      }]
+        averageOrderValue: 0,
+        _note: 'Datos no disponibles - requiere conexión con Google Analytics'
+      }],
+      _status: 'empty',
+      _message: 'Conecta con Google Analytics para obtener datos reales de conversión'
     };
   }
 
@@ -168,8 +171,9 @@ export class ConversionAnalysisService extends TemporalAnalysisService {
     const baseline = baselineData.immediate;
     const baseMetrics = {
       count: baseline.metrics?.activeUsers || 0,
-      rate: 2.5, // Tasa de conversión promedio
-      revenue: baseline.metrics?.activeUsers * 50 || 0 // Revenue promedio por usuario
+      rate: 0, // Evitar tasa simulada - usar 0 hasta tener datos reales
+      revenue: 0, // Evitar revenue simulado - usar 0 hasta tener datos reales
+      _note: 'Métricas de referencia requieren datos históricos reales'
     };
 
     return baseMetrics;
@@ -291,6 +295,12 @@ export class ConversionAnalysisService extends TemporalAnalysisService {
   // Generar recomendaciones por etapa
   generateStageRecommendations(stage, impact, significance) {
     const recommendations = [];
+    
+    // Solo generar recomendaciones si hay datos reales
+    if (impact.countChange === 0 && impact.revenueChange === 0) {
+      recommendations.push(`Conecta con Google Analytics para obtener recomendaciones personalizadas para ${stage}.`);
+      return recommendations;
+    }
     
     if (impact.countChange > 20) {
       recommendations.push(`Excelente performance en ${stage}. Considera replicar esta estrategia.`);
@@ -472,6 +482,14 @@ export class ConversionAnalysisService extends TemporalAnalysisService {
   // Generar recomendaciones basadas en control groups
   generateControlGroupRecommendations(comparison, significance) {
     const recommendations = [];
+    
+    // Verificar si hay datos reales para comparar
+    const hasRealData = Object.values(comparison).some(data => data.lift !== 0);
+    
+    if (!hasRealData) {
+      recommendations.push('Conecta con Google Analytics y configura grupos de control para obtener recomendaciones comparativas.');
+      return recommendations;
+    }
     
     Object.entries(comparison).forEach(([stage, data]) => {
       if (data.lift > 20) {

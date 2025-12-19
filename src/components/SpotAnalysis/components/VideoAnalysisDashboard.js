@@ -519,7 +519,7 @@ const VideoAnalysisDashboard = ({
         </div>
       )}
 
-      {/* Métricas de Correlación */}
+      {/* Métricas de Correlación - CORREGIDO */}
       {analysisResults && analysisResults.length > 0 && (
         <div className="mb-6">
           <div className="flex items-center space-x-2 mb-4">
@@ -530,49 +530,159 @@ const VideoAnalysisDashboard = ({
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {(() => {
               const result = analysisResults[0];
+              
+              // VALIDAR Y CORREGIR DATOS ANTES DE MOSTRARLOS
+              const validateMetric = (metricName, impactData) => {
+                if (!impactData || typeof impactData.percentageChange !== 'number') {
+                  return {
+                    value: 0,
+                    isValid: false,
+                    message: 'Datos no disponibles'
+                  };
+                }
+                
+                // Verificar si el valor es realista (evitar valores simulados extremos)
+                const change = impactData.percentageChange;
+                if (Math.abs(change) > 1000) {
+                  return {
+                    value: 0,
+                    isValid: false,
+                    message: 'Valor fuera de rango realista'
+                  };
+                }
+                
+                return {
+                  value: change,
+                  isValid: true,
+                  message: 'Datos válidos'
+                };
+              };
+              
+              const usersMetric = validateMetric('activeUsers', result.impact?.activeUsers);
+              const sessionsMetric = validateMetric('sessions', result.impact?.sessions);
+              const pageviewsMetric = validateMetric('pageviews', result.impact?.pageviews);
+              
               return (
                 <>
-                  <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                  <div className={`p-4 border rounded-lg ${
+                    usersMetric.isValid
+                      ? 'bg-green-50 border-green-200'
+                      : 'bg-gray-50 border-gray-200'
+                  }`}>
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium text-green-800">Usuarios Activos</span>
-                      <TrendingUp className="h-4 w-4 text-green-600" />
+                      <span className={`text-sm font-medium ${
+                        usersMetric.isValid ? 'text-green-800' : 'text-gray-600'
+                      }`}>
+                        Usuarios Activos
+                      </span>
+                      {usersMetric.isValid ? (
+                        <TrendingUp className="h-4 w-4 text-green-600" />
+                      ) : (
+                        <AlertTriangle className="h-4 w-4 text-gray-400" />
+                      )}
                     </div>
-                    <div className="text-2xl font-bold text-green-900">
-                      +{(result.impact.activeUsers.percentageChange).toFixed(1)}%
+                    <div className={`text-2xl font-bold ${
+                      usersMetric.isValid ? 'text-green-900' : 'text-gray-500'
+                    }`}>
+                      {usersMetric.isValid ? '+' : ''}{usersMetric.value.toFixed(1)}%
                     </div>
-                    <div className="text-xs text-green-700 mt-1">
-                      Durante el spot vs referencia
+                    <div className={`text-xs mt-1 ${
+                      usersMetric.isValid ? 'text-green-700' : 'text-gray-500'
+                    }`}>
+                      {usersMetric.isValid ? 'Durante el spot vs referencia' : usersMetric.message}
                     </div>
+                    {!usersMetric.isValid && (
+                      <div className="text-xs text-gray-400 mt-2">
+                        Requiere datos de Google Analytics
+                      </div>
+                    )}
                   </div>
                   
-                  <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                  <div className={`p-4 border rounded-lg ${
+                    sessionsMetric.isValid
+                      ? 'bg-blue-50 border-blue-200'
+                      : 'bg-gray-50 border-gray-200'
+                  }`}>
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium text-blue-800">Sesiones</span>
-                      <MousePointer className="h-4 w-4 text-blue-600" />
+                      <span className={`text-sm font-medium ${
+                        sessionsMetric.isValid ? 'text-blue-800' : 'text-gray-600'
+                      }`}>
+                        Sesiones
+                      </span>
+                      {sessionsMetric.isValid ? (
+                        <MousePointer className="h-4 w-4 text-blue-600" />
+                      ) : (
+                        <AlertTriangle className="h-4 w-4 text-gray-400" />
+                      )}
                     </div>
-                    <div className="text-2xl font-bold text-blue-900">
-                      +{(result.impact.sessions.percentageChange).toFixed(1)}%
+                    <div className={`text-2xl font-bold ${
+                      sessionsMetric.isValid ? 'text-blue-900' : 'text-gray-500'
+                    }`}>
+                      {sessionsMetric.isValid ? '+' : ''}{sessionsMetric.value.toFixed(1)}%
                     </div>
-                    <div className="text-xs text-blue-700 mt-1">
-                      Incremento en sesiones
+                    <div className={`text-xs mt-1 ${
+                      sessionsMetric.isValid ? 'text-blue-700' : 'text-gray-500'
+                    }`}>
+                      {sessionsMetric.isValid ? 'Incremento en sesiones' : sessionsMetric.message}
                     </div>
+                    {!sessionsMetric.isValid && (
+                      <div className="text-xs text-gray-400 mt-2">
+                        Requiere datos de Google Analytics
+                      </div>
+                    )}
                   </div>
                   
-                  <div className="p-4 bg-purple-50 border border-purple-200 rounded-lg">
+                  <div className={`p-4 border rounded-lg ${
+                    pageviewsMetric.isValid
+                      ? 'bg-purple-50 border-purple-200'
+                      : 'bg-gray-50 border-gray-200'
+                  }`}>
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium text-purple-800">Vistas de Página</span>
-                      <Eye className="h-4 w-4 text-purple-600" />
+                      <span className={`text-sm font-medium ${
+                        pageviewsMetric.isValid ? 'text-purple-800' : 'text-gray-600'
+                      }`}>
+                        Vistas de Página
+                      </span>
+                      {pageviewsMetric.isValid ? (
+                        <Eye className="h-4 w-4 text-purple-600" />
+                      ) : (
+                        <AlertTriangle className="h-4 w-4 text-gray-400" />
+                      )}
                     </div>
-                    <div className="text-2xl font-bold text-purple-900">
-                      +{(result.impact.pageviews.percentageChange).toFixed(1)}%
+                    <div className={`text-2xl font-bold ${
+                      pageviewsMetric.isValid ? 'text-purple-900' : 'text-gray-500'
+                    }`}>
+                      {pageviewsMetric.isValid ? '+' : ''}{pageviewsMetric.value.toFixed(1)}%
                     </div>
-                    <div className="text-xs text-purple-700 mt-1">
-                      Aumento en engagement
+                    <div className={`text-xs mt-1 ${
+                      pageviewsMetric.isValid ? 'text-purple-700' : 'text-gray-500'
+                    }`}>
+                      {pageviewsMetric.isValid ? 'Aumento en engagement' : pageviewsMetric.message}
                     </div>
+                    {!pageviewsMetric.isValid && (
+                      <div className="text-xs text-gray-400 mt-2">
+                        Requiere datos de Google Analytics
+                      </div>
+                    )}
                   </div>
                 </>
               );
             })()}
+          </div>
+          
+          {/* Advertencia sobre calidad de datos */}
+          <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <div className="flex items-start space-x-2">
+              <Info className="h-4 w-4 text-yellow-600 mt-0.5" />
+              <div className="text-xs text-yellow-800">
+                <p className="font-medium mb-1">Información sobre datos:</p>
+                <p>
+                  Estas métricas se basan en datos reales de Google Analytics cuando están disponibles.
+                  Si muestra "Datos no disponibles", verifica la conexión con Google Analytics o espera
+                  a que se complete el análisis del spot.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       )}

@@ -3,8 +3,13 @@
 // DEBE EJECUTARSE DESPUÉS DE CUALQUIER CAMBIO EN AUTENTICACIÓN
 
 /**
- * Test crítico para verificar que la sesión del usuario nunca se vea afectada
+ * 🔒 Test crítico para verificar que la sesión del usuario NUNCA se vea afectada
  * por el flujo de OAuth de Google Analytics
+ *
+ * ⚠️ IMPORTANTE: Este test debe funcionar para CUALQUIER combinación de emails
+ * - usuario@gmail.com → analytics@empresa.com ✅
+ * - john@domain.com → ga@business.com ✅
+ * - CUALQUIER@email → CUALQUIER.OTRO@email ✅
  */
 export const runSessionProtectionTest = () => {
   console.log('🔒 INICIANDO TEST DE PROTECCIÓN CRÍTICA DE SESIÓN...');

@@ -55,8 +55,8 @@ const FrasesRadio = () => {
     const suspiciousPatterns = [35, 45, 65, 87, 95]; // Valores comúnmente simulados
     if (suspiciousPatterns.includes(Math.round(value))) {
       console.warn(`🚨 Patrón sospechoso en métrica ${metricName}: ${value}%`);
-      // Ajustar ligeramente para evitar patrones obvios
-      return Math.max(0, Math.min(100, value + (Math.random() - 0.5) * 10));
+      // Rechazar valores sospechosos en lugar de ajustarlos
+      return 0;
     }
     
     return value;

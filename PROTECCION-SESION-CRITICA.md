@@ -5,8 +5,9 @@
 **ESTA FUNCIONALIDAD ES CRÍTICA Y NO DEBE SER MODIFICADA NUNCA**
 
 ### **Problema Resuelto:**
-- Cuando un usuario inicia sesión con `camiloalegriabarra@gmail.com` y conecta Google Analytics con `camilo@origencomunicaciones.cl`, la sesión original se mantenía intacta
-- La solución impide que Supabase OAuth modifique la sesión del usuario principal
+- Cuando un usuario inicia sesión con CUALQUIER email (ej: `usuario@ejemplo.com`) y conecta Google Analytics con OTRO email (ej: `analytics@empresa.com`), la sesión original SIEMPRE se mantiene intacta
+- La solución impide que Supabase OAuth modifique la sesión del usuario principal SIN IMPORTAR QUÉ EMAILS SE USEN
+- **CRÍTICO:** Esta protección funciona para TODOS los usuarios, no solo para casos específicos
 
 ### **Archivos PROTEGIDOS - NO MODIFICAR:**
 
@@ -44,11 +45,16 @@ Si ves algún cambio en estos archivos, REVISA INMEDIATAMENTE:
 - Cambios en los listeners de AuthContext
 
 ### **Test de Verificación OBLIGATORIO:**
-1. Iniciar sesión con `camiloalegriabarra@gmail.com`
-2. Conectar Google Analytics con `camilo@origencomunicaciones.cl`
-3. Verificar que la sesión siga siendo `camiloalegriabarra@gmail.com`
+1. Iniciar sesión con CUALQUIER email (ej: `usuario@ejemplo.com`)
+2. Conectar Google Analytics con OTRO email diferente (ej: `analytics@empresa.com`)
+3. Verificar que la sesión siga siendo el email original (`usuario@ejemplo.com`)
 
-**SI ESTE TEST FALLA, LA APLICACIÓN ESTÁ ROTA**
+**SI ESTE TEST FALLA CON CUALQUIER COMBINACIÓN DE EMAILS, LA APLICACIÓN ESTÁ ROTA**
+
+**⚠️ IMPORTANTE:** La protección debe funcionar para TODAS las combinaciones posibles:
+- `user1@gmail.com` → `analytics1@company.com` ✅
+- `john@domain.com` → `ga@business.com` ✅
+- `cualquier@email.com` → `cualquier.otro@email.com` ✅
 
 ---
 

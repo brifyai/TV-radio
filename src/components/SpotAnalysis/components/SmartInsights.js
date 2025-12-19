@@ -55,22 +55,22 @@ const SmartInsights = ({ analysisResults, batchAIAnalysis, videoAnalysis }) => {
       color: impact > 50 ? 'green' : impact > 20 ? 'blue' : 'yellow'
     });
 
-    // Insight de duración del efecto - basado en datos reales
-    const hasSustainedTraffic = spot.metrics && spot.metrics.frase && spot.metrics.frase.sessions > 10;
+    // Insight de duración del efecto - basado en datos reales CORREGIDO
+    const hasSustainedTraffic = spot.metrics && spot.metrics.spot && spot.metrics.spot.sessions > 10;
     insights.push({
       type: 'sustainability',
       icon: Zap,
       title: 'Sostenibilidad del Efecto',
       message: hasSustainedTraffic
-        ? '⚡ Efecto sostenido: El tráfico se mantuvo elevado por más de 2 horas después del spot, indicando buena recordación.'
+        ? '⚡ Efecto sostenido: El tráfico se mantuvo elevado durante la transmisión del spot.'
         : '💨 Efecto inmediato: El impacto fue principalmente durante la transmisión. Considera reforzar con campañas digitales.',
       confidence: calculateConfidence(hasSustainedTraffic ? 80 : 65, spot.impact.activeUsers.percentageChange, 0.3),
       color: hasSustainedTraffic ? 'green' : 'blue'
     });
 
-    // Insight de conversión potencial - basado únicamente en datos reales
-    const sessions = spot.metrics?.frase?.sessions || 0;
-    const pageviews = spot.metrics?.frase?.pageviews || 0;
+    // Insight de conversión potencial - basado únicamente en datos reales CORREGIDO
+    const sessions = spot.metrics?.spot?.sessions || 0;
+    const pageviews = spot.metrics?.spot?.pageviews || 0;
     const conversionRate = sessions > 0 ? (pageviews / sessions) * 100 : 0; // Tasa real basada en datos GA
     insights.push({
       type: 'conversion',

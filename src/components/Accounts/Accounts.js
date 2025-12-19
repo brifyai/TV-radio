@@ -245,7 +245,8 @@ const Accounts = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Confianza IA</p>
-                <p className="text-3xl font-bold text-orange-600">92%</p>
+                <p className="text-3xl font-bold text-orange-600">0%</p>
+                <p className="text-xs text-gray-500">Sin datos reales</p>
               </div>
               <div className="p-3 bg-orange-100 rounded-full">
                 <Brain className="h-6 w-6 text-orange-600" />
