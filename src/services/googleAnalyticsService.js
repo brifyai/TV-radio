@@ -63,6 +63,9 @@ class GoogleAnalyticsService {
       prompt: 'consent',
       include_granted_scopes: 'true'
     });
+    
+    console.log('🔍 DEBUG: Parámetros OAuth generados:', params.toString());
+    console.log('🔍 DEBUG: URL completa:', `${GOOGLE_AUTH_BASE_URL}?${params.toString()}`);
 
     return `${GOOGLE_AUTH_BASE_URL}?${params.toString()}`;
   }
