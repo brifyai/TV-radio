@@ -23,12 +23,12 @@ class ChutesVideoAnalysisService {
    * @returns {Promise<Object>} Resultado del análisis con correlación real
    */
   async analyzeVideo(videoFile, spotData, analyticsData = null) {
-    const maxRetries = 2; // Reducido a 2 para evitar bucles largos
-    const baseRetryDelay = 3000; // 3 segundos base
+    // POLÍTICA ZERO-TOLERANCE: Solo 1 intento para evitar bucles infinitos
+    const maxRetries = 1;
     
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
-        console.log(`🎬 Iniciando análisis de video con Chutes AI (intento ${attempt}/${maxRetries}) + Analytics reales...`);
+        console.log(`🎬 Iniciando análisis de video con Chutes AI (único intento permitido)...`);
         
         // Verificar si el archivo de video es demasiado grande
         if (videoFile.size > 50 * 1024 * 1024) { // 50MB
@@ -48,8 +48,8 @@ class ChutesVideoAnalysisService {
           'User-Agent': 'TV-Radio-Analysis-System/1.0'
         };
         
-        // Calcular timeout dinámico basado en el tamaño del video
-        const timeoutMs = Math.min(90000, Math.max(30000, videoFile.size / 1024 * 100)); // 30-90 segundos
+        // Timeout más corto para evitar esperas largas
+        const timeoutMs = 45000; // 45 segundos fijo
         
         // Realizar la llamada a la API con timeout
         const controller = new AbortController();
@@ -77,7 +77,7 @@ class ChutesVideoAnalysisService {
                 ]
               }
             ],
-            max_tokens: 2000, // Reducido para evitar timeouts
+            max_tokens: 1500, // Reducido aún más para acelerar
             temperature: 0.3,
             stream: false
           }),
@@ -99,36 +99,13 @@ class ChutesVideoAnalysisService {
             errorMessage += ` - ${errorText}`;
           }
           
-          // Manejo específico para errores 503 (Service Unavailable)
+          // POLÍTICA ZERO-TOLERANCE: No reintentar NUNCA, cualquier error es final
           if (response.status === 503) {
-            if (attempt < maxRetries) {
-              const retryDelay = baseRetryDelay * Math.pow(2, attempt - 1); // Backoff exponencial
-              console.warn(`⚠️ Servicio no disponible (503). Reintentando en ${retryDelay}ms...`);
-              await new Promise(resolve => setTimeout(resolve, retryDelay));
-              continue;
-            } else {
-              errorMessage += ' - El servicio de Chutes AI está temporalmente sobrecargado. Por favor, intente nuevamente en unos minutos.';
-            }
-          }
-          
-          // Manejo específico para errores 429 (Rate Limit)
-          if (response.status === 429) {
-            if (attempt < maxRetries) {
-              const retryDelay = baseRetryDelay * 2; // Esperar más tiempo para rate limit
-              console.warn(`⚠️ Límite de velocidad alcanzado (429). Reintentando en ${retryDelay}ms...`);
-              await new Promise(resolve => setTimeout(resolve, retryDelay));
-              continue;
-            } else {
-              errorMessage += ' - Se ha excedido el límite de solicitudes. Por favor, espere antes de intentar nuevamente.';
-            }
-          }
-          
-          // Para otros errores 5xx, reintentar con backoff
-          if (response.status >= 500 && attempt < maxRetries) {
-            const retryDelay = baseRetryDelay * Math.pow(2, attempt - 1);
-            console.warn(`⚠️ Error del servidor (${response.status}). Reintentando en ${retryDelay}ms...`);
-            await new Promise(resolve => setTimeout(resolve, retryDelay));
-            continue;
+            errorMessage += ' - Servicio no disponible (503). No se reintentará para evitar bucles.';
+          } else if (response.status === 429) {
+            errorMessage += ' - Límite de velocidad alcanzado (429). No se reintentará para evitar bucles.';
+          } else if (response.status >= 500) {
+            errorMessage += ' - Error del servidor. No se reintentará para evitar bucles.';
           }
           
           throw new Error(errorMessage);
@@ -165,34 +142,16 @@ class ChutesVideoAnalysisService {
       } catch (error) {
         console.error(`❌ Error en análisis de video (intento ${attempt}/${maxRetries}):`, error);
         
-        // Si es error de aborto (timeout), no reintentar
-        if (error.name === 'AbortError') {
-          return {
-            success: false,
-            error: 'La solicitud tardó demasiado tiempo. El video puede ser demasiado grande o el servicio está lento.',
-            timestamp: new Date().toISOString(),
-            apiProvider: 'Chutes AI',
-            attempts: attempt,
-            suggestion: 'Intente con un video más pequeño o espere a que el servicio esté menos congestionado.'
-          };
-        }
-        
-        // Si es el último intento, retornar el error
-        if (attempt === maxRetries) {
-          return {
-            success: false,
-            error: error.message,
-            timestamp: new Date().toISOString(),
-            apiProvider: 'Chutes AI',
-            attempts: attempt,
-            suggestion: this.getErrorSuggestion(error.message)
-          };
-        }
-        
-        // Para otros errores, esperar antes del siguiente intento con backoff
-        const retryDelay = baseRetryDelay * Math.pow(2, attempt - 1);
-        console.log(`⏳ Esperando ${retryDelay}ms antes del reintento ${attempt + 1}...`);
-        await new Promise(resolve => setTimeout(resolve, retryDelay));
+        // POLÍTICA ZERO-TOLERANCE: Cualquier error retorna inmediatamente sin reintentos
+        return {
+          success: false,
+          error: error.message,
+          timestamp: new Date().toISOString(),
+          apiProvider: 'Chutes AI',
+          attempts: attempt,
+          suggestion: this.getErrorSuggestion(error.message),
+          noRetry: true // Indicar que no se reintentará
+        };
       }
     }
   }
