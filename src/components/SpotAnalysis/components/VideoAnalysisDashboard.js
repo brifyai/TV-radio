@@ -30,7 +30,7 @@ const VideoAnalysisDashboard = ({
   const [isPermanentlyFailed, setIsPermanentlyFailed] = useState(false);
   const [hasAttemptedAnalysis, setHasAttemptedAnalysis] = useState(false);
   
-  // NUEVO: Sistema de bloqueo robusto para evitar bucles infinitos
+  // DESACTIVADO: Sistema de bloqueo robusto para evitar bucles infinitos
   const analysisLockRef = useRef(false);
   const permanentBlockRef = useRef(false);
   const attemptCountRef = useRef(0);
@@ -39,20 +39,18 @@ const VideoAnalysisDashboard = ({
   const analyzeVideoContent = React.useCallback(async () => {
     if (!videoFile || !spotData || !analysisResults || analysisResults.length === 0) return;
 
-    // BLOQUEO ROBUSTO: Verificar múltiples condiciones para evitar bucles
+    // DESACTIVADO: Verificar múltiples condiciones para evitar bucles
     if (permanentBlockRef.current || analysisLockRef.current || isPermanentlyFailed) {
-      console.log('🚫 Análisis bloqueado permanentemente para evitar bucles infinitos');
-      return;
+      console.log('🔓 Desbloqueando análisis de video para permitir reintentos');
+      permanentBlockRef.current = false;
+      setIsPermanentlyFailed(false);
     }
 
     // Incrementar contador de intentos y verificar límite
     attemptCountRef.current += 1;
-    if (attemptCountRef.current > 1) {
-      console.log('🚫 LÍMITE DE INTENTOS ALCANZADO - Bloqueando análisis permanentemente');
-      permanentBlockRef.current = true;
-      setIsPermanentlyFailed(true);
-      setError('⚠️ Análisis de video desactivado permanentemente para evitar bucles infinitos.');
-      return;
+    if (attemptCountRef.current > 3) {
+      console.log('⚠️ Límite de intentos alcanzado, reiniciando contador');
+      attemptCountRef.current = 1; // Reiniciar en lugar de bloquear
     }
 
     // Marcar como en proceso para evitar ejecuciones concurrentes
@@ -97,41 +95,36 @@ const VideoAnalysisDashboard = ({
         const suggestion = result.suggestion || '';
         const fullError = suggestion ? `${errorMessage}\n\n💡 Sugerencia: ${suggestion}` : errorMessage;
         
-        // BLOQUEO PERMANENTE en cualquier error
-        console.warn('🚫 ERROR DETECTADO - Bloqueando análisis permanentemente para evitar bucles');
-        permanentBlockRef.current = true;
-        setIsPermanentlyFailed(true);
-        setError(`${fullError}\n\n⚠️ Análisis desactivado permanentemente.`);
+        // DESACTIVADO: Bloqueo permanente en errores
+        console.warn('⚠️ Error detectado, permitiendo reintento');
+        setError(`${fullError}\n\n🔄 El análisis se reintentará automáticamente.`);
         return;
       }
     } catch (err) {
       console.error('❌ Error en análisis de video:', err);
       
-      // BLOQUEO PERMANENTE en cualquier excepción
-      console.warn('🚫 EXCEPCIÓN DETECTADA - Bloqueando análisis permanentemente');
-      permanentBlockRef.current = true;
-      setIsPermanentlyFailed(true);
-      setError(`${err.message}\n\n⚠️ Análisis desactivado permanentemente.`);
+      // DESACTIVADO: Bloqueo permanente en excepciones
+      console.warn('⚠️ Excepción detectada, permitiendo reintento');
+      setError(`${err.message}\n\n🔄 El análisis se reintentará automáticamente.`);
     } finally {
       setAnalyzingVideo(false);
       analysisLockRef.current = false; // Liberar bloqueo
     }
   }, [videoFile, spotData, analysisResults, videoAnalysisService, isPermanentlyFailed]);
 
-  // Analizar video cuando se proporciona (POLÍTICA ANTI-BUCLE EXTREMA)
+  // Analizar video cuando se proporciona (REINTENTOS HABILITADOS)
   useEffect(() => {
-    // BLOQUEO TOTAL: No ejecutar bajo ninguna circunstancia si hay problemas
-    if (permanentBlockRef.current || analysisLockRef.current || isPermanentlyFailed || hasAttemptedAnalysis || analyzingVideo || error) {
-      return; // Salir inmediatamente sin logs
+    // DESACTIVADO: Bloqueo total
+    if (permanentBlockRef.current || analysisLockRef.current || isPermanentlyFailed || analyzingVideo) {
+      return; // Solo bloquear si ya está en proceso
     }
 
-    // Solo ejecutar UNA VEZ si hay datos necesarios y no hay análisis previo
-    if (videoFile && spotData && analysisResults && analysisResults.length > 0 && !videoAnalysis && attemptCountRef.current === 0) {
-      console.log('🎬 Iniciando análisis de video (EJECUCIÓN ÚNICA - ANTI-BUCLE)');
-      setHasAttemptedAnalysis(true);
+    // Permitir múltiples intentos si hay datos necesarios
+    if (videoFile && spotData && analysisResults && analysisResults.length > 0) {
+      console.log('🎬 Iniciando análisis de video (REINTENTOS HABILITADOS)');
       analyzeVideoContent();
     }
-  }, [videoFile, spotData, analysisResults, videoAnalysis, isPermanentlyFailed, hasAttemptedAnalysis, analyzingVideo, error, analyzeVideoContent]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [videoFile, spotData, analysisResults, videoAnalysis, isPermanentlyFailed, analyzingVideo, error, analyzeVideoContent]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ELIMINAR COMPLETAMENTE EFECTOS DE REINTENTO AUTOMÁTICO
   // NO hay useEffect de reintentos - esto elimina completamente los bucles
@@ -521,17 +514,19 @@ const VideoAnalysisDashboard = ({
               <AlertTriangle className="h-5 w-5 text-amber-600" />
               <span className="text-sm font-medium text-amber-800">Análisis de video no disponible</span>
             </div>
-            {!isPermanentlyFailed && (
+            {(
               <button
                 onClick={() => {
                   setError(null);
                   setIsPermanentlyFailed(false);
                   setHasAttemptedAnalysis(false);
                   setVideoAnalysis(null);
+                  attemptCountRef.current = 0; // Reiniciar contador
+                  permanentBlockRef.current = false; // Desbloquear
                 }}
                 className="px-3 py-1 text-xs bg-amber-100 text-amber-800 rounded-md hover:bg-amber-200 transition-colors"
               >
-                Reintentar
+                Reintentar Análisis
               </button>
             )}
           </div>
@@ -545,8 +540,8 @@ const VideoAnalysisDashboard = ({
             {isPermanentlyFailed && (
               <div className="mt-3 p-2 bg-amber-100 rounded border border-amber-300">
                 <p className="text-xs text-amber-800">
-                  <strong>Nota:</strong> Para evitar bucles infinitos, el análisis de video se ha desactivado temporalmente.
-                  Puedes reintentar más tarde cuando el servicio esté disponible.
+                  <strong>Nota:</strong> El análisis de video está siendo reintentado automáticamente.
+                  Si persiste el error, verifica la conexión con el servicio de análisis.
                 </p>
               </div>
             )}
