@@ -28,15 +28,25 @@ const VideoAnalysisDashboard = ({
   const [retryCount, setRetryCount] = useState(0);
   const [lastAttemptTime, setLastAttemptTime] = useState(null);
   const [isPermanentlyFailed, setIsPermanentlyFailed] = useState(false);
+  const [hasAttemptedAnalysis, setHasAttemptedAnalysis] = useState(false);
 
   // Definir función de análisis de video antes de usarla
   const analyzeVideoContent = React.useCallback(async () => {
     if (!videoFile || !spotData || !analysisResults || analysisResults.length === 0) return;
 
+    // Evitar múltiples análisis simultáneos
+    if (analyzingVideo || hasAttemptedAnalysis) {
+      console.log('🚫 Análisis ya en progreso o ya intentado, omitiendo');
+      return;
+    }
+
+    // Marcar que se ha intentado el análisis
+    setHasAttemptedAnalysis(true);
+
     // Verificar si ya se intentó demasiadas veces
     const now = Date.now();
     const TIME_BETWEEN_RETRIES = 5 * 60 * 1000; // 5 minutos
-    const MAX_RETRIES = 3;
+    const MAX_RETRIES = 2; // Reducido a 2 para evitar bucles largos
     
     if (isPermanentlyFailed) {
       console.log('🚫 Análisis de video marcado como fallido permanentemente, omitiendo intento');
@@ -52,6 +62,9 @@ const VideoAnalysisDashboard = ({
         // Resetear contador después del tiempo de espera
         console.log('🔄 Reiniciando contador de reintentos para análisis de video');
         setRetryCount(0);
+        setIsPermanentlyFailed(false); // Resetear estado permanente
+        setError(null);
+        setHasAttemptedAnalysis(false); // Permitir nuevo intento
       }
     }
 
@@ -90,6 +103,7 @@ const VideoAnalysisDashboard = ({
         });
         console.log('✅ Análisis de video completado exitosamente');
         setRetryCount(0); // Resetear contador en éxito
+        setIsPermanentlyFailed(false); // Resetear estado permanente
       } else {
         const errorMessage = result.error || 'Error en el análisis del video';
         const suggestion = result.suggestion || '';
@@ -99,19 +113,29 @@ const VideoAnalysisDashboard = ({
         const newRetryCount = retryCount + 1;
         setRetryCount(newRetryCount);
         
-        // Log adicional para debugging
-        console.error('🔍 Detalles del error:', {
-          error: result.error,
-          suggestion: result.suggestion,
-          attempts: result.attempts,
-          apiProvider: result.apiProvider,
-          timestamp: result.timestamp,
-          retryCount: newRetryCount
-        });
+        // Log adicional para debugging (limitado para evitar spam)
+        if (newRetryCount <= MAX_RETRIES) {
+          console.error('🔍 Detalles del error:', {
+            error: result.error,
+            suggestion: result.suggestion,
+            attempts: result.attempts,
+            apiProvider: result.apiProvider,
+            timestamp: result.timestamp,
+            retryCount: newRetryCount
+          });
+        }
         
-        // Si es error 503 y hemos alcanzado el máximo de reintentos, marcar como fallido permanentemente
-        if (errorMessage.includes('503') && newRetryCount >= MAX_RETRIES) {
-          console.warn('🚫 Marcando análisis de video como fallido permanentemente después de múltiples intentos 503');
+        // Si es error 503, marcar inmediatamente como fallido permanentemente para evitar bucles
+        if (errorMessage.includes('503')) {
+          console.warn('🚫 Error 503 detectado - Marcando análisis de video como fallido permanentemente para evitar bucles');
+          setIsPermanentlyFailed(true);
+          setError(`${fullError}\n\n⚠️ Servicio no disponible (503). El análisis se desactivará para evitar bucles.`);
+          return; // Salir inmediatamente sin lanzar error
+        }
+        
+        // Para otros errores, si hemos alcanzado el máximo de reintentos
+        if (newRetryCount >= MAX_RETRIES) {
+          console.warn('🚫 Máximo de reintentos alcanzado - Marcando análisis de video como fallido permanentemente');
           setIsPermanentlyFailed(true);
           setError(`${fullError}\n\n⚠️ Se ha agotado el número máximo de intentos. El análisis se reintentará automáticamente en 5 minutos.`);
         } else {
@@ -127,7 +151,7 @@ const VideoAnalysisDashboard = ({
       
       // Si hemos alcanzado el máximo de reintentos, marcar como fallido permanentemente
       if (newRetryCount >= MAX_RETRIES) {
-        console.warn('🚫 Marcando análisis de video como fallido permanentemente después de múltiples errores');
+        console.warn('🚫 Máximo de reintentos alcanzado - Marcando análisis de video como fallido permanentemente');
         setIsPermanentlyFailed(true);
         setError(`${err.message}\n\n⚠️ Se ha agotado el número máximo de intentos. El análisis se reintentará automáticamente en 5 minutos.`);
       } else {
@@ -136,35 +160,44 @@ const VideoAnalysisDashboard = ({
     } finally {
       setAnalyzingVideo(false);
     }
-  }, [videoFile, spotData, analysisResults, videoAnalysisService, retryCount, lastAttemptTime, isPermanentlyFailed]);
+  }, [videoFile, spotData, analysisResults, videoAnalysisService, retryCount, lastAttemptTime, isPermanentlyFailed, analyzingVideo, hasAttemptedAnalysis]);
 
   // Analizar video cuando se proporciona
   useEffect(() => {
-    if (videoFile && spotData && analysisResults && analysisResults.length > 0) {
-      // Solo analizar si no está en proceso y no ha fallado permanentemente
-      if (!analyzingVideo && !isPermanentlyFailed) {
+    // Solo ejecutar si hay datos necesarios y no está en proceso ni ha fallado permanentemente
+    if (videoFile && spotData && analysisResults && analysisResults.length > 0 && !analyzingVideo && !isPermanentlyFailed && !hasAttemptedAnalysis) {
+      // Evitar múltiples ejecuciones con una bandera de control
+      const shouldAnalyze = !videoAnalysis && !error && retryCount === 0;
+      
+      if (shouldAnalyze) {
+        console.log('🎬 Iniciando análisis de video (useEffect)');
         analyzeVideoContent();
       }
     }
-  }, [videoFile, spotData, analysisResults, analyzeVideoContent, analyzingVideo, isPermanentlyFailed]);
+  }, [videoFile, spotData, analysisResults, videoAnalysis, error, retryCount, analyzingVideo, isPermanentlyFailed, hasAttemptedAnalysis, analyzeVideoContent]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Efecto para reintentar análisis después del tiempo de espera
+  // Efecto para reintentar análisis después del tiempo de espera (optimizado)
   useEffect(() => {
-    if (isPermanentlyFailed && lastAttemptTime) {
-      const TIME_BETWEEN_RETRIES = 5 * 60 * 1000; // 5 minutos
-      const timeSinceLastAttempt = Date.now() - lastAttemptTime;
-      
-      if (timeSinceLastAttempt >= TIME_BETWEEN_RETRIES) {
-        console.log('🔄 Reiniciando análisis de video después del tiempo de espera');
-        setIsPermanentlyFailed(false);
-        setRetryCount(0);
-        setError(null);
+    const retryTimer = setTimeout(() => {
+      if (isPermanentlyFailed && lastAttemptTime) {
+        const TIME_BETWEEN_RETRIES = 5 * 60 * 1000; // 5 minutos
+        const timeSinceLastAttempt = Date.now() - lastAttemptTime;
+        
+        if (timeSinceLastAttempt >= TIME_BETWEEN_RETRIES) {
+          console.log('🔄 Reiniciando análisis de video después del tiempo de espera');
+          setIsPermanentlyFailed(false);
+          setRetryCount(0);
+          setError(null);
+          setHasAttemptedAnalysis(false); // Permitir nuevo intento
+        }
       }
-    }
+    }, 30000); // Verificar cada 30 segundos en lugar de continuamente
+
+    return () => clearTimeout(retryTimer);
   }, [isPermanentlyFailed, lastAttemptTime]);
 
   // Generar racional de vinculación video-analytics basado en datos 100% REALES
-  const generateVideoAnalyticsRational = () => {
+  const generateVideoAnalyticsRational = React.useCallback(() => {
     if (!videoAnalysis || !analysisResults || analysisResults.length === 0) return null;
 
     const spot = analysisResults[0];
@@ -254,7 +287,7 @@ const VideoAnalysisDashboard = ({
     }
 
     return rational;
-  };
+  }, [videoAnalysis, analysisResults]);
 
 
   // ANÁLISIS CAUSAL: Determinar si el spot funcionó y qué factores influyeron
@@ -451,16 +484,16 @@ const VideoAnalysisDashboard = ({
   const [rational, setRational] = useState(null);
 
   // Cargar racional cuando estén disponibles los datos
+  const loadRealRational = React.useCallback(async () => {
+    const realRational = await generateVideoAnalyticsRational();
+    setRational(realRational);
+  }, [generateVideoAnalyticsRational]);
+
   useEffect(() => {
     if (videoAnalysis && analysisResults && analysisResults.length > 0) {
       loadRealRational();
     }
-  }, [videoAnalysis, analysisResults]);
-
-  const loadRealRational = async () => {
-    const realRational = await generateVideoAnalyticsRational();
-    setRational(realRational);
-  };
+  }, [videoAnalysis, analysisResults, loadRealRational]);
 
   // Generar recomendaciones base
   const baseRecommendations = generateRecommendations();
