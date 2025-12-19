@@ -3,6 +3,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useGoogleAnalytics } from '../../contexts/GoogleAnalyticsContext';
 import { Link, useLocation, useNavigate, Outlet } from 'react-router-dom';
 import LoadingSpinner from '../UI/LoadingSpinner';
+import Avatar from '../UI/Avatar';
 import { motion } from 'framer-motion';
 import {
   BarChart3,
@@ -133,26 +134,12 @@ const Layout = () => {
           <div className="flex-shrink-0 flex border-t border-gray-200 p-4">
             <div className="flex items-center">
               <div className="flex-shrink-0">
-                {user?.user_metadata?.avatar_url ? (
-                  <img
-                    className="h-10 w-10 rounded-full object-cover"
-                    src={user?.user_metadata?.avatar_url}
-                    alt={user?.email}
-                    onError={(e) => {
-                      console.warn('Error cargando avatar:', user?.user_metadata?.avatar_url);
-                      e.target.style.display = 'none';
-                      e.target.nextSibling.style.display = 'flex';
-                    }}
-                  />
-                ) : null}
-                <div
-                  className="h-10 w-10 rounded-full bg-primary-600 flex items-center justify-center"
-                  style={{ display: user?.user_metadata?.avatar_url ? 'none' : 'flex' }}
-                >
-                  <span className="text-sm font-medium text-white">
-                    {user?.email?.charAt(0).toUpperCase() || '?'}
-                  </span>
-                </div>
+                <Avatar
+                  src={user?.user_metadata?.avatar_url}
+                  alt={user?.email}
+                  size="sm"
+                  fallbackText={user?.email?.charAt(0).toUpperCase()}
+                />
               </div>
               <div className="ml-3">
                 <p className="text-sm font-medium text-gray-700 group-hover:text-gray-900">
@@ -233,27 +220,16 @@ const Layout = () => {
             <div className="flex-shrink-0 border-t border-slate-700/50 p-4">
               <div className="flex items-center w-full p-3 rounded-xl bg-white/5 hover:bg-white/10 transition-colors duration-200">
                 <div className="flex-shrink-0">
-                  {user?.user_metadata?.avatar_url ? (
-                    <motion.img
-                      className="h-12 w-12 rounded-xl shadow-lg object-cover"
+                  <motion.div
+                    whileHover={{ scale: 1.05 }}
+                  >
+                    <Avatar
                       src={user?.user_metadata?.avatar_url}
                       alt={user?.email}
-                      whileHover={{ scale: 1.05 }}
-                      onError={(e) => {
-                        console.warn('Error cargando avatar en sidebar:', user?.user_metadata?.avatar_url);
-                        e.target.style.display = 'none';
-                        e.target.nextSibling.style.display = 'flex';
-                      }}
+                      size="md"
+                      fallbackText={user?.email?.charAt(0).toUpperCase()}
+                      className="rounded-xl"
                     />
-                  ) : null}
-                  <motion.div
-                    className="h-12 w-12 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg"
-                    whileHover={{ scale: 1.05, rotate: 5 }}
-                    style={{ display: user?.user_metadata?.avatar_url ? 'none' : 'flex' }}
-                  >
-                    <span className="text-lg font-bold text-white">
-                      {user?.email?.charAt(0).toUpperCase() || '?'}
-                    </span>
                   </motion.div>
                 </div>
                 <div className="ml-4 flex-1 min-w-0">
@@ -337,26 +313,12 @@ const Layout = () => {
                     id="user-menu-button"
                     onClick={() => setUserMenuOpen(!userMenuOpen)}
                   >
-                    {user?.user_metadata?.avatar_url ? (
-                      <img
-                        className="h-8 w-8 rounded-full object-cover"
-                        src={user?.user_metadata?.avatar_url}
-                        alt={user?.email}
-                        onError={(e) => {
-                          console.warn('Error cargando avatar en menú:', user?.user_metadata?.avatar_url);
-                          e.target.style.display = 'none';
-                          e.target.nextSibling.style.display = 'flex';
-                        }}
-                      />
-                    ) : null}
-                    <div
-                      className="h-8 w-8 rounded-full bg-primary-600 flex items-center justify-center"
-                      style={{ display: user?.user_metadata?.avatar_url ? 'none' : 'flex' }}
-                    >
-                      <span className="text-sm font-medium text-white">
-                        {user?.email?.charAt(0).toUpperCase() || '?'}
-                      </span>
-                    </div>
+                    <Avatar
+                      src={user?.user_metadata?.avatar_url}
+                      alt={user?.email}
+                      size="sm"
+                      fallbackText={user?.email?.charAt(0).toUpperCase()}
+                    />
                     <ChevronDown className="h-4 w-4 ml-1 text-gray-500" />
                   </button>
 

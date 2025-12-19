@@ -48,6 +48,7 @@ class UserSettingsService {
         phone: '',
         company: '',
         bio: '',
+        avatar_url: null,
         
         // Configuraciones de notificaciones
         notifications_email: true,
@@ -183,6 +184,7 @@ class UserSettingsService {
         phone: '',
         company: '',
         bio: '',
+        avatar_url: user.user_metadata?.avatar_url || null,
         
         // Configuraciones de notificaciones
         notifications_email: true,
@@ -242,7 +244,8 @@ class UserSettingsService {
           full_name: settings.full_name,
           phone: settings.phone,
           company: settings.company,
-          bio: settings.bio
+          bio: settings.bio,
+          avatar_url: settings.avatar_url
         },
         notifications: {
           email: settings.notifications_email,

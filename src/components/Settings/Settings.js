@@ -4,6 +4,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useGoogleAnalytics } from '../../contexts/GoogleAnalyticsContext';
 import userSettingsService from '../../services/userSettingsService';
 import { supabase } from '../../config/supabase';
+import Avatar from '../UI/Avatar';
 import {
   User,
   Bell,
@@ -420,19 +421,13 @@ const Settings = () => {
         <div className="flex items-center space-x-6 mb-6">
           <div className="relative">
             {/* Avatar con preview */}
-            {(avatarPreview || profileData.avatar_url) ? (
-              <img
-                src={avatarPreview || profileData.avatar_url}
-                alt="Avatar"
-                className="h-20 w-20 rounded-full object-cover"
-              />
-            ) : (
-              <div className="h-20 w-20 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-                <span className="text-2xl font-bold text-white">
-                  {user?.email?.charAt(0).toUpperCase() || '?'}
-                </span>
-              </div>
-            )}
+            <Avatar
+              src={avatarPreview || profileData.avatar_url}
+              alt="Avatar"
+              size="xl"
+              fallbackText={user?.email?.charAt(0).toUpperCase()}
+              className="h-20 w-20"
+            />
             
             {/* Botón de cámara */}
             <button
@@ -474,10 +469,12 @@ const Settings = () => {
           <div className="bg-gray-50 rounded-lg p-4 mb-4">
             <h4 className="text-sm font-medium text-gray-900 mb-2">Vista previa</h4>
             <div className="flex items-center space-x-4">
-              <img
+              <Avatar
                 src={avatarPreview}
                 alt="Preview"
-                className="h-16 w-16 rounded-full object-cover"
+                size="lg"
+                fallbackText={user?.email?.charAt(0).toUpperCase()}
+                className="h-16 w-16"
               />
               <div className="flex-1">
                 <p className="text-sm text-gray-600">{avatarFile.name}</p>

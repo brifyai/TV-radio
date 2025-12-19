@@ -120,6 +120,7 @@ export const databaseSchema = {
       phone TEXT,
       company TEXT,
       bio TEXT,
+      avatar_url TEXT,
       
       -- Configuraciones de notificaciones
       notifications_email BOOLEAN DEFAULT true,
