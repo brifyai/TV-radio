@@ -889,16 +889,16 @@ const VideoAnalysisDashboard = ({
           // Generar resumen ejecutivo 100% basado en datos reales
           const generateRealExecutiveSummary = () => {
             // Verificar si hay datos suficientes para el análisis
-            if (!analysisResults || analysisResults.length === 0 || !videoAnalysis) {
-              return 'Análisis no disponible';
+            if (!analysisResults || analysisResults.length === 0) {
+              return 'Análisis no disponible: No hay datos de Analytics';
             }
 
             const spot = analysisResults[0];
-            const spotHour = spot.spot?.dateTime?.getHours() || 'No especificada';
+            const spotHour = spot.spot?.dateTime?.getHours() || spot.spot?.hora || 'No especificada';
             const impact = spot.impact?.activeUsers?.percentageChange || 0;
-            const usersActive = spot.metrics?.spot?.activeUsers || 0;
-            const sessions = spot.metrics?.spot?.sessions || 0;
-            const pageviews = spot.metrics?.spot?.pageviews || 0;
+            const usersActive = spot.metrics?.spot?.activeUsers || spot.activeUsers || 0;
+            const sessions = spot.metrics?.spot?.sessions || spot.sessions || 0;
+            const pageviews = spot.metrics?.spot?.pageviews || spot.pageviews || 0;
 
             let summary = `Spot transmitido a las ${spotHour}:00. `;
             
@@ -940,6 +940,15 @@ const VideoAnalysisDashboard = ({
               if (clarity < 6 || engagement < 6) {
                 summary += ' La calidad del contenido sugiere oportunidades de mejora para incrementar la efectividad del spot en generar tráfico web.';
               }
+            } else {
+              // Si no hay análisis de video, agregar nota sobre el estado
+              if (analyzingVideo) {
+                summary += ' Análisis de contenido del video en progreso...';
+              } else if (error) {
+                summary += ' Análisis de contenido del video no disponible debido a errores en la API.';
+              } else {
+                summary += ' Análisis de contenido del video pendiente.';
+              }
             }
 
             return summary;
@@ -947,13 +956,19 @@ const VideoAnalysisDashboard = ({
 
           const realSummary = generateRealExecutiveSummary();
           
-          // Si no hay datos disponibles, mostrar mensaje específico
-          if (realSummary === 'Análisis no disponible') {
+          // Si no hay datos disponibles, mostrar mensaje específico con más detalles
+          if (realSummary.includes('Análisis no disponible')) {
             return (
               <div className="text-center py-4">
-                <p className="text-sm text-gray-500 italic">
+                <p className="text-sm text-gray-500 italic mb-2">
                   {realSummary}
                 </p>
+                <div className="text-xs text-gray-400">
+                  <p>Estado del análisis:</p>
+                  <p>• Datos de Analytics: {analysisResults && analysisResults.length > 0 ? '✅ Disponibles' : '❌ No disponibles'}</p>
+                  <p>• Análisis de video: {videoAnalysis ? '✅ Completado' : '❌ Pendiente o con errores'}</p>
+                  <p>• API Chutes AI: {videoAnalysis?.apiProvider ? '✅ Conectada' : '⏳ Esperando conexión'}</p>
+                </div>
               </div>
             );
           }
