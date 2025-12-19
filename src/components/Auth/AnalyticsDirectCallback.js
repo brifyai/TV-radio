@@ -13,12 +13,24 @@ const AnalyticsDirectCallback = () => {
     const handleDirectAnalyticsCallback = async () => {
       try {
         console.log('🔒 CRITICAL: Procesando callback DIRECTO de Google Analytics (sin Supabase OAuth)');
+        console.log('🔒 DEBUG: URL actual:', window.location.href);
+        console.log('🔒 DEBUG: User Agent:', navigator.userAgent);
+        
+        // CRITICAL: Verificar estado ANTES de cualquier operación
+        console.log('🔒 DEBUG: Verificando estado ANTES del procesamiento...');
+        const { data: { session: beforeSession } } = await supabase.auth.getSession();
+        console.log('🔒 DEBUG: Sesión ANTES:', beforeSession?.user?.email);
+        console.log('🔒 DEBUG: Session ID ANTES:', beforeSession?.user?.id);
         
         // Parsear los parámetros de la URL
         const urlParams = new URLSearchParams(window.location.search);
         const code = urlParams.get('code');
         const error = urlParams.get('error');
         const state = urlParams.get('state');
+        
+        console.log('🔒 DEBUG: Parámetros URL - code:', code ? 'present' : 'missing');
+        console.log('🔒 DEBUG: Parámetros URL - error:', error || 'none');
+        console.log('🔒 DEBUG: Parámetros URL - state:', state || 'none');
         
         if (error) {
           console.error('Error en callback de Google Analytics:', error);
@@ -42,15 +54,32 @@ const AnalyticsDirectCallback = () => {
         console.log('  - Original User ID:', originalUserId);
         console.log('  - Original User Email:', originalUserEmail);
         console.log('  - Analytics Flow:', isAnalyticsFlow);
+        
+        // CRITICAL: Verificar si hay cookies de Supabase que podrían interferir
+        console.log('🔒 DEBUG: Cookies disponibles:', document.cookie);
+        
+        // CRITICAL: Verificar localStorage también
+        console.log('🔒 DEBUG: localStorage keys:', Object.keys(localStorage));
+        console.log('🔒 DEBUG: sessionStorage keys:', Object.keys(sessionStorage));
 
         if (!isAnalyticsFlow || !originalUserId || !originalUserEmail) {
           throw new Error('Flujo de Analytics no válido. Por favor, inicia sesión y vuelve a intentar.');
         }
 
         // CRITICAL: Verificar que la sesión original aún esté activa
+        console.log('🔒 DEBUG: Verificando sesión actual DESPUÉS de parsear URL...');
         const { data: { session: currentSession } } = await supabase.auth.getSession();
         
+        console.log('🔒 DEBUG: Sesión ACTUAL:', currentSession?.user?.email);
+        console.log('🔒 DEBUG: Session ID ACTUAL:', currentSession?.user?.id);
+        console.log('🔒 DEBUG: Comparación:');
+        console.log('  - Email esperado:', originalUserEmail);
+        console.log('  - Email actual:', currentSession?.user?.email);
+        console.log('  - ID esperado:', originalUserId);
+        console.log('  - ID actual:', currentSession?.user?.id);
+        
         if (!currentSession) {
+          console.error('❌ ERROR CRÍTICO: No hay sesión activa');
           throw new Error('La sesión original ha expirado. Por favor, inicia sesión nuevamente.');
         }
 
@@ -58,7 +87,10 @@ const AnalyticsDirectCallback = () => {
           console.error('❌ CRITICAL: Cambio de usuario detectado incluso en flujo directo');
           console.error('❌ Esperado:', originalUserEmail);
           console.error('❌ Actual:', currentSession.user.email);
-          throw new Error('Error crítico de seguridad: Se detectó un cambio de usuario no autorizado.');
+          console.error('❌ INVESTIGACIÓN: ¿Qué causó este cambio?');
+          console.error('❌ INVESTIGACIÓN: ¿Hay algún listener de auth state change activo?');
+          console.error('❌ INVESTIGACIÓN: ¿El navegador manipuló las cookies?');
+          throw new Error(`Error crítico de seguridad: Se detectó un cambio de usuario no autorizado. Esperado: ${originalUserEmail}, Actual: ${currentSession.user.email}`);
         }
 
         console.log('✅ CRITICAL: Sesión original verificada correctamente:', currentSession.user.email);

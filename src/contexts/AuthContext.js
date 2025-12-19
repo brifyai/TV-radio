@@ -49,7 +49,26 @@ export const AuthProvider = ({ children }) => {
           console.log('🔄 DEBUG: Auth state changed:', event);
           console.log('🔍 DEBUG: Session user email:', session?.user?.email);
           
-          // CRITICAL: Detectar si es OAuth de Analytics por URL o metadata
+          // CRITICAL: Verificar si estamos en flujo de OAuth de Analytics DIRECTO
+          const isAnalyticsFlow = sessionStorage.getItem('analytics_oauth_flow') === 'true';
+          const originalUserId = sessionStorage.getItem('original_user_id');
+          const originalUserEmail = sessionStorage.getItem('original_user_email');
+          
+          console.log('🔒 DEBUG: Analytics OAuth Flow:', isAnalyticsFlow);
+          console.log('🔒 DEBUG: Original User from sessionStorage:', originalUserEmail);
+          
+          // CRITICAL: Si estamos en flujo de Analytics OAuth y hay sesión original, ignorar completamente
+          if (isAnalyticsFlow && originalUserEmail && event === 'SIGNED_IN' && session?.user?.email !== originalUserEmail) {
+            console.log('🛡️ CRITICAL: Ignorando cambio de sesión de OAuth de Analytics');
+            console.log('🛡️ Usuario original preservado:', originalUserEmail);
+            console.log('🛡️ Usuario de Analytics ignorado:', session?.user?.email);
+            
+            // NO actualizar el estado - mantener el usuario original
+            setLoading(false);
+            return;
+          }
+          
+          // Detectar si es OAuth de Analytics por URL o metadata (método anterior como fallback)
           const urlParams = new URLSearchParams(window.location.search);
           const isAnalyticsCallback = urlParams.get('analytics') === 'true';
           const isAnalyticsOAuth = session?.user?.user_metadata?.analytics_oauth === 'true' ||
@@ -58,7 +77,7 @@ export const AuthProvider = ({ children }) => {
           
           // PRESERVAR USUARIO ORIGINAL: Si es OAuth de Analytics y ya hay una sesión activa
           if (isAnalyticsOAuth && event === 'SIGNED_IN' && user && user.email !== session?.user?.email) {
-            console.log('🔒 CRITICAL: OAuth de Analytics detectado, preservando usuario original');
+            console.log('🔒 CRITICAL: OAuth de Analytics detectado (fallback), preservando usuario original');
             console.log('🔒 Usuario original:', user.email);
             console.log('🔒 Usuario de Analytics (ignorado):', session?.user?.email);
             
