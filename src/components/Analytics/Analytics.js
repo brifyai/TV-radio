@@ -4,6 +4,7 @@ import { useParams, Link } from 'react-router-dom';
 import ErrorBoundary from '../ErrorBoundary';
 import { useGoogleAnalytics } from '../../contexts/GoogleAnalyticsContext';
 import LoadingSpinner from '../UI/LoadingSpinner';
+import AnalyticsErrorDisplay from '../UI/AnalyticsErrorDisplay';
 import {
   BarChart3,
   TrendingUp,
@@ -985,19 +986,14 @@ const Analytics = () => {
 
       {/* Error Display */}
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-md p-4">
-          <div className="flex">
-            <AlertCircle className="h-5 w-5 text-red-400" />
-            <div className="ml-3">
-              <h3 className="text-sm font-medium text-red-800">
-                Error
-              </h3>
-              <div className="mt-2 text-sm text-red-700">
-                <p>{error}</p>
-              </div>
-            </div>
-          </div>
-        </div>
+        <AnalyticsErrorDisplay
+          error={error}
+          errorType={error?.includes('permisos') ? 'permissions' : error?.includes('conexión') ? 'connection' : 'generic'}
+          onRetry={safeLoadAnalyticsData}
+          onReconnect={() => window.location.href = '/dashboard'}
+          onSettings={() => window.location.href = '/settings'}
+          isLoading={loadingData}
+        />
       )}
 
       {/* Main Controls */}
