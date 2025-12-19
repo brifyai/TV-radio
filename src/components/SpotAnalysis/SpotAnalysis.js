@@ -1131,7 +1131,7 @@ const SpotAnalysis = () => {
                                   )}
                                   {result?.spot?.version && result.spot.version !== '0' && result.spot.version !== 0 && (
                                     <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                                      Versión: {result.spot.version.replace(/^0+|0+$/g, '').replace(/\b0+\b/g, '').trim()}
+                                      Versión: {result.spot.version.toString().replace(/^0+/, '').replace(/0+$/, '').trim() || result.spot.version}
                                     </span>
                                   )}
                                   {result?.spot?.duracion && (
@@ -1786,7 +1786,11 @@ const SpotAnalysis = () => {
                   <h4 className="text-xs font-medium text-purple-700 mb-1">Insights Clave:</h4>
                   <ul className="text-xs text-purple-700 list-disc list-inside">
                     {(batchAIAnalysis.insights || []).map((insight, i) => (
-                      <li key={i}>{insight}</li>
+                      <li key={i}>
+                        {typeof insight === 'string'
+                          ? insight
+                          : insight?.descripcion || JSON.stringify(insight)}
+                      </li>
                     ))}
                   </ul>
                 </div>
