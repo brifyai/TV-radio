@@ -86,9 +86,12 @@ self.addEventListener('fetch', (event) => {
             // Actualizar cache en segundo plano
             fetch(request)
               .then((fetchResponse) => {
-                if (fetchResponse.ok) {
+                if (fetchResponse.ok && (request.method === 'GET' || request.method === 'HEAD')) {
                   caches.open(STATIC_CACHE)
-                    .then((cache) => cache.put(request, fetchResponse.clone()));
+                    .then((cache) => cache.put(request, fetchResponse.clone()))
+                    .catch((error) => {
+                      console.warn('SW: Error al actualizar cache estática:', error);
+                    });
                 }
               })
               .catch(() => {
@@ -104,9 +107,15 @@ self.addEventListener('fetch', (event) => {
                 throw new Error('Network response was not ok');
               }
               
-              const responseClone = fetchResponse.clone();
-              caches.open(STATIC_CACHE)
-                .then((cache) => cache.put(request, responseClone));
+              // Cache solo para métodos seguros
+              if (request.method === 'GET' || request.method === 'HEAD') {
+                const responseClone = fetchResponse.clone();
+                caches.open(STATIC_CACHE)
+                  .then((cache) => cache.put(request, responseClone))
+                  .catch((error) => {
+                    console.warn('SW: Error al cachear respuesta estática:', error);
+                  });
+              }
               
               return fetchResponse;
             });
@@ -137,10 +146,15 @@ self.addEventListener('fetch', (event) => {
             throw new Error('API response was not ok');
           }
           
-          // Cache exit responses por 5 minutos
-          const responseClone = response.clone();
-          caches.open(DYNAMIC_CACHE)
-            .then((cache) => cache.put(request, responseClone));
+          // Cache exit responses por 5 minutos (solo para métodos seguros)
+          if (request.method === 'GET' || request.method === 'HEAD') {
+            const responseClone = response.clone();
+            caches.open(DYNAMIC_CACHE)
+              .then((cache) => cache.put(request, responseClone))
+              .catch((error) => {
+                console.warn('SW: Error al cachear respuesta de API:', error);
+              });
+          }
           
           return response;
         })
@@ -160,9 +174,15 @@ self.addEventListener('fetch', (event) => {
           const fetchPromise = fetch(request)
             .then((fetchResponse) => {
               if (fetchResponse.ok) {
-                const responseClone = fetchResponse.clone();
-                caches.open(DYNAMIC_CACHE)
-                  .then((cache) => cache.put(request, responseClone));
+                // Cache solo para métodos seguros
+                if (request.method === 'GET' || request.method === 'HEAD') {
+                  const responseClone = fetchResponse.clone();
+                  caches.open(DYNAMIC_CACHE)
+                    .then((cache) => cache.put(request, responseClone))
+                    .catch((error) => {
+                      console.warn('SW: Error al cachear respuesta de navegación:', error);
+                    });
+                }
               }
               return fetchResponse;
             })
@@ -185,13 +205,15 @@ self.addEventListener('fetch', (event) => {
           throw new Error('Network response was not ok');
         }
         
-        // Cache responses exitosas
-        const responseClone = response.clone();
-        caches.open(DYNAMIC_CACHE)
-          .then((cache) => cache.put(request, responseClone))
-          .catch(() => {
-            // Silenciar errores de cache para no interrumpir la respuesta
-          });
+        // Cache responses exitosas (solo para métodos seguros)
+        if (request.method === 'GET' || request.method === 'HEAD') {
+          const responseClone = response.clone();
+          caches.open(DYNAMIC_CACHE)
+            .then((cache) => cache.put(request, responseClone))
+            .catch((error) => {
+              console.warn('SW: Error al cachear respuesta:', error);
+            });
+        }
         
         return response;
       })
