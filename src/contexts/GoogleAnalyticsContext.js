@@ -228,13 +228,17 @@ export const GoogleAnalyticsProvider = ({ children }) => {
       console.log('🔒 CRITICAL: Usuario actual:', currentSession.user.email);
       console.log('🔒 CRITICAL: Usuario original esperado:', originalUserEmail);
 
-      // CRITICAL: Si hay un cambio de usuario, restaurar la sesión original
+      // 🔒🔒🔒 PROTECCIÓN CRÍTICA - NO MODIFICAR NUNCA 🔒🔒🔒
+      // ESTA VALIDACIÓN PROTEGE LA SESIÓN ORIGINAL DEL USUARIO
+      // Si hay un cambio de usuario, restaurar la sesión original
       if (currentSession.user.email !== originalUserEmail) {
         console.log('🔒 CRITICAL: Detectado cambio de usuario, restaurando sesión original...');
+        console.log('🔒 SESIÓN ORIGINAL PROTEGIDA:', originalUserEmail);
+        console.log('🔒 SESIÓN ACTUAL IGNORADA:', currentSession.user.email);
         
         // Intentar restaurar la sesión original
         try {
-          // NOTA: Esta es una medida de emergencia, lo ideal es prevenir el cambio
+          // 🔒 ESTA ES UNA MEDIDA DE EMERGENCIA CRÍTICA - NO TOCAR
           console.warn('⚠️ ADVERTENCIA: Se detectó un cambio no autorizado de usuario');
           throw new Error(`Cambio de usuario detectado. Sesión original: ${originalUserEmail}, Sesión actual: ${currentSession.user.email}. Por favor, inicia sesión nuevamente.`);
         } catch (restoreError) {

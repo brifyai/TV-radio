@@ -42,6 +42,9 @@ export const AuthProvider = ({ children }) => {
 
     getInitialSession();
 
+    // 🔒🔒🔒 PROTECCIÓN CRÍTICA - NO MODIFICAR NUNCA 🔒🔒🔒
+    // Este listener previene que Supabase OAuth cambie la sesión del usuario principal
+    // ESencial para el funcionamiento correcto del flujo de Google Analytics
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
@@ -49,7 +52,8 @@ export const AuthProvider = ({ children }) => {
           console.log('🔄 DEBUG: Auth state changed:', event);
           console.log('🔍 DEBUG: Session user email:', session?.user?.email);
           
-          // CRITICAL: Verificar si estamos en flujo de OAuth de Analytics DIRECTO
+          // 🔒 CRITICAL: Verificar si estamos en flujo de OAuth de Analytics DIRECTO
+          // ESTA LÍNEA ES VITAL PARA LA PROTECCIÓN DE SESIÓN - NO TOCAR
           const isAnalyticsFlow = sessionStorage.getItem('analytics_oauth_flow') === 'true';
           const originalUserId = sessionStorage.getItem('original_user_id');
           const originalUserEmail = sessionStorage.getItem('original_user_email');
@@ -57,13 +61,14 @@ export const AuthProvider = ({ children }) => {
           console.log('🔒 DEBUG: Analytics OAuth Flow:', isAnalyticsFlow);
           console.log('🔒 DEBUG: Original User from sessionStorage:', originalUserEmail);
           
-          // CRITICAL: Si estamos en flujo de Analytics OAuth y hay sesión original, ignorar completamente
+          // 🔒 PROTECCIÓN VITAL: Si estamos en flujo de Analytics OAuth y hay sesión original, ignorar completamente
+          // ESTA CONDICIÓN PROTEGE LA SESIÓN ORIGINAL - NUNCA MODIFICAR
           if (isAnalyticsFlow && originalUserEmail && event === 'SIGNED_IN' && session?.user?.email !== originalUserEmail) {
             console.log('🛡️ CRITICAL: Ignorando cambio de sesión de OAuth de Analytics');
             console.log('🛡️ Usuario original preservado:', originalUserEmail);
             console.log('🛡️ Usuario de Analytics ignorado:', session?.user?.email);
             
-            // NO actualizar el estado - mantener el usuario original
+            // 🔒 NO actualizar el estado - mantener el usuario original
             setLoading(false);
             return;
           }

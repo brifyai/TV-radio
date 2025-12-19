@@ -26,6 +26,10 @@ import PrivacyPolicy from './components/Legal/PrivacyPolicy';
 import TermsOfService from './components/Legal/TermsOfService';
 import CookiePolicy from './components/Legal/CookiePolicy';
 
+// 🔒🔒🔒 PROTECCIÓN CRÍTICA - TEST AUTOMÁTICO DE SESIÓN 🔒🔒🔒
+// Importar el test de protección para ejecutarlo automáticamente en desarrollo
+import { autoRunProtectionTest } from './utils/sessionProtectionTest';
+
 // Global error handler for unhandled promise rejections
 window.addEventListener('unhandledrejection', (event) => {
   console.error('❌ UNHANDLED PROMISE REJECTION:', event.reason);
@@ -59,6 +63,15 @@ const queryClient = new QueryClient({
 function AppContent() {
   const { session, loading } = useAuth();
   const [timeoutReached, setTimeoutReached] = useState(false);
+
+  // 🔒 PROTECCIÓN CRÍTICA - Test automático en desarrollo
+  useEffect(() => {
+    // Ejecutar test de protección automáticamente en desarrollo
+    if (process.env.NODE_ENV === 'development') {
+      console.log('🔒 Ejecutando test automático de protección de sesión...');
+      autoRunProtectionTest();
+    }
+  }, []);
 
   // Timeout de seguridad para evitar loading infinito
   useEffect(() => {
