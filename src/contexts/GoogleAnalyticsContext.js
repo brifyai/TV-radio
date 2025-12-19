@@ -801,6 +801,7 @@ export const GoogleAnalyticsProvider = ({ children }) => {
     loadAccountsAndProperties,
     getAnalyticsData,
     refreshGoogleToken,
+    handleAnalyticsCallback, // CRITICAL: Exportar handleAnalyticsCallback
     clearError: () => {
       setError(null);
       setErrorType(null);
