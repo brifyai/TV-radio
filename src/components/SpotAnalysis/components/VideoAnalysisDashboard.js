@@ -13,7 +13,7 @@ import {
   AlertTriangle,
   Info
 } from 'lucide-react';
-import ChutesVideoAnalysisService from '../../../services/chutesVideoAnalysisService';
+import OpenRouterVideoAnalysisService from '../../../services/openRouterVideoAnalysisService';
 
 const VideoAnalysisDashboard = ({ 
   analysisResults, 
@@ -23,7 +23,7 @@ const VideoAnalysisDashboard = ({
 }) => {
   const [videoAnalysis, setVideoAnalysis] = useState(null);
   const [analyzingVideo, setAnalyzingVideo] = useState(false);
-  const [videoAnalysisService] = useState(new ChutesVideoAnalysisService());
+  const [videoAnalysisService] = useState(new OpenRouterVideoAnalysisService());
   const [error, setError] = useState(null);
 
   // Definir función de análisis de video antes de usarla
