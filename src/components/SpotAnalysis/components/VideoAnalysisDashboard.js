@@ -151,7 +151,7 @@ const VideoAnalysisDashboard = ({
     }
 
     // 4. Análisis de mensaje vs conversión REAL
-    if (videoAnalysis.mensaje_marketing) {
+    if (videoAnalysis?.mensaje_marketing) {
       const mensaje = videoAnalysis.mensaje_marketing;
       const hasClearCTA = mensaje.call_to_action && mensaje.call_to_action !== '';
       const hasValueProposition = mensaje.propuesta_valor && mensaje.propuesta_valor !== '';
@@ -219,7 +219,7 @@ const VideoAnalysisDashboard = ({
         });
 
         // Analizar factores de éxito específicos
-        if (videoAnalysis.mensaje_marketing?.call_to_action) {
+        if (videoAnalysis?.mensaje_marketing?.call_to_action) {
           recommendations.push({
             priority: 'Media',
             category: 'Factor de Éxito',
@@ -257,7 +257,7 @@ const VideoAnalysisDashboard = ({
         });
 
         // Analizar factores de fracaso específicos
-        if (!videoAnalysis.mensaje_marketing?.call_to_action) {
+        if (!videoAnalysis?.mensaje_marketing?.call_to_action) {
           recommendations.push({
             priority: 'Alta',
             category: 'Factor de Fracaso',

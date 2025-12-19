@@ -26,8 +26,14 @@ class OpenRouterVideoAnalysisService {
     try {
       console.log('🎬 Iniciando análisis de video con OpenRouter + Analytics reales...');
       
-      // Convertir video a base64
-      const videoBase64 = await this.fileToBase64(videoFile);
+      // Convertir video a base64 (solo para imágenes pequeñas, videos grandes deben usar URLs)
+      let videoContent;
+      if (videoFile.size > 5 * 1024 * 1024) { // Mayor a 5MB
+        // Para videos grandes, usar URL temporal o subir a servicio externo
+        videoContent = await this.fileToBase64(videoFile);
+      } else {
+        videoContent = await this.fileToBase64(videoFile);
+      }
       
       // Preparar el prompt para análisis de spot TV con datos reales de Analytics
       const prompt = this.createSpotAnalysisPromptWithAnalytics(spotData, analyticsData);
@@ -54,7 +60,7 @@ class OpenRouterVideoAnalysisService {
                 {
                   type: 'image_url',
                   image_url: {
-                    url: videoBase64
+                    url: videoContent
                   }
                 }
               ]
@@ -66,8 +72,17 @@ class OpenRouterVideoAnalysisService {
       });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(`Error de API OpenRouter: ${response.status} ${response.statusText} - ${errorData.error?.message || ''}`);
+        const errorText = await response.text().catch(() => '');
+        let errorMessage = `Error de API OpenRouter: ${response.status} ${response.statusText}`;
+        
+        try {
+          const errorData = JSON.parse(errorText);
+          errorMessage += ` - ${errorData.error?.message || errorData.message || ''}`;
+        } catch {
+          errorMessage += ` - ${errorText}`;
+        }
+        
+        throw new Error(errorMessage);
       }
 
       const data = await response.json();
@@ -551,11 +566,13 @@ Analiza el video y responde únicamente con el JSON válido, sin texto adicional
       const reader = new FileReader();
       reader.onload = () => {
         const result = reader.result;
-        // Remover el prefijo data:mime;base64, para dejar solo el base64
-        const base64 = result.split(',')[1];
-        resolve(`data:${file.type};base64,${base64}`);
+        // Mantener el formato completo data:mime;base64,base64string
+        resolve(result);
       };
-      reader.onerror = reject;
+      reader.onerror = (error) => {
+        console.error('Error reading file:', error);
+        reject(error);
+      };
       reader.readAsDataURL(file);
     });
   }

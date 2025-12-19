@@ -86,12 +86,15 @@ self.addEventListener('fetch', (event) => {
             // Actualizar cache en segundo plano
             fetch(request)
               .then((fetchResponse) => {
-                if (fetchResponse.ok && (request.method === 'GET' || request.method === 'HEAD')) {
-                  caches.open(STATIC_CACHE)
-                    .then((cache) => cache.put(request, fetchResponse.clone()))
-                    .catch((error) => {
-                      console.warn('SW: Error al actualizar cache estática:', error);
-                    });
+                if (fetchResponse && fetchResponse.ok && (request.method === 'GET' || request.method === 'HEAD')) {
+                  // Verificar que la respuesta sea válida antes de cachear
+                  if (fetchResponse.headers.get('content-type')) {
+                    caches.open(STATIC_CACHE)
+                      .then((cache) => cache.put(request, fetchResponse.clone()))
+                      .catch((error) => {
+                        console.warn('SW: Error al actualizar cache estática:', error);
+                      });
+                  }
                 }
               })
               .catch(() => {
@@ -103,18 +106,25 @@ self.addEventListener('fetch', (event) => {
           // Si no está en cache, fetch y cache
           return fetch(request)
             .then((fetchResponse) => {
-              if (!fetchResponse.ok) {
+              if (!fetchResponse || !fetchResponse.ok) {
                 throw new Error('Network response was not ok');
               }
               
-              // Cache solo para métodos seguros
+              // Cache solo para métodos seguros y respuestas válidas
               if (request.method === 'GET' || request.method === 'HEAD') {
-                const responseClone = fetchResponse.clone();
-                caches.open(STATIC_CACHE)
-                  .then((cache) => cache.put(request, responseClone))
-                  .catch((error) => {
-                    console.warn('SW: Error al cachear respuesta estática:', error);
-                  });
+                try {
+                  const responseClone = fetchResponse.clone();
+                  // Verificar que la respuesta sea clonable y válida
+                  if (responseClone.headers.get('content-type')) {
+                    caches.open(STATIC_CACHE)
+                      .then((cache) => cache.put(request, responseClone))
+                      .catch((error) => {
+                        console.warn('SW: Error al cachear respuesta estática:', error);
+                      });
+                  }
+                } catch (error) {
+                  console.warn('SW: Error al clonar respuesta para cache:', error);
+                }
               }
               
               return fetchResponse;
@@ -148,12 +158,19 @@ self.addEventListener('fetch', (event) => {
           
           // Cache exit responses por 5 minutos (solo para métodos seguros)
           if (request.method === 'GET' || request.method === 'HEAD') {
-            const responseClone = response.clone();
-            caches.open(DYNAMIC_CACHE)
-              .then((cache) => cache.put(request, responseClone))
-              .catch((error) => {
-                console.warn('SW: Error al cachear respuesta de API:', error);
-              });
+            try {
+              const responseClone = response.clone();
+              // Verificar que la respuesta sea válida antes de cachear
+              if (responseClone && responseClone.headers) {
+                caches.open(DYNAMIC_CACHE)
+                  .then((cache) => cache.put(request, responseClone))
+                  .catch((error) => {
+                    console.warn('SW: Error al cachear respuesta de API:', error);
+                  });
+              }
+            } catch (error) {
+              console.warn('SW: Error al clonar respuesta de API:', error);
+            }
           }
           
           return response;
@@ -173,15 +190,21 @@ self.addEventListener('fetch', (event) => {
         .then((response) => {
           const fetchPromise = fetch(request)
             .then((fetchResponse) => {
-              if (fetchResponse.ok) {
-                // Cache solo para métodos seguros
+              if (fetchResponse && fetchResponse.ok) {
+                // Cache solo para métodos seguros y respuestas válidas
                 if (request.method === 'GET' || request.method === 'HEAD') {
-                  const responseClone = fetchResponse.clone();
-                  caches.open(DYNAMIC_CACHE)
-                    .then((cache) => cache.put(request, responseClone))
-                    .catch((error) => {
-                      console.warn('SW: Error al cachear respuesta de navegación:', error);
-                    });
+                  try {
+                    const responseClone = fetchResponse.clone();
+                    if (responseClone && responseClone.headers) {
+                      caches.open(DYNAMIC_CACHE)
+                        .then((cache) => cache.put(request, responseClone))
+                        .catch((error) => {
+                          console.warn('SW: Error al cachear respuesta de navegación:', error);
+                        });
+                    }
+                  } catch (error) {
+                    console.warn('SW: Error al clonar respuesta de navegación:', error);
+                  }
                 }
               }
               return fetchResponse;
@@ -207,12 +230,19 @@ self.addEventListener('fetch', (event) => {
         
         // Cache responses exitosas (solo para métodos seguros)
         if (request.method === 'GET' || request.method === 'HEAD') {
-          const responseClone = response.clone();
-          caches.open(DYNAMIC_CACHE)
-            .then((cache) => cache.put(request, responseClone))
-            .catch((error) => {
-              console.warn('SW: Error al cachear respuesta:', error);
-            });
+          try {
+            const responseClone = response.clone();
+            // Verificar que la respuesta sea válida antes de cachear
+            if (responseClone && responseClone.headers) {
+              caches.open(DYNAMIC_CACHE)
+                .then((cache) => cache.put(request, responseClone))
+                .catch((error) => {
+                  console.warn('SW: Error al cachear respuesta:', error);
+                });
+            }
+          } catch (error) {
+            console.warn('SW: Error al clonar respuesta para cache:', error);
+          }
         }
         
         return response;
