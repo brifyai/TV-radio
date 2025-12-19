@@ -2,24 +2,24 @@
  * Sistema de logging controlado para evitar spam en consola
  */
 
-// Configuración del logger
+// Configuración del logger - REDUCIDO PARA EVITAR BUCLES
 const LOG_CONFIG = {
   // Máximo de mensajes por tipo en un período de tiempo
   maxLogsPerMinute: {
-    log: 50,     // Máximo 50 logs normales por minuto
-    warn: 20,    // Máximo 20 warnings por minuto
-    error: 10,   // Máximo 10 errores por minuto
-    debug: 30    // Máximo 30 debug logs por minuto
+    log: 5,      // Reducido drásticamente de 50 a 5
+    warn: 3,     // Reducido drásticamente de 20 a 3
+    error: 2,    // Reducido drásticamente de 10 a 2
+    debug: 2     // Reducido drásticamente de 30 a 2
   },
   // Período de tiempo en milisegundos
   timeWindow: 60000, // 1 minuto
-  // Si estamos en desarrollo, permitir más logs
+  // Si estamos en desarrollo, permitir más logs pero aún limitados
   development: {
     maxLogsPerMinute: {
-      log: 100,
-      warn: 50,
-      error: 20,
-      debug: 100
+      log: 10,    // Reducido de 100 a 10
+      warn: 5,    // Reducido de 50 a 5
+      error: 3,   // Reducido de 20 a 3
+      debug: 5    // Reducido de 100 a 5
     }
   }
 };
@@ -62,38 +62,37 @@ const createLogger = () => {
   
   return {
     log: (...args) => {
-      if (canLog('log')) {
-        registerLog('log');
+      // DESACTIVADO TEMPORALMENTE para evitar bucles infinitos
+      // Solo permitir logs críticos que contengan "ERROR" o "CRITICAL"
+      const message = args.join(' ');
+      if (message.includes('ERROR') || message.includes('CRITICAL') || message.includes('❌')) {
         originalConsole.log(...args);
-      } else {
-        // Silenciosamente ignorar logs excesivos
-        originalConsole.log?.(`🔇 [LOG LIMIT EXCEEDED] ${args.length} mensajes omitidos`);
       }
+      // Ignorar todos los demás logs
     },
     
     warn: (...args) => {
-      if (canLog('warn')) {
-        registerLog('warn');
+      // DESACTIVADO TEMPORALMENTE - solo mostrar advertencias críticas
+      const message = args.join(' ');
+      if (message.includes('CRITICAL') || message.includes('🚨')) {
         originalConsole.warn(...args);
-      } else {
-        originalConsole.warn?.(`🔇 [WARN LIMIT EXCEEDED] ${args.length} mensajes omitidos`);
       }
     },
     
     error: (...args) => {
+      // Permitir errores reales pero limitar frecuencia
       if (canLog('error')) {
         registerLog('error');
         originalConsole.error(...args);
       } else {
+        // Silenciosamente ignorar errores excesivos
         originalConsole.error?.(`🔇 [ERROR LIMIT EXCEEDED] ${args.length} mensajes omitidos`);
       }
     },
     
     debug: (...args) => {
-      if (process.env.NODE_ENV === 'development' && canLog('debug')) {
-        registerLog('debug');
-        originalConsole.debug?.(...args);
-      }
+      // COMPLETAMENTE DESACTIVADO
+      return;
     },
     
     // Métodos especiales para logging crítico (siempre permitidos)
@@ -135,17 +134,17 @@ if (typeof window !== 'undefined') {
   // Solo en el navegador
   Object.assign(console, logger);
   
-  // Mostrar estadísticas cada 30 segundos en desarrollo
-  if (process.env.NODE_ENV === 'development') {
-    setInterval(() => {
-      const stats = logger.getStats();
-      const totalLogs = Object.values(stats).reduce((sum, count) => sum + count, 0);
-      
-      if (totalLogs > 0) {
-        console.log(`📊 Logger Stats (último minuto):`, stats);
-      }
-    }, 30000);
-  }
+  // ESTADÍSTICAS DESACTIVADAS TEMPORALMENTE para evitar bucles
+  // if (process.env.NODE_ENV === 'development') {
+  //   setInterval(() => {
+  //     const stats = logger.getStats();
+  //     const totalLogs = Object.values(stats).reduce((sum, count) => sum + count, 0);
+  //
+  //     if (totalLogs > 0) {
+  //       console.log(`📊 Logger Stats (último minuto):`, stats);
+  //     }
+  //   }, 30000);
+  // }
 }
 
 export default logger;
