@@ -827,7 +827,7 @@ const SpotAnalysis = () => {
                                   )}
                                   {result?.spot?.version && result.spot.version !== '0' && result.spot.version !== 0 && (
                                     <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                                      Versión: {result.spot.version}
+                                      Versión: {result.spot.version.replace(/0$/, '')}
                                     </span>
                                   )}
                                   {result?.spot?.duracion && (
