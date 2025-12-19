@@ -47,28 +47,51 @@ export const AuthProvider = ({ children }) => {
       async (event, session) => {
         try {
           console.log('🔄 DEBUG: Auth state changed:', event);
+          console.log('🔍 DEBUG: Session user email:', session?.user?.email);
           
-          // CRITICAL: Detectar si es OAuth de Analytics para preservar usuario original
+          // CRITICAL: Detectar si es OAuth de Analytics por URL o metadata
+          const urlParams = new URLSearchParams(window.location.search);
+          const isAnalyticsCallback = urlParams.get('analytics') === 'true';
           const isAnalyticsOAuth = session?.user?.user_metadata?.analytics_oauth === 'true' ||
-                                   session?.user?.app_metadata?.analytics_oauth === 'true';
+                                   session?.user?.app_metadata?.analytics_oauth === 'true' ||
+                                   isAnalyticsCallback;
           
-          if (isAnalyticsOAuth && event === 'SIGNED_IN') {
-            console.log('🔒 DEBUG: OAuth de Analytics detectado, preservando usuario original');
-            // No actualizar usuario ni sesión para OAuth de Analytics
-            setLoading(false);
-            return;
+          // PRESERVAR USUARIO ORIGINAL: Si es OAuth de Analytics y ya hay una sesión activa
+          if (isAnalyticsOAuth && event === 'SIGNED_IN' && user && user.email !== session?.user?.email) {
+            console.log('🔒 CRITICAL: OAuth de Analytics detectado, preservando usuario original');
+            console.log('🔒 Usuario original:', user.email);
+            console.log('🔒 Usuario de Analytics (ignorado):', session?.user?.email);
+            
+            // CRITICAL: Restaurar la sesión original inmediatamente
+            // Esto evita que se cambie el usuario actual
+            try {
+              const { data: { session: originalSession } } = await supabase.auth.getSession();
+              if (originalSession?.user?.email === user.email) {
+                console.log('✅ Sesión original restaurada correctamente');
+                // No actualizar el estado, mantener el usuario original
+                setLoading(false);
+                return;
+              }
+            } catch (restoreError) {
+              console.error('❌ Error restaurando sesión original:', restoreError);
+            }
           }
           
-          setSession(session);
-          setUser(session?.user || null);
-          setLoading(false);
+          // Solo actualizar si no es OAuth de Analytics que intenta cambiar el usuario
+          if (!isAnalyticsOAuth || !user || user.email === session?.user?.email) {
+            setSession(session);
+            setUser(session?.user || null);
+            setLoading(false);
 
-          // Update user profile in database (sin bloquear la UI)
-          if (session?.user) {
-            updateUserProfile(session.user).catch(error => {
-              console.warn('⚠️ Error actualizando perfil de usuario:', error);
-              // No lanzar el error para no interrumpir el flujo de autenticación
-            });
+            // Update user profile in database (sin bloquear la UI)
+            if (session?.user) {
+              updateUserProfile(session.user).catch(error => {
+                console.warn('⚠️ Error actualizando perfil de usuario:', error);
+                // No lanzar el error para no interrumpir el flujo de autenticación
+              });
+            }
+          } else {
+            setLoading(false);
           }
         } catch (error) {
           console.error('❌ Error en onAuthStateChange:', error);

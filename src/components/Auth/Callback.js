@@ -34,7 +34,7 @@ const Callback = () => {
 
         // CRITICAL: Si es callback de Google Analytics, preservar sesión original COMPLETAMENTE
         if (isAnalyticsCallback && code) {
-          console.log('📊 Procesando conexión de Google Analytics SIN modificar sesión principal...');
+          console.log('📊 CRITICAL: Procesando conexión de Google Analytics SIN modificar sesión principal...');
           try {
             // CRITICAL: Preservar la sesión actual ANTES de cualquier operación
             const { data: { session: currentSession } } = await supabase.auth.getSession();
@@ -43,15 +43,31 @@ const Callback = () => {
               throw new Error('No hay sesión activa. Por favor, inicia sesión primero.');
             }
             
-            console.log('🔒 Sesión original preservada:', {
+            console.log('🔒 CRITICAL: Sesión original preservada ANTES de procesar Analytics:', {
               id: currentSession.user.id,
               email: currentSession.user.email
             });
             
+            // CRITICAL: Verificar que NO se use exchangeCodeForSession para Analytics
+            // Esto evita que Supabase cree una nueva sesión con el usuario de Analytics
+            console.log('🔒 CRITICAL: Evitando exchangeCodeForSession para preservar usuario original');
+            
             // CRITICAL: Procesar Google Analytics usando exchangeCodeForTokens (NO exchangeCodeForSession)
             // Esto evita crear una nueva sesión de Supabase
             await handleAnalyticsCallback(code);
-            console.log('✅ Google Analytics conectado exitosamente SIN modificar sesión principal');
+            console.log('✅ CRITICAL: Google Analytics conectado exitosamente SIN modificar sesión principal');
+            
+            // CRITICAL: Verificar que la sesión original se mantenga intacta DESPUÉS del procesamiento
+            const { data: { session: verificationSession } } = await supabase.auth.getSession();
+            
+            if (verificationSession?.user?.email !== currentSession.user.email) {
+              console.error('❌ CRITICAL: CAMBIO DE USUARIO DETECTADO DESPUÉS DE PROCESAR ANALYTICS');
+              console.error('❌ Usuario esperado:', currentSession.user.email);
+              console.error('❌ Usuario actual:', verificationSession?.user?.email);
+              throw new Error(`Error crítico de seguridad: El usuario cambió de ${currentSession.user.email} a ${verificationSession?.user?.email}. Por favor, inicia sesión nuevamente.`);
+            }
+            
+            console.log('✅ CRITICAL: Verificación exitosa - usuario original preservado:', verificationSession?.user?.email);
             
             // CRITICAL: Redirigir manteniendo la sesión original intacta
             setTimeout(() => {
@@ -85,6 +101,8 @@ const Callback = () => {
         } else {
           console.log('⚠️getSession no encontró sesión, intentando exchangeCodeForSession...');
           if (code) {
+            // CRITICAL: Solo usar exchangeCodeForSession si NO es callback de Analytics
+            // Para Analytics ya se manejó arriba y debemos evitar crear nueva sesión
             const { data: exchangeData, error: exchangeError } = await supabase.auth.exchangeCodeForSession(window.location.href);
             
             if (exchangeError) {

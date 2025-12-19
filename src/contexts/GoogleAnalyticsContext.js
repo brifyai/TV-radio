@@ -171,8 +171,18 @@ export const GoogleAnalyticsProvider = ({ children }) => {
       setLoading(true);
       setError(null);
 
-      // Usar Supabase OAuth con scopes de Google Analytics
+      // CRITICAL: Verificar que hay una sesión activa antes de proceder
       const { supabase } = await import('../config/supabase');
+      const { data: { session: currentSession } } = await supabase.auth.getSession();
+      
+      if (!currentSession) {
+        throw new Error('Debes iniciar sesión antes de conectar Google Analytics');
+      }
+
+      console.log('🔒 CRITICAL: Iniciando OAuth de Analytics para usuario:', currentSession.user.email);
+      console.log('🔒 CRITICAL: Sesión actual preservada ID:', currentSession.user.id);
+
+      // Usar Supabase OAuth con scopes de Google Analytics
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
@@ -185,7 +195,9 @@ export const GoogleAnalyticsProvider = ({ children }) => {
             include_granted_scopes: 'true'
           },
           data: {
-            analytics_oauth: 'true'
+            analytics_oauth: 'true',
+            original_user_id: currentSession.user.id,
+            original_user_email: currentSession.user.email
           }
         }
       });
@@ -206,19 +218,36 @@ export const GoogleAnalyticsProvider = ({ children }) => {
       setLoading(true);
       setError(null);
 
-      // CRITICAL: Store original user info BEFORE any Google operations
-      const originalUserId = user?.id;
-      const originalUserEmail = user?.email;
-      const originalUserName = user?.user_metadata?.full_name || user?.email?.split('@')[0];
-
-      if (!originalUserId || !originalUserEmail) {
-        throw new Error('No se pudo identificar al usuario original. Por favor, inicia sesión nuevamente.');
+      // CRITICAL: Obtener sesión actual ANTES de cualquier operación
+      const { data: { session: currentSession } } = await supabase.auth.getSession();
+      
+      if (!currentSession) {
+        throw new Error('No hay sesión activa. Por favor, inicia sesión nuevamente.');
       }
 
-      console.log('🔍 DEBUG: Usuario original preservado:', {
-        id: originalUserId,
-        email: originalUserEmail
-      });
+      // CRITICAL: Verificar si el usuario actual coincide con el original
+      const urlParams = new URLSearchParams(window.location.search);
+      const originalUserId = urlParams.get('original_user_id') || currentSession.user.id;
+      const originalUserEmail = urlParams.get('original_user_email') || currentSession.user.email;
+
+      console.log('🔒 CRITICAL: Procesando callback de Analytics');
+      console.log('🔒 CRITICAL: Usuario actual:', currentSession.user.email);
+      console.log('🔒 CRITICAL: Usuario original esperado:', originalUserEmail);
+
+      // CRITICAL: Si hay un cambio de usuario, restaurar la sesión original
+      if (currentSession.user.email !== originalUserEmail) {
+        console.log('🔒 CRITICAL: Detectado cambio de usuario, restaurando sesión original...');
+        
+        // Intentar restaurar la sesión original
+        try {
+          // NOTA: Esta es una medida de emergencia, lo ideal es prevenir el cambio
+          console.warn('⚠️ ADVERTENCIA: Se detectó un cambio no autorizado de usuario');
+          throw new Error(`Cambio de usuario detectado. Sesión original: ${originalUserEmail}, Sesión actual: ${currentSession.user.email}. Por favor, inicia sesión nuevamente.`);
+        } catch (restoreError) {
+          console.error('❌ Error crítico de seguridad - cambio de usuario detectado:', restoreError);
+          throw restoreError;
+        }
+      }
 
       // Exchange authorization code for tokens WITHOUT affecting the main session
       const tokens = await googleAnalyticsService.exchangeCodeForTokens(code, `${window.location.origin}/callback`);
@@ -236,20 +265,21 @@ export const GoogleAnalyticsProvider = ({ children }) => {
           google_token_expires_at: new Date(Date.now() + tokens.expires_in * 1000).toISOString(),
           updated_at: new Date().toISOString()
         })
-        .eq('id', originalUserId); // Update by original user ID only
+        .eq('id', currentSession.user.id); // Update by current user ID
 
       if (updateError) {
         console.error('❌ Error updating user profile:', updateError);
         throw updateError;
       }
 
-      console.log('✅ DEBUG: Tokens de Google Analytics almacenados exitosamente SIN modificar sesión principal');
+      console.log('✅ CRITICAL: Tokens de Google Analytics almacenados exitosamente SIN modificar sesión principal');
+      console.log('✅ CRITICAL: Usuario preservado correctamente:', currentSession.user.email);
       setIsConnected(true);
       
       // Load accounts and properties for the original user
       await loadAccountsAndProperties();
       
-      console.log('✅ DEBUG: Google Analytics vinculado exitosamente para usuario original');
+      console.log('✅ CRITICAL: Google Analytics vinculado exitosamente para usuario original');
     } catch (err) {
       console.error('❌ Error connecting Google Analytics:', err);
       setError(err.message);
