@@ -86,14 +86,17 @@ self.addEventListener('fetch', (event) => {
             // Actualizar cache en segundo plano
             fetch(request)
               .then((fetchResponse) => {
-                if (fetchResponse && fetchResponse.ok && (request.method === 'GET' || request.method === 'HEAD')) {
+                if (fetchResponse && fetchResponse.ok && fetchResponse instanceof Response && (request.method === 'GET' || request.method === 'HEAD')) {
                   // Verificar que la respuesta sea válida antes de cachear
-                  if (fetchResponse.headers.get('content-type')) {
+                  try {
+                    const responseClone = fetchResponse.clone();
                     caches.open(STATIC_CACHE)
-                      .then((cache) => cache.put(request, fetchResponse.clone()))
+                      .then((cache) => cache.put(request, responseClone))
                       .catch((error) => {
                         console.warn('SW: Error al actualizar cache estática:', error);
                       });
+                  } catch (cloneError) {
+                    console.warn('SW: Error al clonar respuesta para cache:', cloneError);
                   }
                 }
               })
@@ -106,8 +109,8 @@ self.addEventListener('fetch', (event) => {
           // Si no está en cache, fetch y cache
           return fetch(request)
             .then((fetchResponse) => {
-              if (!fetchResponse || !fetchResponse.ok) {
-                throw new Error('Network response was not ok');
+              if (!fetchResponse || !fetchResponse.ok || !(fetchResponse instanceof Response)) {
+                throw new Error('Network response was not ok or invalid');
               }
               
               // Cache solo para métodos seguros y respuestas válidas
@@ -115,7 +118,7 @@ self.addEventListener('fetch', (event) => {
                 try {
                   const responseClone = fetchResponse.clone();
                   // Verificar que la respuesta sea clonable y válida
-                  if (responseClone.headers.get('content-type')) {
+                  if (responseClone.headers && responseClone.headers.get('content-type')) {
                     caches.open(STATIC_CACHE)
                       .then((cache) => cache.put(request, responseClone))
                       .catch((error) => {
@@ -133,9 +136,16 @@ self.addEventListener('fetch', (event) => {
         .catch(() => {
           // Para recursos de fuentes, fallback a fuentes del sistema
           if (request.url.includes('fonts.googleapis.com')) {
-            return new Response('', {
-              headers: { 'Content-Type': 'text/css' }
-            });
+            try {
+              return new Response('', {
+                headers: { 'Content-Type': 'text/css' }
+              });
+            } catch (responseError) {
+              console.warn('SW: Error creando respuesta fallback para fuentes:', responseError);
+              return new Response('/* Fallback CSS */', {
+                headers: { 'Content-Type': 'text/css' }
+              });
+            }
           }
           
           // Para otros recursos, retornar página offline
