@@ -1015,21 +1015,21 @@ Analiza el video y responde únicamente con el JSON válido, sin texto adicional
    */
   getErrorSuggestion(errorMessage) {
     if (errorMessage.includes('503') || errorMessage.includes('Service Unavailable')) {
-      return 'El servicio de Chutes AI está temporalmente no disponible. Sistema de fallback automático activado.';
+      return '🚨 SERVICIO EXTERNO NO DISPONIBLE: La API de chutes.ai está temporalmente fuera de servicio (Error 503). Esto es un problema del proveedor externo, no de la aplicación. El servicio se reintentará automáticamente cuando esté disponible.';
     }
     if (errorMessage.includes('429') || errorMessage.includes('rate limit')) {
-      return 'Límite de velocidad alcanzado. Intentando con siguiente modelo VL disponible.';
+      return '⏳ Límite de velocidad alcanzado. Intentando con siguiente modelo VL disponible.';
     }
     if (errorMessage.includes('401') || errorMessage.includes('Unauthorized')) {
-      return 'Error de autenticación. Verifique la configuración de la API key.';
+      return '🔐 Error de autenticación con chutes.ai. Verifique la configuración de la API key.';
     }
     if (errorMessage.includes('timeout') || errorMessage.includes('AbortError')) {
-      return 'Timeout en el análisis. Sistema probando con modelo VL más eficiente.';
+      return '⏰ Timeout en el análisis. Sistema probando con modelo VL más eficiente.';
     }
     if (errorMessage.includes('model') || errorMessage.includes('not found')) {
-      return 'Modelo no disponible. Sistema cambiando automáticamente al siguiente modelo VL.';
+      return '🤖 Modelo no disponible. Sistema cambiando automáticamente al siguiente modelo VL.';
     }
-    return 'Error en el servicio de análisis. Sistema de fallback automático activado.';
+    return '❌ Error en el servicio de análisis de chutes.ai. Sistema de fallback automático activado.';
   }
 }
 
