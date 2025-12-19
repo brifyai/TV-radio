@@ -341,20 +341,38 @@
       </div>
     </div>
     
-    <!-- Google Analytics -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=GA_MEASUREMENT_ID"></script>
+    <!-- Google Analytics - Configuration dinámica -->
     <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'GA_MEASUREMENT_ID', {
-        page_title: 'iMetrics - Análisis Inteligente de Métricas',
-        page_location: window.location.href,
-        custom_map: {'custom_parameter_1': 'user_type'}
-      });
-      gtag('event', 'page_view', {
-        'user_type': 'premium'
-      });
+      // Función para inicializar Google Analytics con el Measurement ID dinámico
+      function initGoogleAnalytics() {
+        const measurementId = 'G-XXXXXXXXXX' || 'G-XXXXXXXXXX';
+        
+        // Crear script de Google Analytics dinámicamente
+        const script = document.createElement('script');
+        script.async = true;
+        script.src = `https://www.googletagmanager.com/gtag/js?id=${measurementId}`;
+        document.head.appendChild(script);
+        
+        // Inicializar gtag
+        window.dataLayer = window.dataLayer || [];
+        window.gtag = function(){dataLayer.push(arguments);};
+        gtag('js', new Date());
+        gtag('config', measurementId, {
+          page_title: 'iMetrics - Análisis Inteligente de Métricas',
+          page_location: window.location.href,
+          custom_map: {'custom_parameter_1': 'user_type'}
+        });
+        gtag('event', 'page_view', {
+          'user_type': 'premium'
+        });
+      }
+      
+      // Inicializar cuando el DOM esté listo
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initGoogleAnalytics);
+      } else {
+        initGoogleAnalytics();
+      }
     </script>
     
     <!-- Service Worker Registration -->

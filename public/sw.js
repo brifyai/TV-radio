@@ -188,12 +188,32 @@ self.addEventListener('fetch', (event) => {
         // Cache responses exitosas
         const responseClone = response.clone();
         caches.open(DYNAMIC_CACHE)
-          .then((cache) => cache.put(request, responseClone));
+          .then((cache) => cache.put(request, responseClone))
+          .catch(() => {
+            // Silenciar errores de cache para no interrumpir la respuesta
+          });
         
         return response;
       })
-      .catch(() => {
-        return caches.match(request);
+      .catch((error) => {
+        console.log('SW: Network failed, trying cache:', error);
+        return caches.match(request)
+          .then((cachedResponse) => {
+            if (cachedResponse) {
+              return cachedResponse;
+            }
+            
+            // Si no hay cache y es una navegación, retornar página principal
+            if (request.mode === 'navigate') {
+              return caches.match('/index-seo-complete.html');
+            }
+            
+            // Para otros recursos sin cache, retornar respuesta vacía o error
+            return new Response('Resource not available offline', {
+              status: 503,
+              statusText: 'Service Unavailable'
+            });
+          });
       })
   );
 });
