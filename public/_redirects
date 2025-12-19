@@ -26,5 +26,9 @@
 /manifest.json        /manifest.json   200
 /favicon.ico          /favicon.ico     200
 
+# OAuth callback routes - handle specifically before SPA fallback
+/callback             /index.html   200
+/analytics-callback   /index.html   200
+
 # SPA fallback - all other routes to index.html
 /*                    /index.html   200
