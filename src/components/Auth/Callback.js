@@ -18,7 +18,12 @@ const Callback = () => {
         const code = urlParams.get('code');
         const error = urlParams.get('error');
         const errorDescription = urlParams.get('error_description');
-        const isAnalyticsCallback = urlParams.get('analytics') === 'true';
+        
+        // CRITICAL: Detectar flujo de OAuth directo de Analytics usando sessionStorage
+        const isAnalyticsFlow = sessionStorage.getItem('analytics_oauth_flow') === 'true';
+        const originalUserId = sessionStorage.getItem('original_user_id');
+        const originalUserEmail = sessionStorage.getItem('original_user_email');
+        const isAnalyticsCallback = urlParams.get('analytics') === 'true' || isAnalyticsFlow;
         
         if (error) {
           console.error('Error en callback de autenticación:', error, errorDescription);
@@ -30,10 +35,12 @@ const Callback = () => {
         console.log('🔍 DEBUG Callback:');
         console.log('  - URL:', window.location.href);
         console.log('  - code:', code ? 'found' : 'not found');
-        console.log('  - analytics:', isAnalyticsCallback);
+        console.log('  - analytics param:', urlParams.get('analytics'));
+        console.log('  - analytics flow:', isAnalyticsFlow);
+        console.log('  - original user:', originalUserEmail);
 
-        // CRITICAL: Si es callback de Google Analytics, preservar sesión original COMPLETAMENTE
-        if (isAnalyticsCallback && code) {
+        // CRITICAL: Si es callback de Google Analytics OAuth directo, preservar sesión original COMPLETAMENTE
+        if (isAnalyticsFlow && code && originalUserEmail) {
           console.log('📊 CRITICAL: Procesando conexión de Google Analytics SIN modificar sesión principal...');
           try {
             // CRITICAL: Preservar la sesión actual ANTES de cualquier operación
@@ -68,6 +75,12 @@ const Callback = () => {
             }
             
             console.log('✅ CRITICAL: Verificación exitosa - usuario original preservado:', verificationSession?.user?.email);
+            
+            // CRITICAL: Limpiar sessionStorage después del procesamiento exitoso
+            sessionStorage.removeItem('original_user_id');
+            sessionStorage.removeItem('original_user_email');
+            sessionStorage.removeItem('analytics_oauth_flow');
+            console.log('🧹 CRITICAL: SessionStorage limpiado exitosamente en Callback');
             
             // CRITICAL: Redirigir manteniendo la sesión original intacta
             setTimeout(() => {

@@ -184,7 +184,8 @@ export const GoogleAnalyticsProvider = ({ children }) => {
 
       // SOLUCIÓN REAL: Usar OAuth directo de Google SIN Supabase signInWithOAuth
       // Esto evita completamente que Supabase cambie la sesión del usuario
-      const authUrl = googleAnalyticsService.generateAuthUrl(`${window.location.origin}/analytics-callback`);
+      // Usamos el callback original que ya está configurado en Google Cloud Console
+      const authUrl = googleAnalyticsService.generateAuthUrl(`${window.location.origin}/callback`);
       
       console.log('🔒 CRITICAL: Redirigiendo a OAuth directo de Google (sin Supabase)');
       
