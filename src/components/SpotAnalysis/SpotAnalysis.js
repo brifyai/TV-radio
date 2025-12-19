@@ -58,7 +58,9 @@ const SpotAnalysis = () => {
     if (isNaN(numValue) || numValue === 0) return '$0';
     
     // Formatear con separador de miles (punto) y sin decimales
-    return `$${Math.round(numValue).toLocaleString('es-CL')}`;
+    const roundedValue = Math.round(numValue);
+    const formattedValue = roundedValue.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    return `$${formattedValue}`;
   };
   
   // Estados para el análisis de spots
@@ -1155,7 +1157,7 @@ const SpotAnalysis = () => {
                                   <Video className="h-4 w-4 mr-1" />
                                   {result?.spot?.canal || 'TV'}
                                 </span>
-                                {result?.spot?.inversion && (
+                                {result?.spot?.inversion && result.spot.inversion !== '0' && result.spot.inversion !== 0 && (
                                   <span className="flex items-center">
                                     <BarChart3 className="h-4 w-4 mr-1" />
                                     Inversión: {formatCurrency(result.spot.inversion)}
