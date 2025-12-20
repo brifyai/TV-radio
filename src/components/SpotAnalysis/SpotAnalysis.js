@@ -31,6 +31,9 @@ import {
   FileVideo
 } from 'lucide-react';
 
+// Importar componente de exportación PPTX
+import PPTXExportButton from '../UI/PPTXExportButton';
+
 // Importar componentes modernos
 import ImpactTimeline from './components/ImpactTimeline';
 import ConfidenceMeter from './components/ConfidenceMeter';
@@ -1064,6 +1067,24 @@ const SpotAnalysis = () => {
       {/* Grid de Componentes Modernos */}
       {analysisResults && (
         <div className="space-y-6">
+          {/* Botones de exportación */}
+          <div className="flex justify-end space-x-3">
+            <button
+              onClick={exportResults}
+              disabled={!analysisResults}
+              className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
+            >
+              <Download className="h-4 w-4 mr-2" />
+              Exportar CSV
+            </button>
+            <PPTXExportButton
+              analysisResults={analysisResults}
+              videoAnalysis={null}
+              spotData={spotsData}
+              variant="primary"
+            />
+          </div>
+
           {/* Primera fila: Componentes principales en grid 2x2 */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <ImpactTimeline spotData={spotsData} analysisResults={analysisResults} />
@@ -1771,8 +1792,14 @@ const SpotAnalysis = () => {
                 className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
               >
                 <Download className="h-4 w-4 mr-2" />
-                Exportar
+                Exportar CSV
               </button>
+              <PPTXExportButton
+                analysisResults={analysisResults}
+                videoAnalysis={null}
+                spotData={spotsData}
+                variant="primary"
+              />
               <button
                 onClick={performAnalysis}
                 disabled={analyzing || !selectedProperty || spotsData.length === 0}
