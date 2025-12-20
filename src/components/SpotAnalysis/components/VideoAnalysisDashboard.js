@@ -114,17 +114,17 @@ const VideoAnalysisDashboard = ({
 
   // Analizar video cuando se proporciona (REINTENTOS HABILITADOS)
   useEffect(() => {
-    // DESACTIVADO: Bloqueo total
-    if (permanentBlockRef.current || analysisLockRef.current || isPermanentlyFailed || analyzingVideo) {
-      return; // Solo bloquear si ya está en proceso
+    // Solo ejecutar si no está ya analizando y no hay análisis previo
+    if (analyzingVideo || videoAnalysis || permanentBlockRef.current || analysisLockRef.current) {
+      return;
     }
 
-    // Permitir múltiples intentos si hay datos necesarios
+    // Permitir análisis si hay datos necesarios
     if (videoFile && spotData && analysisResults && analysisResults.length > 0) {
       console.log('🎬 Iniciando análisis de video (REINTENTOS HABILITADOS)');
       analyzeVideoContent();
     }
-  }, [videoFile, spotData, analysisResults, videoAnalysis, isPermanentlyFailed, analyzingVideo, error, analyzeVideoContent]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [videoFile, spotData, analysisResults, videoAnalysis, analyzeVideoContent]); // Dependencias simplificadas
 
   // ELIMINAR COMPLETAMENTE EFECTOS DE REINTENTO AUTOMÁTICO
   // NO hay useEffect de reintentos - esto elimina completamente los bucles
