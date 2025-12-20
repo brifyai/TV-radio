@@ -3,10 +3,14 @@ import { motion } from 'framer-motion';
 import { Download, FileText, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 import PPTXExportService from '../../services/pptxExportService';
 
-const PPTXExportButton = ({ 
-  analysisResults, 
-  videoAnalysis, 
-  spotData, 
+const PPTXExportButton = ({
+  analysisResults,
+  videoAnalysis,
+  spotData,
+  batchAIAnalysis,
+  temporalAnalysis,
+  predictiveAnalysis,
+  aiAnalysis,
   className = '',
   variant = 'primary' // 'primary', 'secondary', 'minimal'
 }) => {
@@ -25,13 +29,25 @@ const PPTXExportButton = ({
     try {
       const exportService = new PPTXExportService();
       
-      // Preparar datos para exportación
+      // Preparar datos COMPLETOS para exportación (incluyendo contenido expandible)
       const exportData = {
         analysisResults,
         videoAnalysis,
         spotData: spotData && spotData.length > 0 ? spotData[0] : null,
+        batchAIAnalysis: batchAIAnalysis || {},
+        temporalAnalysis: temporalAnalysis || {},
+        predictiveAnalysis: predictiveAnalysis || {},
+        aiAnalysis: aiAnalysis || {},
         timestamp: new Date().toISOString()
       };
+
+      console.log('📊 Exportando datos completos:', {
+        analysisResults: analysisResults.length,
+        batchAIAnalysis: batchAIAnalysis ? 'Disponible' : 'No disponible',
+        temporalAnalysis: temporalAnalysis ? 'Disponible' : 'No disponible',
+        predictiveAnalysis: predictiveAnalysis ? 'Disponible' : 'No disponible',
+        aiAnalysis: aiAnalysis ? 'Disponible' : 'No disponible'
+      });
 
       // Generar presentación
       await exportService.generateSpotAnalysisPresentation(exportData);

@@ -1081,6 +1081,10 @@ const SpotAnalysis = () => {
               analysisResults={analysisResults}
               videoAnalysis={null}
               spotData={spotsData}
+              batchAIAnalysis={batchAIAnalysis}
+              temporalAnalysis={temporalAnalysis}
+              predictiveAnalysis={predictiveAnalysis}
+              aiAnalysis={aiAnalysis}
               variant="primary"
             />
           </div>
@@ -1798,6 +1802,10 @@ const SpotAnalysis = () => {
                 analysisResults={analysisResults}
                 videoAnalysis={null}
                 spotData={spotsData}
+                batchAIAnalysis={batchAIAnalysis}
+                temporalAnalysis={temporalAnalysis}
+                predictiveAnalysis={predictiveAnalysis}
+                aiAnalysis={aiAnalysis}
                 variant="primary"
               />
               <button

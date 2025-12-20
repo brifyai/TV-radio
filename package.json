@@ -15,7 +15,7 @@
     "googleapis": "^128.0.0",
     "lucide-react": "^0.294.0",
     "postcss": "^8.4.32",
-    "pptxgenjs": "^4.0.1",
+    "pptxgenjs": "^3.12.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-intersection-observer": "^10.0.0",
@@ -52,6 +52,9 @@
     ]
   },
   "devDependencies": {
+    "@craco/craco": "^7.1.0",
+    "buffer": "^6.0.3",
+    "process": "^0.11.10",
     "react-scripts": "5.0.1"
   }
 }
