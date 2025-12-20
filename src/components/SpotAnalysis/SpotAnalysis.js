@@ -1035,7 +1035,7 @@ const SpotAnalysis = () => {
               <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">Spots con Impacto Significativo</p>
+                    <p className="text-sm font-medium text-gray-600">Spots sin Vinculación Directa</p>
                     <p className="text-3xl font-bold text-orange-600">
                       {significantButNotDirect.length}
                     </p>

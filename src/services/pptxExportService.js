@@ -163,7 +163,7 @@ class PPTXExportService {
       `• Total de Spots Analizados: ${totalSpots}`,
       `• Impacto Promedio en Usuarios: ${avgImpact >= 0 ? '+' : ''}${avgImpact.toFixed(1)}%`,
       `• Spots con Vinculación Directa: ${directCorrelationCount} (${((directCorrelationCount/totalSpots)*100).toFixed(1)}%)`,
-      `• Spots con Impacto Significativo: ${significantImpactCount} (${((significantImpactCount/totalSpots)*100).toFixed(1)}%)`
+      `• Spots sin Vinculación Directa: ${significantImpactCount} (${((significantImpactCount/totalSpots)*100).toFixed(1)}%)`
     ];
 
     kpis.forEach((kpi, index) => {
