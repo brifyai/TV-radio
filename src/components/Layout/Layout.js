@@ -114,23 +114,46 @@ const Layout = () => {
             
             <nav className="mt-5 px-2 space-y-1">
               {navigation.map((item) => (
-                <Link
-                  key={item.name}
-                  to={item.href}
-                  className={`group flex items-center px-2 py-2 text-base font-medium rounded-md ${
-                    item.current
-                      ? 'bg-primary-100 text-primary-900'
-                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                  }`}
-                  onClick={() => setSidebarOpen(false)}
-                >
-                  <item.icon
-                    className={`mr-4 flex-shrink-0 h-6 w-6 ${
-                      item.current ? 'text-primary-500' : 'text-gray-400 group-hover:text-gray-500'
+                item.onClick ? (
+                  <button
+                    key={item.name}
+                    type="button"
+                    className={`group flex items-center w-full px-2 py-2 text-base font-medium rounded-md ${
+                      item.current
+                        ? 'bg-primary-100 text-primary-900'
+                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                     }`}
-                  />
-                  {item.name}
-                </Link>
+                    onClick={() => {
+                      item.onClick();
+                      setSidebarOpen(false);
+                    }}
+                  >
+                    <item.icon
+                      className={`mr-4 flex-shrink-0 h-6 w-6 ${
+                        item.current ? 'text-primary-500' : 'text-gray-400 group-hover:text-gray-500'
+                      }`}
+                    />
+                    {item.name}
+                  </button>
+                ) : (
+                  <Link
+                    key={item.name}
+                    to={item.href}
+                    className={`group flex items-center px-2 py-2 text-base font-medium rounded-md ${
+                      item.current
+                        ? 'bg-primary-100 text-primary-900'
+                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                    }`}
+                    onClick={() => setSidebarOpen(false)}
+                  >
+                    <item.icon
+                      className={`mr-4 flex-shrink-0 h-6 w-6 ${
+                        item.current ? 'text-primary-500' : 'text-gray-400 group-hover:text-gray-500'
+                      }`}
+                    />
+                    {item.name}
+                  </Link>
+                )
               ))}
             </nav>
           </div>
@@ -187,34 +210,66 @@ const Layout = () => {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: index * 0.1 }}
                   >
-                    <Link
-                      to={item.href}
-                      className={`group flex items-center px-4 py-3.5 text-sm font-medium rounded-xl transition-all duration-200 ${
-                        item.current
-                          ? 'bg-gradient-to-r from-blue-500/20 to-purple-500/20 text-white shadow-lg border border-blue-400/30'
-                          : 'text-slate-300 hover:bg-white/10 hover:text-white hover:shadow-md'
-                      }`}
-                    >
-                      <motion.div
-                        whileHover={{ scale: 1.1 }}
-                        whileTap={{ scale: 0.95 }}
+                    {item.onClick ? (
+                      <button
+                        type="button"
+                        onClick={item.onClick}
+                        className={`group flex items-center w-full px-4 py-3.5 text-sm font-medium rounded-xl transition-all duration-200 ${
+                          item.current
+                            ? 'bg-gradient-to-r from-blue-500/20 to-purple-500/20 text-white shadow-lg border border-blue-400/30'
+                            : 'text-slate-300 hover:bg-white/10 hover:text-white hover:shadow-md'
+                        }`}
                       >
-                        <item.icon
-                          className={`mr-4 flex-shrink-0 h-5 w-5 transition-colors duration-200 ${
-                            item.current ? 'text-blue-400' : 'text-slate-400 group-hover:text-white'
-                          }`}
-                        />
-                      </motion.div>
-                      <span className="font-medium">{item.name}</span>
-                      {item.current && (
                         <motion.div
-                          className="ml-auto h-2 w-2 bg-blue-400 rounded-full"
-                          initial={{ scale: 0 }}
-                          animate={{ scale: 1 }}
-                          transition={{ type: "spring", stiffness: 500 }}
-                        />
-                      )}
-                    </Link>
+                          whileHover={{ scale: 1.1 }}
+                          whileTap={{ scale: 0.95 }}
+                        >
+                          <item.icon
+                            className={`mr-4 flex-shrink-0 h-5 w-5 transition-colors duration-200 ${
+                              item.current ? 'text-blue-400' : 'text-slate-400 group-hover:text-white'
+                            }`}
+                          />
+                        </motion.div>
+                        <span className="font-medium">{item.name}</span>
+                        {item.current && (
+                          <motion.div
+                            className="ml-auto h-2 w-2 bg-blue-400 rounded-full"
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            transition={{ type: "spring", stiffness: 500 }}
+                          />
+                        )}
+                      </button>
+                    ) : (
+                      <Link
+                        to={item.href}
+                        className={`group flex items-center px-4 py-3.5 text-sm font-medium rounded-xl transition-all duration-200 ${
+                          item.current
+                            ? 'bg-gradient-to-r from-blue-500/20 to-purple-500/20 text-white shadow-lg border border-blue-400/30'
+                            : 'text-slate-300 hover:bg-white/10 hover:text-white hover:shadow-md'
+                        }`}
+                      >
+                        <motion.div
+                          whileHover={{ scale: 1.1 }}
+                          whileTap={{ scale: 0.95 }}
+                        >
+                          <item.icon
+                            className={`mr-4 flex-shrink-0 h-5 w-5 transition-colors duration-200 ${
+                              item.current ? 'text-blue-400' : 'text-slate-400 group-hover:text-white'
+                            }`}
+                          />
+                        </motion.div>
+                        <span className="font-medium">{item.name}</span>
+                        {item.current && (
+                          <motion.div
+                            className="ml-auto h-2 w-2 bg-blue-400 rounded-full"
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            transition={{ type: "spring", stiffness: 500 }}
+                          />
+                        )}
+                      </Link>
+                    )}
                   </motion.div>
                 ))}
               </nav>
