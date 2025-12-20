@@ -310,8 +310,7 @@ class PPTXExportService {
     // Información básica del spot
     const spotInfo = [
       `Fecha: ${result.spot?.fecha || 'N/A'} | Hora: ${result.spot?.hora || 'N/A'}`,
-      `Canal: ${result.spot?.canal || 'N/A'} | Duración: ${result.spot?.duracion || 'N/A'}s`,
-      `Tipo: ${result.spot?.tipo_comercial || 'N/A'} | Versión: ${result.spot?.version || 'N/A'}`
+      `Canal: ${result.spot?.canal || 'N/A'} | Duración: ${result.spot?.duracion || 'N/A'}s`
     ];
 
     spotInfo.forEach((info, i) => {
@@ -319,6 +318,20 @@ class PPTXExportService {
         x: 0.5, y: 1 + (i * 0.3), w: 9, h: 0.25,
         fontSize: 11, color: '6B7280'
       });
+    });
+
+    // Tipo y versión en líneas separadas para evitar texto muy largo
+    const tipo = result.spot?.tipo_comercial || 'N/A';
+    const version = result.spot?.version || 'N/A';
+    
+    slide.addText(`Tipo: ${tipo}`, {
+      x: 0.5, y: 1.6, w: 9, h: 0.25,
+      fontSize: 11, color: '6B7280'
+    });
+    
+    slide.addText(`Versión: ${version}`, {
+      x: 0.5, y: 1.9, w: 9, h: 0.25,
+      fontSize: 11, color: '6B7280'
     });
 
     // Estado de vinculación

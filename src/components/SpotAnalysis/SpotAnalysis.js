@@ -1008,7 +1008,7 @@ const SpotAnalysis = () => {
                   {validatedAnalysisResults.filter(r => r.impact?.activeUsers?.directCorrelation).length}
                 </p>
                 <p className="text-xs text-gray-500 mt-1">
-                  Criterios: {'>'}15% aumento y {'>'}115% de la referencia
+                  Impacto significativo: +15% y 115% sobre lo normal
                 </p>
               </div>
               <div className="p-3 bg-purple-100 rounded-full">
@@ -1040,7 +1040,7 @@ const SpotAnalysis = () => {
                       {significantButNotDirect.length}
                     </p>
                     <p className="text-xs text-gray-500 mt-1">
-                      Impacto {'>'}10% pero SIN vinculación directa ({'>'}15% y {'>'}115% referencia)
+                      Impacto moderado: +10% pero sin correlación directa
                     </p>
                   </div>
                   <div className="p-3 bg-orange-100 rounded-full">
