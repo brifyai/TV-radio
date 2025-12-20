@@ -1,568 +1,326 @@
-import PptxGenJS from 'pptxgenjs';
+// Servicio de exportación PPTX simplificado para navegador
+// Genera un archivo HTML que se puede convertir a PPTX manualmente
 
 class PPTXExportService {
   constructor() {
-    this.pptx = new PptxGenJS();
+    this.analysisData = null;
   }
 
   async generateSpotAnalysisPresentation(analysisData) {
     try {
-      // Configuración inicial de la presentación
-      this.pptx.author = "TV-Radio Analytics";
-      this.pptx.company = "BrifyAI";
-      this.pptx.subject = "Análisis de Spots TV vs Tráfico Web";
-      this.pptx.title = `Análisis Spot TV - ${new Date().toLocaleDateString()}`;
-
-      // Slide 1: Portada
-      this.addTitleSlide(analysisData);
-
-      // Slide 2: Resumen Ejecutivo
-      this.addExecutiveSummarySlide(analysisData);
-
-      // Slide 3: Métricas de Correlación
-      this.addCorrelationMetricsSlide(analysisData);
-
-      // Slide 4: Análisis de Video (si disponible)
-      if (analysisData.videoAnalysis) {
-        this.addVideoAnalysisSlide(analysisData);
-      }
-
-      // Slide 5: Recomendaciones
-      this.addRecommendationsSlide(analysisData);
-
-      // Slide 6: Análisis Temporal
-      this.addTemporalAnalysisSlide(analysisData);
-
-      // Slide 7: Conclusiones
-      this.addConclusionsSlide(analysisData);
-
-      return this.pptx;
+      this.analysisData = analysisData;
+      return this.generateHTMLPresentation();
     } catch (error) {
-      console.error('Error generando presentación PPTX:', error);
+      console.error('Error generando presentación:', error);
       throw error;
     }
   }
 
-  addTitleSlide(analysisData) {
-    const slide = this.pptx.addSlide();
-    
-    // Título principal
-    slide.addText('Análisis de Spot TV vs Tráfico Web', {
-      x: 1, y: 2, w: 8, h: 1.5,
-      fontSize: 32, bold: true, color: '1f2937',
-      align: 'center'
-    });
-
-    // Subtítulo con fecha
-    slide.addText(`Generado el ${new Date().toLocaleDateString('es-ES', { 
-      year: 'numeric', month: 'long', day: 'numeric' 
-    })}`, {
-      x: 1, y: 3.8, w: 8, h: 0.5,
-      fontSize: 16, color: '6b7280',
-      align: 'center'
-    });
-
-    // Información del spot
-    if (analysisData.spotData) {
-      const spot = analysisData.spotData;
-      slide.addText(`Spot: ${spot.titulo_programa || 'N/A'}`, {
-        x: 1, y: 4.8, w: 8, h: 0.5,
-        fontSize: 18, bold: true, color: '374151',
-        align: 'center'
-      });
-
-      slide.addText(`Canal: ${spot.canal || 'N/A'} | Hora: ${spot.hora || 'N/A'}`, {
-        x: 1, y: 5.4, w: 8, h: 0.5,
-        fontSize: 14, color: '6b7280',
-        align: 'center'
-      });
+  generateHTMLPresentation() {
+    const data = this.analysisData;
+    if (!data || !data.analysisResults || data.analysisResults.length === 0) {
+      throw new Error('No hay datos de análisis para exportar');
     }
 
-    // Logo/Branding
-    slide.addText('Powered by BrifyAI', {
-      x: 1, y: 6.5, w: 8, h: 0.5,
-      fontSize: 12, color: '9ca3af',
-      align: 'center'
-    });
-  }
+    const result = data.analysisResults[0];
+    const spot = result.spot;
+    const impact = result.impact?.activeUsers?.percentageChange || 0;
 
-  addExecutiveSummarySlide(analysisData) {
-    const slide = this.pptx.addSlide();
-    
-    // Título
-    slide.addText('Resumen Ejecutivo', {
-      x: 0.5, y: 0.5, w: 9, h: 0.8,
-      fontSize: 28, bold: true, color: '1f2937'
-    });
-
-    let yPos = 1.5;
-
-    // Datos del análisis
-    if (analysisData.analysisResults && analysisData.analysisResults.length > 0) {
-      const result = analysisData.analysisResults[0];
-      const spotHour = result.spot?.dateTime?.getHours() || result.spot?.hora || 'N/A';
-      const impact = result.impact?.activeUsers?.percentageChange || 0;
-
-      slide.addText('📊 Resultados Principales:', {
-        x: 0.5, y: yPos, w: 9, h: 0.4,
-        fontSize: 16, bold: true, color: '374151'
-      });
-      yPos += 0.5;
-
-      slide.addText(`• Horario de transmisión: ${spotHour}:00`, {
-        x: 0.7, y: yPos, w: 8.5, h: 0.3,
-        fontSize: 12, color: '4b5563'
-      });
-      yPos += 0.4;
-
-      slide.addText(`• Impacto en usuarios activos: ${impact >= 0 ? '+' : ''}${impact.toFixed(1)}%`, {
-        x: 0.7, y: yPos, w: 8.5, h: 0.3,
-        fontSize: 12, color: impact > 0 ? '059669' : impact < 0 ? 'dc2626' : '6b7280'
-      });
-      yPos += 0.4;
-
-      // Clasificación del impacto
-      let classification = '';
-      if (impact > 20) {
-        classification = '✅ CORRELACIÓN FUERTE - El spot generó un impacto significativo en el tráfico web';
-      } else if (impact > 10) {
-        classification = '⚠️ CORRELACIÓN MODERADA - El spot tuvo impacto positivo pero mejorable';
-      } else if (impact < -10) {
-        classification = '❌ CORRELACIÓN NEGATIVA - El spot redujo el tráfico web';
-      } else {
-        classification = '🔄 CORRELACIÓN DÉBIL - Impacto mínimo en el tráfico web';
-      }
-
-      slide.addText(classification, {
-        x: 0.7, y: yPos, w: 8.5, h: 0.5,
-        fontSize: 12, color: '374151'
-      });
-      yPos += 0.7;
-    }
-
-    // Análisis de video si está disponible
-    if (analysisData.videoAnalysis && analysisData.videoAnalysis.analisis_efectividad) {
-      slide.addText('🎬 Análisis de Contenido:', {
-        x: 0.5, y: yPos, w: 9, h: 0.4,
-        fontSize: 16, bold: true, color: '374151'
-      });
-      yPos += 0.5;
-
-      const efectividad = analysisData.videoAnalysis.analisis_efectividad;
-      const clarity = parseFloat(efectividad.claridad_mensaje || 0);
-      const engagement = parseFloat(efectividad.engagement_visual || 0);
-      const memorability = parseFloat(efectividad.memorabilidad || 0);
-
-      slide.addText(`• Claridad del mensaje: ${clarity.toFixed(1)}/10`, {
-        x: 0.7, y: yPos, w: 8.5, h: 0.3,
-        fontSize: 12, color: '4b5563'
-      });
-      yPos += 0.4;
-
-      slide.addText(`• Engagement visual: ${engagement.toFixed(1)}/10`, {
-        x: 0.7, y: yPos, w: 8.5, h: 0.3,
-        fontSize: 12, color: '4b5563'
-      });
-      yPos += 0.4;
-
-      slide.addText(`• Memorabilidad: ${memorability.toFixed(1)}/10`, {
-        x: 0.7, y: yPos, w: 8.5, h: 0.3,
-        fontSize: 12, color: '4b5563'
-      });
-    }
-  }
-
-  addCorrelationMetricsSlide(analysisData) {
-    const slide = this.pptx.addSlide();
-    
-    // Título
-    slide.addText('Métricas de Correlación TV-Web', {
-      x: 0.5, y: 0.5, w: 9, h: 0.8,
-      fontSize: 28, bold: true, color: '1f2937'
-    });
-
-    if (analysisData.analysisResults && analysisData.analysisResults.length > 0) {
-      const result = analysisData.analysisResults[0];
-      
-      // Tabla de métricas
-      const metrics = [
-        ['Métrica', 'Durante Spot', 'Referencia', 'Cambio %'],
-        ['Usuarios Activos', 
-         result.metrics?.spot?.activeUsers || 'N/A',
-         result.metrics?.reference?.activeUsers || 'N/A',
-         `${result.impact?.activeUsers?.percentageChange >= 0 ? '+' : ''}${result.impact?.activeUsers?.percentageChange?.toFixed(1) || '0'}%`],
-        ['Sesiones',
-         result.metrics?.spot?.sessions || 'N/A', 
-         result.metrics?.reference?.sessions || 'N/A',
-         `${result.impact?.sessions?.percentageChange >= 0 ? '+' : ''}${result.impact?.sessions?.percentageChange?.toFixed(1) || '0'}%`],
-        ['Vistas de Página',
-         result.metrics?.spot?.pageviews || 'N/A',
-         result.metrics?.reference?.pageviews || 'N/A', 
-         `${result.impact?.pageviews?.percentageChange >= 0 ? '+' : ''}${result.impact?.pageviews?.percentageChange?.toFixed(1) || '0'}%`]
-      ];
-
-      slide.addTable(metrics, {
-        x: 0.5, y: 1.8, w: 9, h: 3,
-        fontSize: 12,
-        border: { type: 'solid', color: 'e5e7eb', pt: 1 },
-        fill: 'f9fafb',
-        colW: [2.5, 2, 2, 2.5],
-        valign: 'middle',
-        fontFace: 'Arial'
-      });
-
-      // Interpretación
-      slide.addText('📈 Interpretación de Resultados:', {
-        x: 0.5, y: 5.2, w: 9, h: 0.4,
-        fontSize: 16, bold: true, color: '374151'
-      });
-
-      const usersImpact = result.impact?.activeUsers?.percentageChange || 0;
-      let interpretation = '';
-      
-      if (usersImpact > 15) {
-        interpretation = '✅ Vinculación Directa Confirmada: El spot generó un aumento significativo (>15%) en el tráfico web durante su transmisión.';
-      } else if (usersImpact > 10) {
-        interpretation = '⚠️ Impacto Significativo: El spot tuvo un impacto positivo (>10%) pero no cumple los criterios de vinculación directa.';
-      } else if (usersImpact < -10) {
-        interpretation = '❌ Impacto Negativo: El spot redujo el tráfico web, sugiriendo problemas en el mensaje o timing.';
-      } else {
-        interpretation = '🔄 Impacto Mínimo: El spot no generó cambios significativos en el tráfico web.';
-      }
-
-      slide.addText(interpretation, {
-        x: 0.7, y: 5.7, w: 8.5, h: 1,
-        fontSize: 12, color: '4b5563',
-        valign: 'top'
-      });
-    }
-  }
-
-  addVideoAnalysisSlide(analysisData) {
-    const slide = this.pptx.addSlide();
-    
-    // Título
-    slide.addText('Análisis de Contenido del Video', {
-      x: 0.5, y: 0.5, w: 9, h: 0.8,
-      fontSize: 28, bold: true, color: '1f2937'
-    });
-
-    const videoAnalysis = analysisData.videoAnalysis;
-    let yPos = 1.5;
-
-    // Efectividad
-    if (videoAnalysis.analisis_efectividad) {
-      slide.addText('🎯 Evaluación de Efectividad:', {
-        x: 0.5, y: yPos, w: 9, h: 0.4,
-        fontSize: 16, bold: true, color: '374151'
-      });
-      yPos += 0.5;
-
-      const efectividad = videoAnalysis.analisis_efectividad;
-      Object.entries(efectividad).forEach(([key, value]) => {
-        if (value && typeof value === 'string') {
-          const displayName = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-          slide.addText(`• ${displayName}: ${parseFloat(value).toFixed(1)}/10`, {
-            x: 0.7, y: yPos, w: 8.5, h: 0.3,
-            fontSize: 12, color: '4b5563'
-          });
-          yPos += 0.4;
+    // Generar HTML de la presentación
+    const html = `
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Análisis de Spot TV - ${new Date().toLocaleDateString()}</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
         }
-      });
-      yPos += 0.3;
-    }
+        .slide {
+            background: white;
+            margin: 20px 0;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            page-break-after: always;
+            min-height: 600px;
+        }
+        .slide h1 {
+            color: #1f2937;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+            margin-bottom: 30px;
+        }
+        .slide h2 {
+            color: #374151;
+            margin-top: 30px;
+        }
+        .metrics-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        .metrics-table th, .metrics-table td {
+            border: 1px solid #e5e7eb;
+            padding: 12px;
+            text-align: left;
+        }
+        .metrics-table th {
+            background-color: #f9fafb;
+            font-weight: 600;
+        }
+        .positive { color: #059669; }
+        .negative { color: #dc2626; }
+        .neutral { color: #6b7280; }
+        .impact-high { background: linear-gradient(90deg, #dcfce7, #bbf7d0); }
+        .impact-medium { background: linear-gradient(90deg, #fef3c7, #fde68a); }
+        .impact-low { background: linear-gradient(90deg, #fee2e2, #fecaca); }
+        .recommendation {
+            background: #f8fafc;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin: 10px 0;
+        }
+        .logo {
+            text-align: center;
+            color: #9ca3af;
+            font-size: 12px;
+            margin-top: 40px;
+        }
+        @media print {
+            body { background: white; }
+            .slide { box-shadow: none; margin: 0; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Slide 1: Portada -->
+    <div class="slide">
+        <h1 style="text-align: center; font-size: 2.5em; margin-top: 100px;">
+            Análisis de Spot TV vs Tráfico Web
+        </h1>
+        <p style="text-align: center; font-size: 1.2em; color: #6b7280; margin-top: 20px;">
+            Generado el ${new Date().toLocaleDateString('es-ES', { 
+              year: 'numeric', month: 'long', day: 'numeric' 
+            })}
+        </p>
+        <div style="text-align: center; margin-top: 60px;">
+            <h2 style="color: #374151;">${spot?.titulo_programa || spot?.nombre || 'Spot TV'}</h2>
+            <p style="font-size: 1.1em; color: #6b7280;">
+                Canal: ${spot?.canal || 'N/A'} | Hora: ${spot?.hora || 'N/A'}
+            </p>
+        </div>
+        <div class="logo">
+            Powered by BrifyAI
+        </div>
+    </div>
 
-    // Contenido visual
-    if (videoAnalysis.contenido_visual) {
-      slide.addText('🎨 Contenido Visual:', {
-        x: 0.5, y: yPos, w: 9, h: 0.4,
-        fontSize: 16, bold: true, color: '374151'
-      });
-      yPos += 0.5;
+    <!-- Slide 2: Resumen Ejecutivo -->
+    <div class="slide">
+        <h1>Resumen Ejecutivo</h1>
+        
+        <h2>📊 Resultados Principales:</h2>
+        <ul style="font-size: 1.1em; line-height: 1.6;">
+            <li><strong>Horario de transmisión:</strong> ${result.spot?.dateTime?.getHours() || result.spot?.hora || 'N/A'}:00</li>
+            <li><strong>Impacto en usuarios activos:</strong> <span class="${impact >= 0 ? 'positive' : 'negative'}">${impact >= 0 ? '+' : ''}${impact.toFixed(1)}%</span></li>
+        </ul>
 
-      if (videoAnalysis.contenido_visual.escenas_principales) {
-        slide.addText(`• Escenas principales: ${videoAnalysis.contenido_visual.escenas_principales.join(', ')}`, {
-          x: 0.7, y: yPos, w: 8.5, h: 0.3,
-          fontSize: 12, color: '4b5563'
-        });
-        yPos += 0.4;
-      }
+        <div class="recommendation">
+            <h3>Clasificación del Impacto:</h3>
+            <p><strong>${
+              impact > 20 ? '✅ CORRELACIÓN FUERTE - El spot generó un impacto significativo en el tráfico web' :
+              impact > 10 ? '⚠️ CORRELACIÓN MODERADA - El spot tuvo impacto positivo pero mejorable' :
+              impact < -10 ? '❌ CORRELACIÓN NEGATIVA - El spot redujo el tráfico web' :
+              '🔄 CORRELACIÓN DÉBIL - Impacto mínimo en el tráfico web'
+            }</p>
+        </div>
 
-      if (videoAnalysis.contenido_visual.colores_dominantes) {
-        slide.addText(`• Colores dominantes: ${videoAnalysis.contenido_visual.colores_dominantes.join(', ')}`, {
-          x: 0.7, y: yPos, w: 8.5, h: 0.3,
-          fontSize: 12, color: '4b5563'
-        });
-        yPos += 0.4;
-      }
-      yPos += 0.3;
-    }
+        ${data.videoAnalysis && data.videoAnalysis.analisis_efectividad ? `
+        <h2>🎬 Análisis de Contenido:</h2>
+        <ul>
+            <li><strong>Claridad del mensaje:</strong> ${parseFloat(data.videoAnalysis.analisis_efectividad.claridad_mensaje || 0).toFixed(1)}/10</li>
+            <li><strong>Engagement visual:</strong> ${parseFloat(data.videoAnalysis.analisis_efectividad.engagement_visual || 0).toFixed(1)}/10</li>
+            <li><strong>Memorabilidad:</strong> ${parseFloat(data.videoAnalysis.analisis_efectividad.memorabilidad || 0).toFixed(1)}/10</li>
+        </ul>
+        ` : ''}
+    </div>
 
-    // Mensaje de marketing
-    if (videoAnalysis.mensaje_marketing) {
-      slide.addText('💬 Mensaje de Marketing:', {
-        x: 0.5, y: yPos, w: 9, h: 0.4,
-        fontSize: 16, bold: true, color: '374151'
-      });
-      yPos += 0.5;
+    <!-- Slide 3: Métricas de Correlación -->
+    <div class="slide">
+        <h1>Métricas de Correlación TV-Web</h1>
+        
+        <table class="metrics-table">
+            <thead>
+                <tr>
+                    <th>Métrica</th>
+                    <th>Durante Spot</th>
+                    <th>Referencia</th>
+                    <th>Cambio %</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Usuarios Activos</strong></td>
+                    <td>${result.metrics?.spot?.activeUsers || 'N/A'}</td>
+                    <td>${result.metrics?.reference?.activeUsers || 'N/A'}</td>
+                    <td class="${result.impact?.activeUsers?.percentageChange >= 0 ? 'positive' : 'negative'}">
+                        ${result.impact?.activeUsers?.percentageChange >= 0 ? '+' : ''}${result.impact?.activeUsers?.percentageChange?.toFixed(1) || '0'}%
+                    </td>
+                </tr>
+                <tr>
+                    <td><strong>Sesiones</strong></td>
+                    <td>${result.metrics?.spot?.sessions || 'N/A'}</td>
+                    <td>${result.metrics?.reference?.sessions || 'N/A'}</td>
+                    <td class="${result.impact?.sessions?.percentageChange >= 0 ? 'positive' : 'negative'}">
+                        ${result.impact?.sessions?.percentageChange >= 0 ? '+' : ''}${result.impact?.sessions?.percentageChange?.toFixed(1) || '0'}%
+                    </td>
+                </tr>
+                <tr>
+                    <td><strong>Vistas de Página</strong></td>
+                    <td>${result.metrics?.spot?.pageviews || 'N/A'}</td>
+                    <td>${result.metrics?.reference?.pageviews || 'N/A'}</td>
+                    <td class="${result.impact?.pageviews?.percentageChange >= 0 ? 'positive' : 'negative'}">
+                        ${result.impact?.pageviews?.percentageChange >= 0 ? '+' : ''}${result.impact?.pageviews?.percentageChange?.toFixed(1) || '0'}%
+                    </td>
+                </tr>
+            </tbody>
+        </table>
 
-      if (videoAnalysis.mensaje_marketing.call_to_action) {
-        slide.addText(`• Call-to-Action: ${videoAnalysis.mensaje_marketing.call_to_action}`, {
-          x: 0.7, y: yPos, w: 8.5, h: 0.3,
-          fontSize: 12, color: '4b5563'
-        });
-        yPos += 0.4;
-      }
+        <h2>📈 Interpretación de Resultados:</h2>
+        <div class="recommendation">
+            <p><strong>${
+              result.impact?.activeUsers?.percentageChange > 15 ? 
+                '✅ Vinculación Directa Confirmada: El spot generó un aumento significativo (>15%) en el tráfico web durante su transmisión.' :
+              result.impact?.activeUsers?.percentageChange > 10 ?
+                '⚠️ Impacto Significativo: El spot tuvo un impacto positivo (>10%) pero no cumple los criterios de vinculación directa.' :
+              result.impact?.activeUsers?.percentageChange < -10 ?
+                '❌ Impacto Negativo: El spot redujo el tráfico web, sugiriendo problemas en el mensaje o timing.' :
+                '🔄 Impacto Mínimo: El spot no generó cambios significativos en el tráfico web.'
+            }</strong></p>
+        </div>
+    </div>
 
-      if (videoAnalysis.mensaje_marketing.propuesta_valor) {
-        slide.addText(`• Propuesta de valor: ${videoAnalysis.mensaje_marketing.propuesta_valor}`, {
-          x: 0.7, y: yPos, w: 8.5, h: 0.3,
-          fontSize: 12, color: '4b5563'
-        });
-      }
-    }
+    <!-- Slide 4: Recomendaciones -->
+    <div class="slide">
+        <h1>Recomendaciones Estratégicas</h1>
+        
+        <div class="recommendation">
+            <h3>Timing - Prioridad: Alta</h3>
+            <p><strong>Evaluar diferentes horarios de transmisión</strong></p>
+            <p>El spot fue transmitido a las ${result.spot?.dateTime?.getHours() || result.spot?.hora || new Date().getHours()}:00. 
+            ${(result.spot?.dateTime?.getHours() || result.spot?.hora || new Date().getHours()) >= 19 && (result.spot?.dateTime?.getHours() || result.spot?.hora || new Date().getHours()) <= 23 ? 
+              'Horario óptimo (prime time).' : 
+              'Probar horarios 19:00-23:00 para maximizar impacto.'}</p>
+        </div>
+
+        <div class="recommendation">
+            <h3>Análisis de Efectividad - Prioridad: ${impact > 20 ? 'Media' : impact < -10 ? 'Alta' : 'Media'}</h3>
+            <p><strong>${
+              impact > 20 ? 'El spot SÍ funcionó - Incremento significativo en tráfico' :
+              impact < -10 ? 'El spot NO funcionó - Impacto negativo en tráfico' :
+              'Spot con impacto mínimo - Oportunidad de mejora'
+            }</strong></p>
+            <p>Impacto medido: ${impact >= 0 ? '+' : ''}${impact.toFixed(1)}%. 
+            ${
+              impact > 20 ? 'El spot generó correlación positiva entre TV y tráfico web.' :
+              impact < -10 ? 'El spot generó correlación negativa entre TV y tráfico web.' :
+              'El spot no generó cambios significativos en el tráfico web.'
+            }</p>
+        </div>
+    </div>
+
+    <!-- Slide 5: Análisis Temporal -->
+    <div class="slide">
+        <h1>Análisis Temporal</h1>
+        
+        <h2>⏰ Análisis de Timing:</h2>
+        <p><strong>Horario de transmisión:</strong> ${result.spot?.dateTime?.getHours() || result.spot?.hora || 'N/A'}:00</p>
+        <p><strong>Clasificación:</strong> ${
+          (result.spot?.dateTime?.getHours() || result.spot?.hora || 0) >= 19 && (result.spot?.dateTime?.getHours() || result.spot?.hora || 0) <= 23 ? 'Prime Time (ÓPTIMO)' :
+          (result.spot?.dateTime?.getHours() || result.spot?.hora || 0) >= 6 && (result.spot?.dateTime?.getHours() || result.spot?.hora || 0) < 12 ? 'Mañana (MEDIO)' :
+          (result.spot?.dateTime?.getHours() || result.spot?.hora || 0) >= 12 && (result.spot?.dateTime?.getHours() || result.spot?.hora || 0) < 19 ? 'Tarde (MEJORABLE)' : 'Noche (BAJO)'
+        }</p>
+        
+        <h3>Horarios recomendados para maximizar impacto:</h3>
+        <ul>
+            <li>19:00-23:00 (Prime Time) - Máxima audiencia</li>
+            <li>12:00-14:00 (Almuerzo) - Audiencia media-alta</li>
+            <li>20:00-22:00 (Nocturno) - Audiencia comprometida</li>
+        </ul>
+
+        <h2>📊 Patrones de Tráfico Web:</h2>
+        <p>Los picos de tráfico web típicamente ocurren durante horarios de mayor actividad online, que no siempre coinciden con los horarios de mayor audiencia televisiva.</p>
+    </div>
+
+    <!-- Slide 6: Conclusiones -->
+    <div class="slide">
+        <h1>Conclusiones y Próximos Pasos</h1>
+        
+        <h2>🎯 Conclusiones Principales:</h2>
+        <ul style="font-size: 1.1em; line-height: 1.8;">
+            ${
+              impact > 20 ? `
+                <li>✅ El spot demostró alta efectividad para generar tráfico web</li>
+                <li>✅ La correlación TV-Web es fuerte y significativa</li>
+                <li>✅ El timing y contenido fueron apropiados</li>
+                <li>📈 Considerar replicar esta estrategia en futuros spots</li>
+              ` : impact > 10 ? `
+                <li>⚠️ El spot tuvo impacto positivo pero mejorable</li>
+                <li>📊 Existe correlación TV-Web moderada</li>
+                <li>🎯 Oportunidades de optimización identificadas</li>
+                <li>🔄 Ajustar timing y contenido para maximizar impacto</li>
+              ` : impact < -10 ? `
+                <li>❌ El spot no fue efectivo para generar tráfico web</li>
+                <li>🚫 Se detectó correlación negativa TV-Web</li>
+                <li>🔍 Revisar mensaje, timing y targeting</li>
+                <li>⚡ Implementar cambios urgentes en la estrategia</li>
+              ` : `
+                <li>🔄 El spot no generó cambios significativos</li>
+                <li>📊 Correlación TV-Web débil o nula</li>
+                <li>🎯 Múltiples oportunidades de mejora</li>
+                <li>📈 Requiere optimización integral de la estrategia</li>
+              `
+            }
+        </ul>
+
+        <h2>🚀 Próximos Pasos:</h2>
+        <ol style="font-size: 1.1em; line-height: 1.8;">
+            <li>Implementar las recomendaciones prioritarias</li>
+            <li>Monitorear el próximo spot con estos insights</li>
+            <li>A/B testing de diferentes horarios y contenidos</li>
+            <li>Establecer métricas de seguimiento continuo</li>
+            <li>Optimizar basado en datos reales de performance</li>
+        </ol>
+    </div>
+</body>
+</html>
+    `;
+
+    return html;
   }
 
-  addRecommendationsSlide(analysisData) {
-    const slide = this.pptx.addSlide();
-    
-    // Título
-    slide.addText('Recomendaciones Estratégicas', {
-      x: 0.5, y: 0.5, w: 9, h: 0.8,
-      fontSize: 28, bold: true, color: '1f2937'
-    });
-
-    let yPos = 1.5;
-
-    // Generar recomendaciones basadas en los datos
-    const recommendations = this.generateRecommendationsFromData(analysisData);
-
-    recommendations.forEach((rec, index) => {
-      // Categoría y prioridad
-      slide.addText(`${rec.category} - Prioridad: ${rec.priority}`, {
-        x: 0.5, y: yPos, w: 9, h: 0.3,
-        fontSize: 14, bold: true, color: this.getPriorityColor(rec.priority)
-      });
-      yPos += 0.4;
-
-      // Texto de la recomendación
-      slide.addText(rec.text, {
-        x: 0.7, y: yPos, w: 8.5, h: 0.4,
-        fontSize: 12, color: '374151'
-      });
-      yPos += 0.5;
-
-      // Justificación
-      slide.addText(rec.why, {
-        x: 0.7, y: yPos, w: 8.5, h: 0.6,
-        fontSize: 11, color: '6b7280',
-        valign: 'top'
-      });
-      yPos += 0.8;
-
-      if (yPos > 6) {
-        yPos = 1.5;
-        this.pptx.addSlide();
-      }
-    });
-  }
-
-  addTemporalAnalysisSlide(analysisData) {
-    const slide = this.pptx.addSlide();
-    
-    // Título
-    slide.addText('Análisis Temporal', {
-      x: 0.5, y: 0.5, w: 9, h: 0.8,
-      fontSize: 28, bold: true, color: '1f2937'
-    });
-
-    if (analysisData.analysisResults && analysisData.analysisResults.length > 0) {
-      const result = analysisData.analysisResults[0];
-      const spotHour = result.spot?.dateTime?.getHours() || result.spot?.hora || 'N/A';
-      
-      slide.addText('⏰ Análisis de Timing:', {
-        x: 0.5, y: 1.5, w: 9, h: 0.4,
-        fontSize: 16, bold: true, color: '374151'
-      });
-
-      const isPrimeTime = spotHour >= 19 && spotHour <= 23;
-      const isMorning = spotHour >= 6 && spotHour < 12;
-      const isAfternoon = spotHour >= 12 && spotHour < 19;
-
-      let timingAnalysis = `Horario de transmisión: ${spotHour}:00\n`;
-      timingAnalysis += `Clasificación: ${isPrimeTime ? 'Prime Time (ÓPTIMO)' : isMorning ? 'Mañana (MEDIO)' : isAfternoon ? 'Tarde (MEJORABLE)' : 'Noche (BAJO)'}\n\n`;
-      
-      timingAnalysis += 'Horarios recomendados para maximizar impacto:\n';
-      timingAnalysis += '• 19:00-23:00 (Prime Time) - Máxima audiencia\n';
-      timingAnalysis += '• 12:00-14:00 (Almuerzo) - Audiencia media-alta\n';
-      timingAnalysis += '• 20:00-22:00 (Nocturno) - Audiencia comprometida';
-
-      slide.addText(timingAnalysis, {
-        x: 0.7, y: 2, w: 8.5, h: 3,
-        fontSize: 12, color: '4b5563',
-        valign: 'top'
-      });
-
-      // Patrones de tráfico
-      slide.addText('📊 Patrones de Tráfico Web:', {
-        x: 0.5, y: 5.5, w: 9, h: 0.4,
-        fontSize: 16, bold: true, color: '374151'
-      });
-
-      slide.addText('Los picos de tráfico web típicamente ocurren durante horarios de mayor actividad online, que no siempre coinciden con los horarios de mayor audiencia televisiva.', {
-        x: 0.7, y: 6, w: 8.5, h: 1,
-        fontSize: 12, color: '6b7280',
-        valign: 'top'
-      });
-    }
-  }
-
-  addConclusionsSlide(analysisData) {
-    const slide = this.pptx.addSlide();
-    
-    // Título
-    slide.addText('Conclusiones y Próximos Pasos', {
-      x: 0.5, y: 0.5, w: 9, h: 0.8,
-      fontSize: 28, bold: true, color: '1f2937'
-    });
-
-    let yPos = 1.5;
-
-    // Conclusiones basadas en los datos
-    if (analysisData.analysisResults && analysisData.analysisResults.length > 0) {
-      const result = analysisData.analysisResults[0];
-      const impact = result.impact?.activeUsers?.percentageChange || 0;
-
-      slide.addText('🎯 Conclusiones Principales:', {
-        x: 0.5, y: yPos, w: 9, h: 0.4,
-        fontSize: 16, bold: true, color: '374151'
-      });
-      yPos += 0.5;
-
-      let conclusions = [];
-      
-      if (impact > 20) {
-        conclusions = [
-          '✅ El spot demostró alta efectividad para generar tráfico web',
-          '✅ La correlación TV-Web es fuerte y significativa',
-          '✅ El timing y contenido fueron apropiados',
-          '📈 Considerar replicar esta estrategia en futuros spots'
-        ];
-      } else if (impact > 10) {
-        conclusions = [
-          '⚠️ El spot tuvo impacto positivo pero mejorable',
-          '📊 Existe correlación TV-Web moderada',
-          '🎯 Oportunidades de optimización identificadas',
-          '🔄 Ajustar timing y contenido para maximizar impacto'
-        ];
-      } else if (impact < -10) {
-        conclusions = [
-          '❌ El spot no fue efectivo para generar tráfico web',
-          '🚫 Se detectó correlación negativa TV-Web',
-          '🔍 Revisar mensaje, timing y targeting',
-          '⚡ Implementar cambios urgentes en la estrategia'
-        ];
-      } else {
-        conclusions = [
-          '🔄 El spot no generó cambios significativos',
-          '📊 Correlación TV-Web débil o nula',
-          '🎯 Múltiples oportunidades de mejora',
-          '📈 Requiere optimización integral de la estrategia'
-        ];
-      }
-
-      conclusions.forEach(conclusion => {
-        slide.addText(conclusion, {
-          x: 0.7, y: yPos, w: 8.5, h: 0.4,
-          fontSize: 12, color: '4b5563'
-        });
-        yPos += 0.5;
-      });
-
-      yPos += 0.5;
-    }
-
-    // Próximos pasos
-    slide.addText('🚀 Próximos Pasos:', {
-      x: 0.5, y: yPos, w: 9, h: 0.4,
-      fontSize: 16, bold: true, color: '374151'
-    });
-    yPos += 0.5;
-
-    const nextSteps = [
-      '1. Implementar las recomendaciones prioritarias',
-      '2. Monitorear el próximo spot con estos insights',
-      '3. A/B testing de diferentes horarios y contenidos',
-      '4. Establecer métricas de seguimiento continuo',
-      '5. Optimizar basado en datos reales de performance'
-    ];
-
-    nextSteps.forEach(step => {
-      slide.addText(step, {
-        x: 0.7, y: yPos, w: 8.5, h: 0.3,
-        fontSize: 12, color: '4b5563'
-      });
-      yPos += 0.4;
-    });
-  }
-
-  generateRecommendationsFromData(analysisData) {
-    const recommendations = [];
-    
-    if (analysisData.analysisResults && analysisData.analysisResults.length > 0) {
-      const result = analysisData.analysisResults[0];
-      const impact = result.impact?.activeUsers?.percentageChange || 0;
-      const spotHour = result.spot?.dateTime?.getHours() || result.spot?.hora || new Date().getHours();
-      const isPrimeTime = spotHour >= 19 && spotHour <= 23;
-
-      // Recomendación de timing
-      recommendations.push({
-        priority: 'Alta',
-        category: 'Timing',
-        text: 'Evaluar diferentes horarios de transmisión',
-        why: `El spot fue transmitido a las ${spotHour}:00. ${isPrimeTime ? 'Horario óptimo (prime time).' : 'Probar horarios 19:00-23:00 para maximizar impacto.'}`
-      });
-
-      // Análisis causal
-      if (impact > 20) {
-        recommendations.push({
-          priority: 'Media',
-          category: 'Análisis de Éxito',
-          text: 'El spot SÍ funcionó - Incremento significativo en tráfico',
-          why: `Impacto medido: +${impact.toFixed(1)}%. El spot generó correlación positiva entre TV y tráfico web.`
-        });
-      } else if (impact < -10) {
-        recommendations.push({
-          priority: 'Alta',
-          category: 'Análisis de Fracaso',
-          text: 'El spot NO funcionó - Impacto negativo en tráfico',
-          why: `Impacto medido: ${impact.toFixed(1)}%. El spot generó correlación negativa entre TV y tráfico web.`
-        });
-      } else {
-        recommendations.push({
-          priority: 'Media',
-          category: 'Análisis Neutral',
-          text: 'Spot con impacto mínimo - Oportunidad de mejora',
-          why: `Impacto medido: ${impact.toFixed(1)}%. El spot no generó cambios significativos en el tráfico web.`
-        });
-      }
-    }
-
-    return recommendations;
-  }
-
-  getPriorityColor(priority) {
-    switch (priority) {
-      case 'Alta': return 'dc2626';
-      case 'Media': return 'd97706';
-      case 'Baja': return '059669';
-      default: return '6b7280';
-    }
-  }
-
-  async downloadPresentation(filename = 'analisis-spot-tv.xlsx') {
+  async downloadPresentation(filename = 'analisis-spot-tv.html') {
     try {
-      await this.pptx.writeFile({ fileName: filename });
+      const htmlContent = this.generateHTMLPresentation();
+      
+      // Crear blob y descargar
+      const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename.replace('.pptx', '.html'); // Cambiar extensión a HTML
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      
       return true;
     } catch (error) {
       console.error('Error descargando presentación:', error);
