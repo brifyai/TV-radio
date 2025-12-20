@@ -4,6 +4,7 @@ import { useGoogleAnalytics } from '../../contexts/GoogleAnalyticsContext';
 import { Link, useLocation, useNavigate, Outlet } from 'react-router-dom';
 import LoadingSpinner from '../UI/LoadingSpinner';
 import Avatar from '../UI/Avatar';
+import Help from '../Help/Help';
 import { motion } from 'framer-motion';
 import {
   BarChart3,
@@ -20,7 +21,8 @@ import {
   TrendingUp,
   Radio,
   Maximize,
-  Minimize
+  Minimize,
+  HelpCircle
 } from 'lucide-react';
 
 const Layout = () => {
@@ -31,6 +33,7 @@ const Layout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [fullscreenMode, setFullscreenMode] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(false);
   const userMenuRef = useRef(null);
 
   // Close user menu when clicking outside
@@ -74,6 +77,7 @@ const Layout = () => {
     { name: 'Cuentas', href: '/accounts', icon: Users, current: location.pathname === '/accounts' },
     { name: 'Spot TV', href: '/spot-analysis', icon: TrendingUp, current: location.pathname === '/spot-analysis' },
     { name: 'Frases Radio', href: '/frases-radio', icon: Radio, current: location.pathname === '/frases-radio' },
+    { name: 'Ayuda', href: '#', icon: HelpCircle, current: false, onClick: () => setHelpOpen(true) },
   ];
 
   return (
@@ -456,6 +460,16 @@ const Layout = () => {
           </div>
         </footer>
       </div>
+      
+      {/* Modal de Ayuda */}
+      {helpOpen && (
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+            <div className="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75" onClick={() => setHelpOpen(false)}></div>
+            <Help onClose={() => setHelpOpen(false)} />
+          </div>
+        </div>
+      )}
     </div>
   );
 };
