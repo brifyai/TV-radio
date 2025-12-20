@@ -2,9 +2,10 @@
  * Servicio de análisis de video usando la API de chutes.ai
  * Modelo: Qwen/Qwen2.5-VL-72B-Instruct
  * VERSIÓN MEJORADA: Integra análisis de video con datos reales de Google Analytics
+ * VERSIÓN 2.0: Manejo mejorado de errores y múltiples proveedores
  */
 
-const CHUTES_API_KEY = 'cpk_f07741417dab421f995b63e2b9869206.272f8a269e1b5ec092ba273b83403b1d.u5no8AouQcBglfhegVrjdcU98kPSCkYt';
+const CHUTES_API_KEY = process.env.REACT_APP_CHUTES_API_KEY || 'cpk_f07741417dab421f995b63e2b9869206.272f8a269e1b5ec092ba273b83403b1d.u5no8AouQcBglfhegVrjdcU98kPSCkYt';
 const CHUTES_API_URL = 'https://llm.chutes.ai/v1';
 
 // Lista de modelos VL en orden de prioridad para fallback automático
@@ -1009,6 +1010,49 @@ Analiza el video y responde únicamente con el JSON válido, sin texto adicional
   }
 
   /**
+   * Test de conectividad con la API de Chutes AI
+   * @returns {Promise<Object>} Resultado del test de conectividad
+   */
+  async testConnectivity() {
+    try {
+      console.log('🔍 Probando conectividad con Chutes AI...');
+      
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 segundos timeout
+      
+      const response = await fetch(`${this.baseUrl}/models`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${this.apiKey}`,
+          'Content-Type': 'application/json',
+          'User-Agent': 'TV-Radio-Analysis-System/2.0'
+        },
+        signal: controller.signal
+      });
+      
+      clearTimeout(timeoutId);
+      
+      const isHealthy = response.ok;
+      console.log(`📡 Test de conectividad Chutes AI: ${isHealthy ? '✅ ÉXITO' : '❌ FALLO'} (${response.status})`);
+      
+      return {
+        success: isHealthy,
+        status: response.status,
+        statusText: response.statusText,
+        timestamp: new Date().toISOString()
+      };
+      
+    } catch (error) {
+      console.warn('⚠️ Error en test de conectividad Chutes AI:', error.message);
+      return {
+        success: false,
+        error: error.message,
+        timestamp: new Date().toISOString()
+      };
+    }
+  }
+
+  /**
    * Obtener sugerencia basada en el tipo de error
    * @param {string} errorMessage - Mensaje de error
    * @returns {string} Sugerencia para el usuario
@@ -1028,6 +1072,9 @@ Analiza el video y responde únicamente con el JSON válido, sin texto adicional
     }
     if (errorMessage.includes('model') || errorMessage.includes('not found')) {
       return '🤖 Modelo no disponible. Sistema cambiando automáticamente al siguiente modelo VL.';
+    }
+    if (errorMessage.includes('API key')) {
+      return '🔑 API key no configurada. Configure REACT_APP_CHUTES_API_KEY en variables de entorno.';
     }
     return '❌ Error en el servicio de análisis de chutes.ai. Sistema de fallback automático activado.';
   }

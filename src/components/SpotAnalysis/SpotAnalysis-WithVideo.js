@@ -526,12 +526,36 @@ const SpotAnalysis = () => {
     try {
       console.log('🎬 Iniciando análisis de video con chutes.ai + Analytics reales...');
       
+      // PASO 1: Test de conectividad primero
+      setVideoAnalysisProgress(10);
+      console.log('🔍 Probando conectividad con Chutes AI...');
+      
+      const connectivityResult = await videoAnalysisService.testConnectivity();
+      
+      if (!connectivityResult.success) {
+        console.warn('⚠️ Sin conectividad con Chutes AI:', connectivityResult.error);
+        
+        setVideoAnalysis({
+          error: true,
+          resumen_ejecutivo: 'Servicio de IA temporalmente no disponible',
+          mensaje_error: `No se puede conectar con el servicio de análisis de video: ${connectivityResult.error}`,
+          suggestion: 'Verificar conexión a internet o intentar más tarde',
+          fallback_mode: true,
+          connectivity_status: connectivityResult,
+          datos_analytics_reales: false
+        });
+        return;
+      }
+      
+      console.log('✅ Conectividad con Chutes AI exitosa');
+      setVideoAnalysisProgress(20);
+      
       // Simular progreso inicial
       const progressInterval = setInterval(() => {
         setVideoAnalysisProgress(prev => {
-          if (prev >= 30) {
+          if (prev >= 40) {
             clearInterval(progressInterval);
-            return 30;
+            return 40;
           }
           return prev + 5;
         });
@@ -558,10 +582,11 @@ const SpotAnalysis = () => {
         console.log('⚠️ No hay datos de Analytics disponibles, usando modo demostración');
       }
 
-      // Realizar análisis de video con datos reales de Analytics
+      // PASO 2: Realizar análisis de video con datos reales de Analytics
+      setVideoAnalysisProgress(50);
       const result = await videoAnalysisService.analyzeVideo(videoFile, spotData, analyticsData);
       
-      setVideoAnalysisProgress(100);
+      setVideoAnalysisProgress(90);
       
       if (result.success) {
         setVideoAnalysis({
@@ -572,25 +597,44 @@ const SpotAnalysis = () => {
           timestamp: result.timestamp,
           cost: videoAnalysisService.getEstimatedCost(videoFile.size / (1024 * 1024)), // MB to cost
           datos_analytics_reales: result.hasRealAnalytics,
-          fuente_analisis: result.hasRealAnalytics ? 'chutes.ai + Google Analytics API' : 'chutes.ai (modo demostración)'
+          fuente_analisis: result.hasRealAnalytics ? 'chutes.ai + Google Analytics API' : 'chutes.ai (modo demostración)',
+          connectivity_status: connectivityResult
         });
         console.log('✅ Análisis de video con Analytics completado:', result.analysis);
       } else {
         throw new Error(result.error || 'Error desconocido en el análisis');
       }
       
+      setVideoAnalysisProgress(100);
+      
     } catch (error) {
       console.error('❌ Error en análisis de video:', error);
-      alert(`Error al analizar el video: ${error.message}`);
+      
+      // Determinar si es un error de conectividad o de análisis
+      const isConnectivityError = error.message.includes('503') ||
+                                 error.message.includes('Service Unavailable') ||
+                                 error.message.includes('timeout') ||
+                                 error.message.includes('fetch');
+      
       setVideoAnalysis({
         error: true,
-        resumen_ejecutivo: 'Error al procesar el video',
+        resumen_ejecutivo: isConnectivityError ?
+          'Servicio de IA temporalmente no disponible' :
+          'Error al procesar el video',
         mensaje_error: error.message,
-        datos_analytics_reales: false
+        suggestion: videoAnalysisService.getErrorSuggestion(error.message),
+        fallback_mode: isConnectivityError,
+        datos_analytics_reales: false,
+        retry_available: true
       });
+      
+      // Mostrar alerta solo para errores no relacionados con conectividad
+      if (!isConnectivityError) {
+        alert(`Error al analizar el video: ${error.message}`);
+      }
     } finally {
       setAnalyzingVideo(false);
-      setTimeout(() => setVideoAnalysisProgress(0), 2000);
+      setTimeout(() => setVideoAnalysisProgress(0), 3000);
     }
   }, [videoFile, spotsData, analysisResults, videoAnalysisService]);
 
