@@ -1,5 +1,5 @@
 // Servicio de análisis temporal digital avanzado
-// Implementa las 4 ventanas de tiempo y baseline robusto de 30 días
+// Implementa las 4 ventanas de tiempo y referencia robusta de 30 días
 
 export class TemporalAnalysisService {
   constructor() {
@@ -32,24 +32,24 @@ export class TemporalAnalysisService {
   }
 
   /**
-   * Calcular baseline robusto usando 30 días de historial
+   * Calcular referencia robusta usando 30 días de historial
    * @param {Date} spotDateTime - Fecha y hora del spot
    * @param {Array} historicalData - Datos históricos de Google Analytics
    * @returns {Object} Referencia robusta con múltiples períodos
    */
   calculateRobustReference(spotDateTime, historicalData) {
-    const baseline = {
+    const referencia = {
       immediate: this.calculateReferenceForWindow(spotDateTime, this.timeWindows.immediate, historicalData),
       shortTerm: this.calculateReferenceForWindow(spotDateTime, this.timeWindows.shortTerm, historicalData),
       mediumTerm: this.calculateReferenceForWindow(spotDateTime, this.timeWindows.mediumTerm, historicalData),
       longTerm: this.calculateReferenceForWindow(spotDateTime, this.timeWindows.longTerm, historicalData)
     };
 
-    return baseline;
+    return referencia;
   }
 
   /**
-   * Calcular baseline para una ventana de tiempo específica
+   * Calcular referencia para una ventana de tiempo específica
    */
   calculateReferenceForWindow(spotDateTime, timeWindow, historicalData) {
     const spotHour = spotDateTime.getHours();
@@ -69,13 +69,13 @@ export class TemporalAnalysisService {
 
     // Calcular estadísticas robustas
     const metrics = ['activeUsers', 'sessions', 'pageviews'];
-    const baseline = {};
+    const referencia = {};
 
     metrics.forEach(metric => {
       const values = similarPeriods.map(p => p[metric] || 0);
       
       if (values.length === 0) {
-        baseline[metric] = {
+        referencia[metric] = {
           mean: 0,
           median: 0,
           stdDev: 0,
@@ -90,7 +90,7 @@ export class TemporalAnalysisService {
         const stdDev = Math.sqrt(variance);
         const confidence = Math.min(95, 60 + (values.length * 2)); // Más datos = más confianza
 
-        baseline[metric] = {
+        referencia[metric] = {
           mean: Math.round(mean),
           median: Math.round(median),
           stdDev: Math.round(stdDev),
@@ -100,17 +100,17 @@ export class TemporalAnalysisService {
       }
     });
 
-    return baseline;
+    return referencia;
   }
 
   /**
    * Analizar impacto en las 4 ventanas de tiempo
    * @param {Object} spotData - Datos del spot
    * @param {Object} analyticsData - Datos de Google Analytics
-   * @param {Object} baseline - Referencia robusta
+   * @param {Object} referencia - Referencia robusta
    * @returns {Object} Análisis de impacto por ventana temporal
    */
-  analyzeTemporalImpact(spotData, analyticsData, baseline) {
+  analyzeTemporalImpact(spotData, analyticsData, referencia) {
     const spotDateTime = new Date(spotData.dateTime);
     const impact = {};
 
@@ -125,14 +125,14 @@ export class TemporalAnalysisService {
       const windowMetrics = this.calculateWindowMetrics(windowData);
       
       // Comparar con referencia
-      const comparison = this.compareWithReference(windowMetrics, baseline[windowKey]);
+      const comparison = this.compareWithReference(windowMetrics, referencia[windowKey]);
       
       impact[windowKey] = {
         ...windowConfig,
         metrics: windowMetrics,
         comparison: comparison,
         significance: this.calculateSignificance(comparison),
-        confidence: this.calculateTemporalConfidence(windowMetrics, baseline[windowKey])
+        confidence: this.calculateTemporalConfidence(windowMetrics, referencia[windowKey])
       };
     });
 
@@ -192,25 +192,25 @@ export class TemporalAnalysisService {
   }
 
   /**
-   * Comparar métricas de ventana con baseline
+   * Comparar métricas de ventana con referencia
    */
-  compareWithReference(windowMetrics, baseline) {
+  compareWithReference(windowMetrics, referencia) {
     const comparison = {};
     
     Object.keys(windowMetrics).forEach(metric => {
       const windowValue = windowMetrics[metric];
-      const baselineValue = baseline[metric]?.mean || 0;
+      const referenciaValue = referencia[metric]?.mean || 0;
       
-      const absoluteChange = windowValue - baselineValue;
-      const percentageChange = baselineValue > 0 ? (absoluteChange / baselineValue) * 100 : 0;
+      const absoluteChange = windowValue - referenciaValue;
+      const percentageChange = referenciaValue > 0 ? (absoluteChange / referenciaValue) * 100 : 0;
       
       comparison[metric] = {
         windowValue,
-        baselineValue,
+        referenciaValue,
         absoluteChange,
         percentageChange,
         isSignificant: Math.abs(percentageChange) > 10, // >10% es significativo
-        effectSize: this.calculateEffectSize(windowValue, baselineValue, baseline[metric]?.stdDev || 0)
+        effectSize: this.calculateEffectSize(windowValue, referenciaValue, referencia[metric]?.stdDev || 0)
       };
     });
     
@@ -243,19 +243,19 @@ export class TemporalAnalysisService {
   /**
    * Calcular confianza temporal
    */
-  calculateTemporalConfidence(windowMetrics, baseline) {
-    const sampleSize = baseline.sampleSize || 0;
-    const baselineConfidence = baseline.confidence || 0;
+  calculateTemporalConfidence(windowMetrics, referencia) {
+    const sampleSize = referencia.sampleSize || 0;
+    const referenciaConfidence = referencia.confidence || 0;
     
     // Factores que aumentan la confianza
-    let confidence = baselineConfidence;
+    let confidence = referenciaConfidence;
     
     // Más datos históricos = más confianza
     if (sampleSize >= 30) confidence += 10;
     else if (sampleSize >= 15) confidence += 5;
     
-    // Consistencia en baseline = más confianza
-    const consistency = baseline.stdDev / (baseline.mean || 1);
+    // Consistencia en referencia = más confianza
+    const consistency = referencia.stdDev / (referencia.mean || 1);
     if (consistency < 0.3) confidence += 5; // Baja variabilidad = alta confianza
     
     return Math.min(95, Math.max(50, confidence));

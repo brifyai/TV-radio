@@ -53,7 +53,7 @@ export class ConversionAnalysisService extends TemporalAnalysisService {
   }
 
   // Analizar embudo de conversión para un spot
-  analyzeConversionFunnel(spotData, conversionData, baselineData) {
+  analyzeConversionFunnel(spotData, conversionData, referenciaData) {
     const funnel = {};
     
     // Calcular métricas del embudo
@@ -62,7 +62,7 @@ export class ConversionAnalysisService extends TemporalAnalysisService {
         stage, 
         spotData, 
         conversionData, 
-        baselineData,
+        referenciaData,
         index
       );
       funnel[stage] = stageData;
@@ -81,24 +81,24 @@ export class ConversionAnalysisService extends TemporalAnalysisService {
   }
 
   // Calcular métricas para cada etapa del embudo
-  calculateFunnelStage(stage, spotData, conversionData, baselineData, stageIndex) {
+  calculateFunnelStage(stage, spotData, conversionData, referenciaData, stageIndex) {
     const baseMetrics = this.getStageBaseMetrics(stage, conversionData);
     const spotMetrics = this.getSpotStageMetrics(stage, spotData, conversionData);
-    const baselineMetrics = this.getReferenceStageMetrics(stage, baselineData);
+    const referenciaMetrics = this.getReferenceStageMetrics(stage, referenciaData);
     
     // Calcular impacto del spot
-    const impact = this.calculateStageImpact(spotMetrics, baselineMetrics);
+    const impact = this.calculateStageImpact(spotMetrics, referenciaMetrics);
     
     // Calcular significancia estadística
-    const significance = this.calculateStageSignificance(spotMetrics, baselineMetrics);
+    const significance = this.calculateStageSignificance(spotMetrics, referenciaMetrics);
     
     return {
       stage,
       metrics: spotMetrics,
-      baseline: baselineMetrics,
+      referencia: referenciaMetrics,
       impact,
       significance,
-      confidence: this.calculateStageConfidence(spotMetrics, baselineMetrics),
+      confidence: this.calculateStageConfidence(spotMetrics, referenciaMetrics),
       dropOffRate: this.calculateDropOffRate(stage, spotMetrics, stageIndex),
       recommendations: this.generateStageRecommendations(stage, impact, significance)
     };
@@ -163,14 +163,14 @@ export class ConversionAnalysisService extends TemporalAnalysisService {
   }
 
   // Obtener métricas de referencia para cada etapa
-  getReferenceStageMetrics(stage, baselineData) {
-    if (!baselineData || !baselineData.immediate) {
+  getReferenceStageMetrics(stage, referenciaData) {
+    if (!referenciaData || !referenciaData.immediate) {
       return this.getEmptyStageMetrics();
     }
 
-    const baseline = baselineData.immediate;
+    const referencia = referenciaData.immediate;
     const baseMetrics = {
-      count: baseline.metrics?.activeUsers || 0,
+      count: referencia.metrics?.activeUsers || 0,
       rate: 0, // Evitar tasa simulada - usar 0 hasta tener datos reales
       revenue: 0, // Evitar revenue simulado - usar 0 hasta tener datos reales
       _note: 'Métricas de referencia requieren datos históricos reales'
@@ -186,32 +186,32 @@ export class ConversionAnalysisService extends TemporalAnalysisService {
   }
 
   // Calcular impacto de cada etapa
-  calculateStageImpact(spotMetrics, baselineMetrics) {
-    const countChange = baselineMetrics.count > 0 
-      ? ((spotMetrics.count - baselineMetrics.count) / baselineMetrics.count) * 100 
+  calculateStageImpact(spotMetrics, referenciaMetrics) {
+    const countChange = referenciaMetrics.count > 0
+      ? ((spotMetrics.count - referenciaMetrics.count) / referenciaMetrics.count) * 100
       : 0;
-    
-    const revenueChange = baselineMetrics.revenue > 0 
-      ? ((spotMetrics.revenue - baselineMetrics.revenue) / baselineMetrics.revenue) * 100 
+
+    const revenueChange = referenciaMetrics.revenue > 0
+      ? ((spotMetrics.revenue - referenciaMetrics.revenue) / referenciaMetrics.revenue) * 100
       : 0;
 
     return {
       countChange,
       revenueChange,
       absoluteChange: {
-        count: spotMetrics.count - baselineMetrics.count,
-        revenue: spotMetrics.revenue - baselineMetrics.revenue
+        count: spotMetrics.count - referenciaMetrics.count,
+        revenue: spotMetrics.revenue - referenciaMetrics.revenue
       },
       lift: spotMetrics.lift || 0
     };
   }
 
   // Calcular significancia estadística
-  calculateStageSignificance(spotMetrics, baselineMetrics) {
+  calculateStageSignificance(spotMetrics, referenciaMetrics) {
     const n1 = spotMetrics.count || 1;
-    const n2 = baselineMetrics.count || 1;
+    const n2 = referenciaMetrics.count || 1;
     const p1 = spotMetrics.rate / 100;
-    const p2 = baselineMetrics.rate / 100;
+    const p2 = referenciaMetrics.rate / 100;
     
     // Test Z para proporciones
     const pooledP = (n1 * p1 + n2 * p2) / (n1 + n2);
@@ -266,15 +266,15 @@ export class ConversionAnalysisService extends TemporalAnalysisService {
   }
 
   // Calcular confianza de la etapa
-  calculateStageConfidence(spotMetrics, baselineMetrics) {
-    const sampleSize = Math.min(spotMetrics.count, baselineMetrics.count);
-    const variability = Math.abs(spotMetrics.rate - baselineMetrics.rate);
+  calculateStageConfidence(spotMetrics, referenciaMetrics) {
+    const sampleSize = Math.min(spotMetrics.count, referenciaMetrics.count);
+    const variability = Math.abs(spotMetrics.rate - referenciaMetrics.rate);
     
     // Confianza basada en tamaño de muestra y consistencia
     let confidence = Math.min(95, Math.max(10, 
       (sampleSize / 100) * 40 + 
       (1 - variability / 10) * 40 +
-      (spotMetrics.count > baselineMetrics.count ? 20 : 10)
+      (spotMetrics.count > referenciaMetrics.count ? 20 : 10)
     ));
     
     return Math.round(confidence);

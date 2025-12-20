@@ -14,7 +14,7 @@ const ConfidenceMeter = ({ confidenceScore = 85, analysisData }) => {
       dataPoints: Math.min(analysisData.length * 10, 20), // Más spots = más confianza
       timeRange: analysisData.length > 1 ? 15 : 5, // Rango temporal
       statisticalSignificance: analysisData.length > 1 ? 12 : 8, // Basado en cantidad de datos
-      baselineQuality: analysisData.every(d => d.impact?.activeUsers?.significant) ? 18 : 10 // Basado en significancia real
+      referenciaQuality: analysisData.every(d => d.impact?.activeUsers?.significant) ? 18 : 10 // Basado en significancia real
     };
     
     score = Math.min(95, score + Object.values(factors).reduce((a, b) => a + b, 0));
@@ -131,7 +131,7 @@ const ConfidenceMeter = ({ confidenceScore = 85, analysisData }) => {
           <br />
           <p>Este nivel de confianza indica la certeza de que los resultados observados son debidos al impacto real del spot TV y no a variaciones aleatorias del tráfico web.</p>
           <br />
-          <p><strong>Factores evaluados:</strong> Cantidad de datos, consistencia temporal, significancia estadística y calidad del baseline de comparación.</p>
+          <p><strong>Factores evaluados:</strong> Cantidad de datos, consistencia temporal, significancia estadística y calidad de la referencia de comparación.</p>
         </div>
       </motion.div>
 

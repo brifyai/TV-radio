@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Cell } from 'recharts';
 import { Clock, TrendingUp, Target, Zap, AlertCircle, CheckCircle } from 'lucide-react';
 
-const TemporalAnalysisDashboard = ({ temporalImpact, baseline, spotData }) => {
+const TemporalAnalysisDashboard = ({ temporalImpact, referencia, spotData }) => {
   // Generar datos para el gráfico de línea temporal
   const generateTemporalChartData = () => {
     if (!temporalImpact || typeof temporalImpact !== 'object') return [];
@@ -104,7 +104,7 @@ const TemporalAnalysisDashboard = ({ temporalImpact, baseline, spotData }) => {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h3 className="text-xl font-bold text-gray-900">Análisis Temporal Digital</h3>
-          <p className="text-sm text-gray-600">Impacto en 4 ventanas de tiempo con baseline robusto</p>
+          <p className="text-sm text-gray-600">Impacto en 4 ventanas de tiempo con referencia robusta</p>
         </div>
         <div className="flex items-center space-x-2">
           <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>

@@ -603,7 +603,7 @@ const FrasesRadio = () => {
         setAnalysisProgress(90);
         
         try {
-          // Obtener datos históricos para baseline robusto (últimos 30 días)
+          // Obtener datos históricos para referencia robusta (últimos 30 días)
           const fraseDateTime = results[0].frase.dateTime;
           const historicalData = await temporalAnalysisService.getHistoricalData(
             selectedProperty,
@@ -800,7 +800,7 @@ const FrasesRadio = () => {
       {temporalAnalysis && temporalReference && (
         <TemporalAnalysisDashboard
           temporalImpact={temporalAnalysis}
-          baseline={temporalReference}
+          referencia={temporalReference}
           spotData={frasesData}
         />
       )}

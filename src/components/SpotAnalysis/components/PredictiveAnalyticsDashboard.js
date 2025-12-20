@@ -73,25 +73,25 @@ const PredictiveAnalyticsDashboard = ({ predictiveAnalysis }) => {
     {
       window: 'Inmediato',
       predicted: predictions.performance.immediate,
-      baseline: predictions.performance.immediate * 0.8,
+      referencia: predictions.performance.immediate * 0.8,
       confidence: confidence.performance * 100
     },
     {
       window: 'Corto Plazo',
       predicted: predictions.performance.shortTerm,
-      baseline: predictions.performance.shortTerm * 0.8,
+      referencia: predictions.performance.shortTerm * 0.8,
       confidence: confidence.performance * 100
     },
     {
       window: 'Medio Plazo',
       predicted: predictions.performance.mediumTerm,
-      baseline: predictions.performance.mediumTerm * 0.8,
+      referencia: predictions.performance.mediumTerm * 0.8,
       confidence: confidence.performance * 100
     },
     {
       window: 'Largo Plazo',
       predicted: predictions.performance.longTerm,
-      baseline: predictions.performance.longTerm * 0.8,
+      referencia: predictions.performance.longTerm * 0.8,
       confidence: confidence.performance * 100
     }
   ];
@@ -241,11 +241,11 @@ const PredictiveAnalyticsDashboard = ({ predictiveAnalysis }) => {
               />
               <Area
                 type="monotone"
-                dataKey="baseline"
+                dataKey="referencia"
                 stackId="1"
                 stroke="#e5e7eb"
                 fill="#f3f4f6"
-                name="baseline"
+                name="referencia"
               />
               <Area
                 type="monotone"

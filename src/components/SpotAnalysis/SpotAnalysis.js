@@ -2,6 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { useGoogleAnalytics } from '../../contexts/GoogleAnalyticsContext';
 import { generateAIAnalysis, generateBatchAIAnalysis } from '../../services/aiAnalysisService';
 import { TemporalAnalysisService } from '../../services/temporalAnalysisService';
+import { CausalInferenceService } from '../../services/causalInferenceService';
 import conversionAnalysisService from '../../services/conversionAnalysisService';
 import { predictiveAnalyticsService } from '../../services/predictiveAnalyticsService';
 import ChutesVideoAnalysisService from '../../services/chutesVideoAnalysisService';
@@ -808,7 +809,7 @@ const SpotAnalysis = () => {
         setAnalysisProgress(90);
         
         try {
-          // Obtener datos históricos para baseline robusto (últimos 30 días)
+          // Obtener datos históricos para referencia robusta (últimos 30 días)
           const spotDateTime = results[0].spot.dateTime;
           const historicalData = await temporalAnalysisService.getHistoricalData(
             selectedProperty,
@@ -1004,7 +1005,7 @@ const SpotAnalysis = () => {
                   {validatedAnalysisResults.filter(r => r.impact?.activeUsers?.directCorrelation).length}
                 </p>
                 <p className="text-xs text-gray-500 mt-1">
-                  Criterios: {'>'}15% aumento y {'>'}115% del baseline
+                  Criterios: {'>'}15% aumento y {'>'}115% de la referencia
                 </p>
               </div>
               <div className="p-3 bg-purple-100 rounded-full">
@@ -1036,7 +1037,7 @@ const SpotAnalysis = () => {
                       {significantButNotDirect.length}
                     </p>
                     <p className="text-xs text-gray-500 mt-1">
-                      Impacto {'>'}10% pero SIN vinculación directa ({'>'}15% y {'>'}115% baseline)
+                      Impacto {'>'}10% pero SIN vinculación directa ({'>'}15% y {'>'}115% referencia)
                     </p>
                   </div>
                   <div className="p-3 bg-orange-100 rounded-full">
@@ -1596,7 +1597,7 @@ const SpotAnalysis = () => {
       {temporalAnalysis && temporalReference && (
         <TemporalAnalysisDashboard
           temporalImpact={temporalAnalysis}
-          baseline={temporalReference}
+          referencia={temporalReference}
           spotData={spotsData}
         />
       )}

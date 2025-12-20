@@ -131,7 +131,7 @@ const ConversionAnalysisDashboard = ({ conversionAnalysis, controlGroupAnalysis,
           <span className={`text-sm font-medium ${change >= 0 ? 'text-green-600' : 'text-red-600'}`}>
             {change >= 0 ? '+' : ''}{typeof change === 'number' ? change.toFixed(1) : '0'}%
           </span>
-          <span className="text-sm text-gray-500 ml-1">vs baseline</span>
+          <span className="text-sm text-gray-500 ml-1">vs referencia</span>
         </div>
       )}
     </motion.div>
