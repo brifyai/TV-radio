@@ -395,7 +395,7 @@ class PPTXExportService {
           fontSize: 11, bold: true, color: '5B21B6'
         });
 
-        aiAnalysis.insights.slice(0, 3).forEach((insight, i) => {
+        aiAnalysis.insights.slice(0, 2).forEach((insight, i) => {
           slide.addText(`• ${typeof insight === 'string' ? insight : insight?.descripcion || JSON.stringify(insight)}`, {
             x: 5.4, y: 4.4 + (i * 0.3), w: 4.1, h: 0.25,
             fontSize: 9, color: '5B21B6'
@@ -405,13 +405,13 @@ class PPTXExportService {
 
       if (aiAnalysis.recommendations && aiAnalysis.recommendations.length > 0) {
         slide.addText('Recomendaciones:', {
-          x: 5.2, y: 5.3, w: 4.3, h: 0.3,
+          x: 5.2, y: 5.1, w: 4.3, h: 0.3,
           fontSize: 11, bold: true, color: '5B21B6'
         });
 
-        aiAnalysis.recommendations.slice(0, 3).forEach((rec, i) => {
+        aiAnalysis.recommendations.slice(0, 2).forEach((rec, i) => {
           slide.addText(`• ${rec}`, {
-            x: 5.4, y: 5.6 + (i * 0.3), w: 4.1, h: 0.25,
+            x: 5.4, y: 5.4 + (i * 0.3), w: 4.1, h: 0.25,
             fontSize: 9, color: '5B21B6'
           });
         });
