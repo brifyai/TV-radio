@@ -75,6 +75,29 @@ const TrafficChart = ({ analysisResults }) => {
 
   const hourlyData = generateHourlyData();
 
+  // Calcular dominio automático para mejor visualización
+  const calculateOptimalDomain = () => {
+    if (hourlyData.length === 0) return [0, 100];
+    
+    const values = hourlyData.map(d => d.intensity);
+    const min = Math.min(...values);
+    const max = Math.max(...values);
+    
+    // Si todos los valores son muy similares, usar un rango más amplio
+    const range = max - min;
+    if (range < 10) {
+      // Expandir el rango para mejor visualización
+      const padding = Math.max(5, range * 0.5);
+      return [Math.max(0, min - padding), max + padding];
+    }
+    
+    // Agregar padding del 10% para mejor visualización
+    const padding = (max - min) * 0.1;
+    return [Math.max(0, min - padding), max + padding];
+  };
+
+  const yAxisDomain = calculateOptimalDomain();
+
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
@@ -82,13 +105,13 @@ const TrafficChart = ({ analysisResults }) => {
         <div className="bg-white p-3 rounded-lg shadow-lg border border-gray-200">
           <p className="font-semibold text-gray-900">{label}</p>
           <p className="text-blue-600">
-            <span className="font-medium">Intensidad:</span> {payload[0].value}%
+            <span className="font-medium">Intensidad:</span> {payload[0].value.toFixed(1)}
           </p>
           <p className="text-sm text-gray-500">
-            {payload[0].value >= 80 ? 'Tráfico muy alto' :
-             payload[0].value >= 60 ? 'Tráfico alto' :
-             payload[0].value >= 40 ? 'Tráfico medio' :
-             payload[0].value >= 20 ? 'Tráfico bajo' : 'Tráfico muy bajo'}
+            {payload[0].value >= yAxisDomain[1] * 0.8 ? 'Tráfico muy alto' :
+             payload[0].value >= yAxisDomain[1] * 0.6 ? 'Tráfico alto' :
+             payload[0].value >= yAxisDomain[1] * 0.4 ? 'Tráfico medio' :
+             payload[0].value >= yAxisDomain[1] * 0.2 ? 'Tráfico bajo' : 'Tráfico muy bajo'}
           </p>
           {data.hasSpot && (
             <p className="text-xs text-yellow-600 font-medium mt-1">
@@ -143,26 +166,27 @@ const TrafficChart = ({ analysisResults }) => {
             <YAxis
               tick={{ fontSize: 12, fill: '#6b7280' }}
               axisLine={{ stroke: '#e5e7eb' }}
-              domain={[0, 100]}
+              domain={yAxisDomain}
+              tickFormatter={(value) => value.toFixed(1)}
             />
             <Tooltip content={<CustomTooltip />} />
-            <Line 
-              type="monotone" 
-              dataKey="intensity" 
-              stroke="#3B82F6" 
+            <Line
+              type="monotone"
+              dataKey="intensity"
+              stroke="#3B82F6"
               strokeWidth={3}
               dot={(props) => {
                 const { cx, cy, payload } = props;
                 let fill = '#3B82F6';
-                let r = 4;
+                let r = 5;
                 
                 if (payload.isPeak) {
                   fill = '#EF4444';
-                  r = 5;
+                  r = 6;
                 }
                 if (payload.hasSpot) {
                   fill = '#F59E0B';
-                  r = 6;
+                  r = 7;
                 }
                 
                 return <circle cx={cx} cy={cy} r={r} fill={fill} strokeWidth={2} stroke="#ffffff" />;
@@ -192,7 +216,7 @@ const TrafficChart = ({ analysisResults }) => {
           <p className="text-xs text-blue-600 mb-1">Promedio Diario</p>
           <p className="text-lg font-bold text-blue-700">
             {analysisResults && analysisResults.length > 0
-              ? `${Math.round(hourlyData.reduce((sum, curr) => sum + curr.intensity, 0) / hourlyData.length)}%`
+              ? `${(hourlyData.reduce((sum, curr) => sum + curr.intensity, 0) / hourlyData.length).toFixed(1)}`
               : 'N/A'}
           </p>
         </div>
@@ -214,8 +238,8 @@ const TrafficChart = ({ analysisResults }) => {
         className="mt-4 p-3 bg-gray-50 rounded-lg"
       >
         <p className="text-xs text-gray-600 text-center">
-          💡 <strong>Tip:</strong> Los puntos rojos indican horas pico,
-          los puntos amarillos muestran horarios con spots programados.
+          💡 <strong>Tip:</strong> El gráfico se ajusta automáticamente para mostrar mejor las diferencias.
+          Los puntos rojos indican horas pico, los amarillos muestran spots programados.
           {analysisResults && analysisResults.length === 0 && (
             <span className="block mt-1 text-orange-600">
               ⚠️ Conecta Google Analytics para ver datos reales

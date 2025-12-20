@@ -25,44 +25,35 @@ const VideoAnalysisDashboard = ({
   const [analyzingVideo, setAnalyzingVideo] = useState(false);
   const [videoAnalysisService] = useState(new ChutesVideoAnalysisService());
   const [error, setError] = useState(null);
-  // eslint-disable-next-line no-unused-vars
-  const [lastAttemptTime, setLastAttemptTime] = useState(null);
-  const [isPermanentlyFailed, setIsPermanentlyFailed] = useState(false);
-  const [hasAttemptedAnalysis, setHasAttemptedAnalysis] = useState(false);
+  const [analysisAttempted, setAnalysisAttempted] = useState(false);
+  const [rational, setRational] = useState(null);
   
-  // DESACTIVADO: Sistema de bloqueo robusto para evitar bucles infinitos
-  const analysisLockRef = useRef(false);
-  const permanentBlockRef = useRef(false);
-  const attemptCountRef = useRef(0);
+  // Ref para evitar ejecuciones múltiples
+  const analysisInProgress = useRef(false);
 
-  // Definir función de análisis de video antes de usarla
-  const analyzeVideoContent = React.useCallback(async () => {
-    if (!videoFile || !spotData || !analysisResults || analysisResults.length === 0) return;
-
-    // DESACTIVADO: Verificar múltiples condiciones para evitar bucles
-    if (permanentBlockRef.current || analysisLockRef.current || isPermanentlyFailed) {
-      console.log('🔓 Desbloqueando análisis de video para permitir reintentos');
-      permanentBlockRef.current = false;
-      setIsPermanentlyFailed(false);
+  // Función simplificada para analizar video
+  const analyzeVideoContent = async () => {
+    // Verificar condiciones básicas
+    if (!videoFile || !spotData || !analysisResults || analysisResults.length === 0) {
+      console.log('⚠️ Condiciones no válidas para análisis:', { videoFile: !!videoFile, spotData: !!spotData, analysisResults: analysisResults?.length });
+      return;
     }
 
-    // Incrementar contador de intentos y verificar límite
-    attemptCountRef.current += 1;
-    if (attemptCountRef.current > 3) {
-      console.log('⚠️ Límite de intentos alcanzado, reiniciando contador');
-      attemptCountRef.current = 1; // Reiniciar en lugar de bloquear
+    // Evitar ejecuciones múltiples
+    if (analysisInProgress.current || analysisAttempted) {
+      console.log('⚠️ Análisis ya en progreso o intentado');
+      return;
     }
 
-    // Marcar como en proceso para evitar ejecuciones concurrentes
-    analysisLockRef.current = true;
+    console.log('🎬 Iniciando análisis de video (SIMPLIFICADO)...');
+    
+    analysisInProgress.current = true;
     setAnalyzingVideo(true);
     setError(null);
-    setLastAttemptTime(Date.now());
+    setAnalysisAttempted(true);
 
     try {
-      console.log(`🎬 Iniciando análisis de video con Chutes AI (INTENTO ÚNICO - ANTI-BUCLE)...`);
-      
-      // Usar el primer spot como referencia para el análisis
+      // Usar el primer spot como referencia
       const referenceSpot = analysisResults[0];
       const spotInfo = {
         fecha: referenceSpot.spot.fecha,
@@ -74,10 +65,11 @@ const VideoAnalysisDashboard = ({
         duracion: referenceSpot.spot.duracion
       };
 
+      console.log('📊 Datos del spot para análisis:', spotInfo);
+
       const result = await videoAnalysisService.analyzeVideo(videoFile, spotInfo);
       
       if (result.success) {
-        // Parsear la respuesta JSON
         const parsedAnalysis = videoAnalysisService.parseAnalysisResponse(result.analysis);
         setVideoAnalysis({
           ...parsedAnalysis,
@@ -89,70 +81,54 @@ const VideoAnalysisDashboard = ({
           attempt: result.attempt
         });
         console.log('✅ Análisis de video completado exitosamente');
-        setIsPermanentlyFailed(false);
       } else {
         const errorMessage = result.error || 'Error en el análisis del video';
         const suggestion = result.suggestion || '';
         const fullError = suggestion ? `${errorMessage}\n\n💡 Sugerencia: ${suggestion}` : errorMessage;
         
-        // DESACTIVADO: Bloqueo permanente en errores
-        console.warn('⚠️ Error detectado, permitiendo reintento');
-        setError(`${fullError}\n\n🔄 El análisis se reintentará automáticamente.`);
-        return;
+        console.warn('⚠️ Error en análisis:', fullError);
+        setError(fullError);
       }
     } catch (err) {
       console.error('❌ Error en análisis de video:', err);
-      
-      // DESACTIVADO: Bloqueo permanente en excepciones
-      console.warn('⚠️ Excepción detectada, permitiendo reintento');
-      setError(`${err.message}\n\n🔄 El análisis se reintentará automáticamente.`);
+      setError(`Error de conexión: ${err.message}`);
     } finally {
       setAnalyzingVideo(false);
-      analysisLockRef.current = false; // Liberar bloqueo
+      analysisInProgress.current = false;
     }
-  }, [videoFile, spotData, analysisResults, videoAnalysisService, isPermanentlyFailed]);
+  };
 
-  // Analizar video cuando se proporciona (REINTENTOS HABILITADOS)
+  // Ejecutar análisis una sola vez cuando estén disponibles los datos
   useEffect(() => {
-    // Solo ejecutar si no está ya analizando y no hay análisis previo
-    if (analyzingVideo || videoAnalysis || permanentBlockRef.current || analysisLockRef.current) {
-      return;
-    }
-
-    // Permitir análisis si hay datos necesarios
-    if (videoFile && spotData && analysisResults && analysisResults.length > 0) {
-      console.log('🎬 Iniciando análisis de video (REINTENTOS HABILITADOS)');
+    if (videoFile && spotData && analysisResults && analysisResults.length > 0 && !analysisAttempted) {
+      console.log('🔄 Datos disponibles, iniciando análisis...');
       analyzeVideoContent();
     }
-  }, [videoFile, spotData, analysisResults, videoAnalysis, analyzeVideoContent]); // Dependencias simplificadas
+  }, [videoFile, spotData, analysisResults]); // Solo dependencias esenciales
 
-  // ELIMINAR COMPLETAMENTE EFECTOS DE REINTENTO AUTOMÁTICO
-  // NO hay useEffect de reintentos - esto elimina completamente los bucles
-
-  // Generar racional de vinculación video-analytics basado en datos 100% REALES
+  // Generar racional de vinculación video-analytics
   const generateVideoAnalyticsRational = React.useCallback(() => {
     if (!videoAnalysis || !analysisResults || analysisResults.length === 0) return null;
 
     const spot = analysisResults[0];
     const rational = [];
 
-    // 1. Análisis de timing REAL basado únicamente en datos de Google Analytics
+    // Análisis de timing REAL
     const spotHour = spot.spot.dateTime.getHours();
     const spotUsers = spot.metrics.spot.activeUsers;
     const spotSessions = spot.metrics.spot.sessions;
     const spotPageviews = spot.metrics.spot.pageviews;
     
-    // Usar únicamente métricas reales de GA, sin simulaciones
     rational.push({
       type: 'timing',
       title: 'Análisis de Timing Real',
       message: `Spot transmitido a las ${spotHour}:00. Métricas reales GA: ${spotUsers} usuarios activos, ${spotSessions} sesiones, ${spotPageviews} vistas de página durante la transmisión.`,
       impact: Math.abs(spot.impact.activeUsers.percentageChange) > 20 ? 'Alto' : Math.abs(spot.impact.activeUsers.percentageChange) > 10 ? 'Medio' : 'Bajo',
-      confidence: 95, // Alta confianza porque son datos directos de GA
+      confidence: 95,
       realData: true
     });
 
-    // 2. Análisis de efectividad REAL vs métricas reales de GA
+    // Análisis de efectividad
     if (videoAnalysis?.analisis_efectividad) {
       const efectividad = videoAnalysis.analisis_efectividad;
       const avgEffectiveness = efectividad && Object.values(efectividad).length > 0
@@ -165,56 +141,7 @@ const VideoAnalysisDashboard = ({
         title: 'Efectividad IA vs Métricas Reales GA',
         message: `Evaluación IA: ${avgEffectiveness.toFixed(1)}/10. Impacto real medido en GA: ${realImpact >= 0 ? '+' : ''}${realImpact.toFixed(1)}% en usuarios activos.`,
         impact: Math.abs(realImpact) > 25 ? 'Alto' : Math.abs(realImpact) > 12 ? 'Medio' : 'Bajo',
-        confidence: 90, // Alta confianza por datos directos
-        realData: true
-      });
-    }
-
-    // 3. Análisis de contenido visual REAL vs engagement real
-    if (videoAnalysis?.contenido_visual) {
-      const escenas = videoAnalysis.contenido_visual.escenas_principales || [];
-      const colores = videoAnalysis.contenido_visual.colores_dominantes || [];
-      
-      if (escenas.length > 0) {
-        const realEngagement = spot.impact.pageviews.percentageChange;
-        
-        rational.push({
-          type: 'visual_content',
-          title: 'Contenido Visual vs Engagement Real GA',
-          message: `Video contiene ${escenas.length} escenas principales. Engagement real GA: ${realEngagement >= 0 ? '+' : ''}${realEngagement.toFixed(1)}% en vistas de página.`,
-          impact: Math.abs(realEngagement) > 30 ? 'Alto' : Math.abs(realEngagement) > 15 ? 'Medio' : 'Bajo',
-          confidence: 85,
-          realData: true
-        });
-      }
-
-      if (colores.length > 0) {
-        const realRetention = spot.impact.sessions.percentageChange;
-        
-        rational.push({
-          type: 'color_psychology',
-          title: 'Colores vs Retención Real GA',
-          message: `Paleta de colores detectada: ${colores.join(', ')}. Retención real GA: ${realRetention >= 0 ? '+' : ''}${realRetention.toFixed(1)}% en sesiones.`,
-          impact: Math.abs(realRetention) > 25 ? 'Alto' : Math.abs(realRetention) > 12 ? 'Medio' : 'Bajo',
-          confidence: 80,
-          realData: true
-        });
-      }
-    }
-
-    // 4. Análisis de mensaje vs conversión REAL
-    if (videoAnalysis?.mensaje_marketing) {
-      const mensaje = videoAnalysis.mensaje_marketing;
-      const hasClearCTA = mensaje.call_to_action && mensaje.call_to_action !== '';
-      const hasValueProposition = mensaje.propuesta_valor && mensaje.propuesta_valor !== '';
-      const realConversion = spot.impact.activeUsers.percentageChange;
-      
-      rational.push({
-        type: 'messaging',
-        title: 'Calidad del Mensaje vs Conversión Real GA',
-        message: `Call-to-action: ${hasClearCTA ? 'Identificado' : 'No identificado'}, Propuesta de valor: ${hasValueProposition ? 'Presente' : 'Ausente'}. Conversión real GA: ${realConversion >= 0 ? '+' : ''}${realConversion.toFixed(1)}%.`,
-        impact: Math.abs(realConversion) > 35 ? 'Alto' : Math.abs(realConversion) > 18 ? 'Medio' : 'Bajo',
-        confidence: 85,
+        confidence: 90,
         realData: true
       });
     }
@@ -222,16 +149,19 @@ const VideoAnalysisDashboard = ({
     return rational;
   }, [videoAnalysis, analysisResults]);
 
+  // Cargar racional cuando estén disponibles los datos
+  useEffect(() => {
+    if (videoAnalysis && analysisResults && analysisResults.length > 0) {
+      const realRational = generateVideoAnalyticsRational();
+      setRational(realRational);
+    }
+  }, [videoAnalysis, analysisResults, generateVideoAnalyticsRational]);
 
-  // ANÁLISIS CAUSAL: Determinar si el spot funcionó y qué factores influyeron
+  // Generar recomendaciones
   const generateRecommendations = () => {
-    console.log('🔍 Generando análisis causal...', { videoAnalysis, analysisResults });
-    
     const recommendations = [];
     
-    // Si no hay datos de análisis, no generar recomendaciones
     if (!analysisResults || analysisResults.length === 0) {
-      console.log('⚠️ No hay datos de análisis para generar recomendaciones');
       return recommendations;
     }
 
@@ -240,159 +170,43 @@ const VideoAnalysisDashboard = ({
       const impact = spot.impact?.activeUsers?.percentageChange || 0;
       const spotHour = spot.spot?.dateTime?.getHours() || new Date().getHours();
       const isPrimeTime = spotHour >= 19 && spotHour <= 23;
-      const isMorning = spotHour >= 6 && spotHour < 12;
-      const isAfternoon = spotHour >= 12 && spotHour < 19;
 
-      console.log('📊 Datos del spot para análisis causal:', { impact, spotHour, isPrimeTime });
-
-      // RECOMENDACIONES ESPECÍFICAS DE TIMING - ALTA PRIORIDAD
-      recommendations.push({
-        priority: 'Alta',
-        category: 'Timing',
-        text: 'Evaluar diferentes horarios de transmisión',
-        why: `El spot fue transmitido a las ${spotHour}:00. Los horarios de mayor audiencia para generar tráfico web son: 19:00-23:00 (prime time), 12:00-14:00 (almuerzo) y 20:00-22:00 (nocturno).`
-      });
-
-      recommendations.push({
-        priority: 'Alta',
-        category: 'Timing',
-        text: 'Considerar horarios de mayor audiencia',
-        why: `Horario actual: ${spotHour}:00 ${isPrimeTime ? '(Prime Time - ÓPTIMO)' : isMorning ? '(Mañana - MEDIO)' : isAfternoon ? '(Tarde - MEJORABLE)' : '(Noche - BAJO)'}. Recomendación: ${isPrimeTime ? 'Mantener este horario' : 'Probar horarios 19:00-23:00 para maximizar impacto'}.`
-      });
-
-      // ANÁLISIS CAUSAL 1: ¿El spot funcionó o no?
+      // Análisis causal
       if (impact > 20) {
-        // SPOT EXITOSO - Identificar qué factores causaron el éxito
         recommendations.push({
           priority: 'Media',
           category: 'Análisis de Éxito',
           text: 'El spot SÍ funcionó - Incremento significativo en tráfico',
           why: `Impacto medido: +${impact.toFixed(1)}%. El spot generó correlación positiva entre TV y tráfico web.`
         });
-
-        // Analizar factores de éxito específicos
-        if (videoAnalysis?.mensaje_marketing?.call_to_action) {
-          recommendations.push({
-            priority: 'Media',
-            category: 'Factor de Éxito',
-            text: 'Call-to-action efectivo identificado',
-            why: `El spot contenía CTA claro: "${videoAnalysis.mensaje_marketing.call_to_action}". Este elemento contribuyó al éxito del spot.`
-          });
-        }
-
-        if (videoAnalysis.contenido_visual?.elementos_generadores_tráfico) {
-          const elementos = videoAnalysis.contenido_visual.elementos_generadores_tráfico;
-          recommendations.push({
-            priority: 'Media',
-            category: 'Factor de Éxito',
-            text: 'Elementos visuales generadores de tráfico identificados',
-            why: `Elementos que motivaron visitas: ${elementos.join(', ')}. Estos elementos deben replicarse en futuros spots.`
-          });
-        }
-
-        if (isPrimeTime) {
-          recommendations.push({
-            priority: 'Baja',
-            category: 'Factor de Éxito',
-            text: 'Timing óptimo (prime time) contribuyó al éxito',
-            why: `Transmitido a las ${spotHour}:00 (horario prime). El timing adecuado maximizó la audiencia y el impacto.`
-          });
-        }
-
       } else if (impact < -10) {
-        // SPOT FALLIDO - Identificar qué factores causaron el fracaso
         recommendations.push({
           priority: 'Alta',
           category: 'Análisis de Fracaso',
           text: 'El spot NO funcionó - Impacto negativo en tráfico',
           why: `Impacto medido: ${impact.toFixed(1)}%. El spot generó correlación negativa entre TV y tráfico web.`
         });
-
-        // Analizar factores de fracaso específicos
-        if (!videoAnalysis?.mensaje_marketing?.call_to_action) {
-          recommendations.push({
-            priority: 'Alta',
-            category: 'Factor de Fracaso',
-            text: 'Ausencia de call-to-action claro',
-            why: 'El spot no contenía una llamada a la acción específica para visitar el sitio web, limitando la conversión TV-Web.'
-          });
-        }
-
-        if (videoAnalysis?.analisis_efectividad?.claridad_mensaje && parseFloat(videoAnalysis.analisis_efectividad.claridad_mensaje) < 5) {
-          recommendations.push({
-            priority: 'Alta',
-            category: 'Factor de Fracaso',
-            text: 'Mensaje poco claro confundió a la audiencia',
-            why: `Claridad del mensaje: ${parseFloat(videoAnalysis.analisis_efectividad.claridad_mensaje).toFixed(1)}/10. Un mensaje confuso reduce la intención de visitar el sitio.`
-          });
-        }
-
-        if (!isPrimeTime) {
-          recommendations.push({
-            priority: 'Alta',
-            category: 'Factor de Fracaso',
-            text: 'Timing subóptimo limitó el alcance',
-            why: `Transmitido a las ${spotHour}:00 (fuera de prime time). El horario redujo la audiencia potencial y el impacto.`
-          });
-        }
-
       } else {
-        // SPOT NEUTRAL - Impacto mínimo
         recommendations.push({
           priority: 'Media',
           category: 'Análisis Neutral',
           text: 'Spot con impacto mínimo - Oportunidad de mejora',
           why: `Impacto medido: ${impact.toFixed(1)}%. El spot no generó cambios significativos en el tráfico web.`
         });
-
-        // Analizar oportunidades de mejora
-        if (videoAnalysis?.analisis_efectividad) {
-          const efectividad = videoAnalysis.analisis_efectividad;
-          
-          if (efectividad && parseFloat(efectividad.engagement_visual || 0) < 7) {
-            recommendations.push({
-              priority: 'Alta',
-              category: 'Oportunidad de Mejora',
-              text: 'Incrementar engagement visual para generar más tráfico',
-              why: `Engagement visual actual: ${parseFloat(efectividad.engagement_visual || 0).toFixed(1)}/10. Elementos más dinámicos pueden aumentar la motivación de visitar el sitio.`
-            });
-          }
-
-          if (efectividad && parseFloat(efectividad.memorabilidad || 0) < 6) {
-            recommendations.push({
-              priority: 'Media',
-              category: 'Oportunidad de Mejora',
-              text: 'Mejorar memorabilidad para generar recall y visitas',
-              why: `Memorabilidad actual: ${parseFloat(efectividad.memorabilidad || 0).toFixed(1)}/10. Elementos más distintivos pueden mejorar el recall y las visitas posteriores.`
-            });
-          }
-        }
       }
 
-      // ANÁLISIS CAUSAL 2: Factores específicos que influyeron en el resultado
-      if (videoAnalysis?.contenido_visual?.barreras_visuales && videoAnalysis.contenido_visual.barreras_visuales.length > 0) {
-        recommendations.push({
-          priority: 'Alta',
-          category: 'Barrera Identificada',
-          text: 'Barreras visuales que limitaron el impacto',
-          why: `Elementos que impidieron conversión TV-Web: ${videoAnalysis.contenido_visual.barreras_visuales.join(', ')}. Eliminar estas barreras puede mejorar futuros resultados.`
-        });
-      }
-
-      if (videoAnalysis?.contenido_auditivo?.call_to_action_auditivo) {
-        recommendations.push({
-          priority: 'Media',
-          category: 'Factor de Audio',
-          text: 'Call-to-action auditivo evaluado',
-          why: `CTA auditivo: ${videoAnalysis.contenido_auditivo.call_to_action_auditivo}. La efectividad del audio influye en la motivación de visitar el sitio.`
-        });
-      }
+      // Recomendación de timing
+      recommendations.push({
+        priority: 'Alta',
+        category: 'Timing',
+        text: 'Evaluar diferentes horarios de transmisión',
+        why: `El spot fue transmitido a las ${spotHour}:00. ${isPrimeTime ? 'Horario óptimo (prime time).' : 'Probar horarios 19:00-23:00 para maximizar impacto.'}`
+      });
 
     } catch (error) {
       console.error('❌ Error en análisis causal:', error);
     }
 
-    console.log('✅ Análisis causal completado:', recommendations);
     return recommendations;
   };
 
@@ -414,41 +228,7 @@ const VideoAnalysisDashboard = ({
     }
   };
 
-  const [rational, setRational] = useState(null);
-
-  // Cargar racional cuando estén disponibles los datos
-  const loadRealRational = React.useCallback(async () => {
-    const realRational = await generateVideoAnalyticsRational();
-    setRational(realRational);
-  }, [generateVideoAnalyticsRational]);
-
-  useEffect(() => {
-    if (videoAnalysis && analysisResults && analysisResults.length > 0) {
-      loadRealRational();
-    }
-  }, [videoAnalysis, analysisResults, loadRealRational]);
-
-  // Generar recomendaciones base
   const baseRecommendations = generateRecommendations();
-
-  // Procesar recomendaciones estratégicas del nuevo formato
-  const processStrategicRecommendations = () => {
-    if (!videoAnalysis?.recomendaciones_estrategicas) return baseRecommendations;
-    
-    const strategicRecs = videoAnalysis.recomendaciones_estrategicas.map((rec, index) => ({
-      priority: rec.priority || 'Media',
-      category: rec.categoria || 'General',
-      text: rec.titulo || rec.descripcion || 'Recomendación estratégica',
-      why: rec.justificacion || rec.impacto_esperado || 'Mejorará el rendimiento del spot',
-      implementation: rec.implementacion,
-      timeline: rec.timeline,
-      index: index
-    }));
-    
-    return [...baseRecommendations, ...strategicRecs];
-  };
-
-  const allRecommendations = processStrategicRecommendations();
 
   if (!videoFile) {
     return (
@@ -502,7 +282,7 @@ const VideoAnalysisDashboard = ({
         )}
       </div>
 
-      {/* Error State - Mejorado */}
+      {/* Error State */}
       {error && (
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
@@ -514,37 +294,25 @@ const VideoAnalysisDashboard = ({
               <AlertTriangle className="h-5 w-5 text-amber-600" />
               <span className="text-sm font-medium text-amber-800">Análisis de video no disponible</span>
             </div>
-            {(
-              <button
-                onClick={() => {
-                  setError(null);
-                  setIsPermanentlyFailed(false);
-                  setHasAttemptedAnalysis(false);
-                  setVideoAnalysis(null);
-                  attemptCountRef.current = 0; // Reiniciar contador
-                  permanentBlockRef.current = false; // Desbloquear
-                }}
-                className="px-3 py-1 text-xs bg-amber-100 text-amber-800 rounded-md hover:bg-amber-200 transition-colors"
-              >
-                Reintentar Análisis
-              </button>
-            )}
+            <button
+              onClick={() => {
+                setError(null);
+                setAnalysisAttempted(false);
+                setVideoAnalysis(null);
+                analysisInProgress.current = false;
+              }}
+              className="px-3 py-1 text-xs bg-amber-100 text-amber-800 rounded-md hover:bg-amber-200 transition-colors"
+            >
+              Reintentar Análisis
+            </button>
           </div>
           <div className="text-sm text-amber-700">
             <p className="mb-2">
-              El análisis automático del contenido del video no está disponible en este momento debido a que el servicio externo está sobrecargado.
+              El análisis automático del contenido del video no está disponible en este momento.
             </p>
             <p className="text-xs text-amber-600">
               Sin embargo, puedes continuar con el análisis de métricas de Google Analytics que se muestra a continuación.
             </p>
-            {isPermanentlyFailed && (
-              <div className="mt-3 p-2 bg-amber-100 rounded border border-amber-300">
-                <p className="text-xs text-amber-800">
-                  <strong>Nota:</strong> El análisis de video está siendo reintentado automáticamente.
-                  Si persiste el error, verifica la conexión con el servicio de análisis.
-                </p>
-              </div>
-            )}
           </div>
         </motion.div>
       )}
@@ -603,7 +371,7 @@ const VideoAnalysisDashboard = ({
         </div>
       )}
 
-      {/* Métricas de Correlación - CORREGIDO */}
+      {/* Métricas de Correlación */}
       {analysisResults && analysisResults.length > 0 && (
         <div className="mb-6">
           <div className="flex items-center space-x-2 mb-4">
@@ -615,7 +383,6 @@ const VideoAnalysisDashboard = ({
             {(() => {
               const result = analysisResults[0];
               
-              // VALIDAR Y CORREGIR DATOS ANTES DE MOSTRARLOS
               const validateMetric = (metricName, impactData) => {
                 if (!impactData || typeof impactData.percentageChange !== 'number') {
                   return {
@@ -625,7 +392,6 @@ const VideoAnalysisDashboard = ({
                   };
                 }
                 
-                // Verificar si el valor es realista (evitar valores simulados extremos)
                 const change = impactData.percentageChange;
                 if (Math.abs(change) > 1000) {
                   return {
@@ -675,11 +441,6 @@ const VideoAnalysisDashboard = ({
                     }`}>
                       {usersMetric.isValid ? 'Durante el spot vs referencia' : usersMetric.message}
                     </div>
-                    {!usersMetric.isValid && (
-                      <div className="text-xs text-gray-400 mt-2">
-                        Requiere datos de Google Analytics
-                      </div>
-                    )}
                   </div>
                   
                   <div className={`p-4 border rounded-lg ${
@@ -709,11 +470,6 @@ const VideoAnalysisDashboard = ({
                     }`}>
                       {sessionsMetric.isValid ? 'Incremento en sesiones' : sessionsMetric.message}
                     </div>
-                    {!sessionsMetric.isValid && (
-                      <div className="text-xs text-gray-400 mt-2">
-                        Requiere datos de Google Analytics
-                      </div>
-                    )}
                   </div>
                   
                   <div className={`p-4 border rounded-lg ${
@@ -743,30 +499,10 @@ const VideoAnalysisDashboard = ({
                     }`}>
                       {pageviewsMetric.isValid ? 'Aumento en engagement' : pageviewsMetric.message}
                     </div>
-                    {!pageviewsMetric.isValid && (
-                      <div className="text-xs text-gray-400 mt-2">
-                        Requiere datos de Google Analytics
-                      </div>
-                    )}
                   </div>
                 </>
               );
             })()}
-          </div>
-          
-          {/* Advertencia sobre calidad de datos */}
-          <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-            <div className="flex items-start space-x-2">
-              <Info className="h-4 w-4 text-yellow-600 mt-0.5" />
-              <div className="text-xs text-yellow-800">
-                <p className="font-medium mb-1">Información sobre datos:</p>
-                <p>
-                  Estas métricas se basan en datos reales de Google Analytics cuando están disponibles.
-                  Si muestra "Datos no disponibles", verifica la conexión con Google Analytics o espera
-                  a que se complete el análisis del spot.
-                </p>
-              </div>
-            </div>
           </div>
         </div>
       )}
@@ -811,19 +547,19 @@ const VideoAnalysisDashboard = ({
         </div>
       )}
 
-      {/* Recomendaciones para Maximizar Tráfico Web */}
-      {allRecommendations.length > 0 && (
+      {/* Recomendaciones */}
+      {baseRecommendations.length > 0 && (
         <div className="mb-6">
           <div className="flex items-center space-x-2 mb-4">
             <Lightbulb className="h-5 w-5 text-yellow-600" />
             <h4 className="font-semibold text-gray-900">Recomendaciones para Maximizar Tráfico Web</h4>
             <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full">
-              {allRecommendations.length} recomendaciones
+              {baseRecommendations.length} recomendaciones
             </span>
           </div>
           
           <div className="space-y-4">
-            {allRecommendations.map((rec, index) => (
+            {baseRecommendations.map((rec, index) => (
               <motion.div
                 key={index}
                 initial={{ opacity: 0, y: 10 }}
@@ -843,11 +579,6 @@ const VideoAnalysisDashboard = ({
                     }`}>
                       {rec.priority}
                     </span>
-                    {rec.timeline && (
-                      <span className="text-xs px-2 py-1 bg-blue-100 text-blue-800 rounded-full">
-                        {rec.timeline}
-                      </span>
-                    )}
                   </div>
                   <CheckCircle className="h-4 w-4" />
                 </div>
@@ -855,28 +586,7 @@ const VideoAnalysisDashboard = ({
                 <h5 className="font-medium text-gray-900 mb-1">{rec.text}</h5>
                 
                 {rec.why && (
-                  <p className="text-sm text-gray-700 mb-2">{rec.why}</p>
-                )}
-                
-                {rec.impacto_esperado_tráfico && (
-                  <div className="mt-2 p-2 bg-green-50 rounded border-l-4 border-green-400">
-                    <p className="text-xs font-medium text-green-800 mb-1">Impacto Esperado en Tráfico Web:</p>
-                    <p className="text-xs text-green-700">{rec.impacto_esperado_tráfico}</p>
-                  </div>
-                )}
-                
-                {rec.implementation && (
-                  <div className="mt-2 p-2 bg-white bg-opacity-50 rounded border-l-4 border-blue-400">
-                    <p className="text-xs font-medium text-gray-800 mb-1">Implementación:</p>
-                    <p className="text-xs text-gray-700">{rec.implementation}</p>
-                  </div>
-                )}
-                
-                {rec.métrica_seguimiento && (
-                  <div className="mt-2 p-2 bg-gray-50 rounded border-l-4 border-gray-400">
-                    <p className="text-xs font-medium text-gray-800 mb-1">Métrica de Seguimiento:</p>
-                    <p className="text-xs text-gray-700">{rec.métrica_seguimiento}</p>
-                  </div>
+                  <p className="text-sm text-gray-700">{rec.why}</p>
                 )}
               </motion.div>
             ))}
@@ -884,51 +594,7 @@ const VideoAnalysisDashboard = ({
         </div>
       )}
 
-      {/* Métricas Objetivo (nuevo) */}
-      {videoAnalysis?.metricas_objetivo && (
-        <div className="mb-6 p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border border-green-200">
-          <div className="flex items-center space-x-2 mb-3">
-            <TrendingUp className="h-5 w-5 text-green-600" />
-            <h4 className="font-semibold text-gray-900">Métricas Objetivo Proyectadas</h4>
-          </div>
-          
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            {Object.entries(videoAnalysis.metricas_objetivo).map(([key, value]) => (
-              <div key={key} className="text-center p-3 bg-white rounded border">
-                <div className="text-xs text-gray-600 capitalize">
-                  {key.replace('_', ' ')}
-                </div>
-                <div className="text-sm font-semibold text-green-600">
-                  {value}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Plan de Acción (nuevo) */}
-      {videoAnalysis?.plan_accion && (
-        <div className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-lg border border-blue-200">
-          <div className="flex items-center space-x-2 mb-3">
-            <Brain className="h-5 w-5 text-blue-600" />
-            <h4 className="font-semibold text-gray-900">Plan de Acción Estratégico</h4>
-          </div>
-          
-          <div className="space-y-3">
-            {Object.entries(videoAnalysis.plan_accion).map(([period, actions]) => (
-              <div key={period} className="p-3 bg-white rounded border">
-                <h5 className="font-medium text-blue-900 mb-2 capitalize">
-                  {period.replace('_', ' ')}
-                </h5>
-                <p className="text-sm text-gray-700">{actions}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Resumen Ejecutivo 100% Real */}
+      {/* Resumen Ejecutivo */}
       <div className="p-4 bg-gradient-to-r from-gray-50 to-slate-50 rounded-lg border border-gray-200">
         <div className="flex items-center space-x-2 mb-3">
           <Info className="h-5 w-5 text-gray-600" />
@@ -936,9 +602,7 @@ const VideoAnalysisDashboard = ({
         </div>
         
         {(() => {
-          // Generar resumen ejecutivo 100% basado en datos reales
           const generateRealExecutiveSummary = () => {
-            // Verificar si hay datos suficientes para el análisis
             if (!analysisResults || analysisResults.length === 0) {
               return 'Análisis no disponible: No hay datos de Analytics';
             }
@@ -952,50 +616,34 @@ const VideoAnalysisDashboard = ({
 
             let summary = `Spot transmitido a las ${spotHour}:00. `;
             
-            // Análisis de correlación TV-Web
             if (impact > 0) {
               summary += `Generó un incremento de +${impact.toFixed(1)}% en usuarios activos durante la transmisión. `;
               summary += `Métricas reales: ${usersActive} usuarios activos, ${sessions} sesiones, ${pageviews} páginas vistas. `;
               
               if (impact > 20) {
-                summary += 'El spot demostró una CORRELACIÓN FUERTE entre la transmisión TV y el tráfico web, indicando alta efectividad para generar visitas al sitio.';
+                summary += 'El spot demostró una CORRELACIÓN FUERTE entre la transmisión TV y el tráfico web.';
               } else if (impact > 10) {
-                summary += 'El spot mostró una CORRELACIÓN MODERADA entre TV y web, con impacto positivo pero mejorable en generación de tráfico.';
+                summary += 'El spot mostró una CORRELACIÓN MODERADA entre TV y web.';
               } else {
-                summary += 'El spot presentó CORRELACIÓN DÉBIL entre TV y web, sugiriendo necesidad de optimización para maximizar visitas al sitio.';
+                summary += 'El spot presentó CORRELACIÓN DÉBIL entre TV y web.';
               }
             } else {
               summary += `No se detectó incremento significativo en tráfico web durante la transmisión (${impact.toFixed(1)}%). `;
-              summary += `Métricas: ${usersActive} usuarios activos, ${sessions} sesiones, ${pageviews} páginas vistas. `;
-              summary += 'Se requiere análisis detallado del contenido del spot y timing para identificar oportunidades de mejora en la correlación TV-Web.';
+              summary += 'Se requiere análisis detallado del contenido del spot y timing.';
             }
 
-            // Análisis de timing
-            const isPrimeTime = spotHour >= 19 && spotHour <= 23;
-            if (isPrimeTime) {
-              summary += ' El horario de transmisión (prime time) es óptimo para maximizar audiencia y potencial de tráfico web.';
-            } else {
-              summary += ' El horario de transmisión está fuera del prime time, lo que puede limitar el alcance y la correlación con tráfico web.';
-            }
-
-            // Agregar análisis de video si está disponible
             if (videoAnalysis && videoAnalysis.analisis_efectividad) {
               const efectividad = videoAnalysis.analisis_efectividad;
               const clarity = parseFloat(efectividad.claridad_mensaje || 0);
               const engagement = parseFloat(efectividad.engagement_visual || 0);
               const memorability = parseFloat(efectividad.memorabilidad || 0);
               
-              summary += ` Análisis de contenido: Claridad del mensaje ${clarity.toFixed(1)}/10, Engagement visual ${engagement.toFixed(1)}/10, Memorabilidad ${memorability.toFixed(1)}/10.`;
-              
-              if (clarity < 6 || engagement < 6) {
-                summary += ' La calidad del contenido sugiere oportunidades de mejora para incrementar la efectividad del spot en generar tráfico web.';
-              }
+              summary += ` Análisis de contenido: Claridad ${clarity.toFixed(1)}/10, Engagement ${engagement.toFixed(1)}/10, Memorabilidad ${memorability.toFixed(1)}/10.`;
             } else {
-              // Si no hay análisis de video, agregar nota sobre el estado
               if (analyzingVideo) {
                 summary += ' Análisis de contenido del video en progreso...';
               } else if (error) {
-                summary += ' Análisis de contenido del video no disponible debido a errores en la API.';
+                summary += ' Análisis de contenido del video no disponible.';
               } else {
                 summary += ' Análisis de contenido del video pendiente.';
               }
@@ -1006,30 +654,12 @@ const VideoAnalysisDashboard = ({
 
           const realSummary = generateRealExecutiveSummary();
           
-          // Si no hay datos disponibles, mostrar mensaje específico con más detalles
-          if (realSummary.includes('Análisis no disponible')) {
-            return (
-              <div className="text-center py-4">
-                <p className="text-sm text-gray-500 italic mb-2">
-                  {realSummary}
-                </p>
-                <div className="text-xs text-gray-400">
-                  <p>Estado del análisis:</p>
-                  <p>• Datos de Analytics: {analysisResults && analysisResults.length > 0 ? '✅ Disponibles' : '❌ No disponibles'}</p>
-                  <p>• Análisis de video: {videoAnalysis ? '✅ Completado' : '❌ Pendiente o con errores'}</p>
-                  <p>• API Chutes AI: {videoAnalysis?.apiProvider ? '✅ Conectada' : '⏳ Esperando conexión'}</p>
-                </div>
-              </div>
-            );
-          }
-          
           return (
             <div>
               <p className="text-sm text-gray-700 leading-relaxed mb-3">
                 {realSummary}
               </p>
               
-              {/* Métricas clave del análisis */}
               {videoAnalysis && videoAnalysis.analisis_efectividad && (
                 <div className="grid grid-cols-3 gap-2 mb-3">
                   <div className="text-center p-2 bg-white rounded border">
@@ -1052,51 +682,9 @@ const VideoAnalysisDashboard = ({
                   </div>
                 </div>
               )}
-              
-              {/* Datos de correlación TV-Web */}
-              {analysisResults && analysisResults.length > 0 && (
-                <div className="mt-3 p-3 bg-blue-50 rounded border border-blue-200">
-                  <div className="text-xs font-medium text-blue-800 mb-2">Datos de Correlación TV-Web</div>
-                  <div className="grid grid-cols-3 gap-2 text-xs">
-                    <div className="text-center">
-                      <div className="text-blue-600 font-semibold">
-                        +{analysisResults[0].impact?.activeUsers?.percentageChange?.toFixed(1) || '0'}%
-                      </div>
-                      <div className="text-blue-700">Usuarios Activos</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-green-600 font-semibold">
-                        +{analysisResults[0].impact?.sessions?.percentageChange?.toFixed(1) || '0'}%
-                      </div>
-                      <div className="text-green-700">Sesiones</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-purple-600 font-semibold">
-                        +{analysisResults[0].impact?.pageviews?.percentageChange?.toFixed(1) || '0'}%
-                      </div>
-                      <div className="text-purple-700">Páginas Vistas</div>
-                    </div>
-                  </div>
-                </div>
-              )}
             </div>
           );
         })()}
-        
-        {videoAnalysis?.tags_relevantes &&
-         Array.isArray(videoAnalysis.tags_relevantes) &&
-         videoAnalysis.tags_relevantes.length > 0 && (
-          <div className="mt-3 flex flex-wrap gap-2">
-            {videoAnalysis.tags_relevantes.map((tag, index) => (
-              <span
-                key={index}
-                className="px-2 py-1 bg-white border border-gray-300 rounded-full text-xs text-gray-600"
-              >
-                {typeof tag === 'string' ? tag : 'Tag no válido'}
-              </span>
-            ))}
-          </div>
-        )}
       </div>
 
       {/* Loading State */}
