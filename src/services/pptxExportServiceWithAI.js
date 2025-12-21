@@ -1,7 +1,7 @@
 // Servicio PPTX con IA Adaptativa - Versión inteligente que resuelve automáticamente
 // el problema de contenido que se sale de las láminas
 
-const PptxGenJS = require('pptxgenjs');
+const PptxGenJS = require('pptxgenjs').default || require('pptxgenjs');
 const PPTXAdaptiveLayoutService = require('./pptxAdaptiveLayoutService.js');
 
 class PPTXExportServiceWithAI {
