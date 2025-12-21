@@ -50,7 +50,21 @@ class PPTXExportServiceCompatible {
     // 3. SLIDE DE MÉTRICAS GENERALES
     this.createGeneralMetricsSlide(results);
 
-    // 4. SLIDES INDIVIDUALES POR CADA SPOT CON SU ANÁLISIS DE IA CONSECUTIVO
+    // 4. SLIDE DE ANÁLISIS INTELIGENTE GENERAL (MOVIDO AQUÍ)
+    if (batchAIAnalysis && Object.keys(batchAIAnalysis).length > 0) {
+      this.createGeneralAISlide(batchAIAnalysis, results);
+    }
+
+    // 5. SLIDE DE ANÁLISIS DE VINCULACIÓN DIRECTA (MOVIDO AQUÍ)
+    this.createDirectCorrelationSlide(results);
+
+    // 6. SLIDE DE RECOMENDACIONES ESTRATÉGICAS (MOVIDO AQUÍ)
+    this.createRecommendationsSlide(results, batchAIAnalysis);
+
+    // 7. SLIDE DE CONCLUSIONES Y PRÓXIMOS PASOS (MOVIDO AQUÍ)
+    this.createConclusionsSlide(results, batchAIAnalysis);
+
+    // 8. SLIDES INDIVIDUALES POR CADA SPOT CON SU ANÁLISIS DE IA CONSECUTIVO
     results.forEach((result, index) => {
       // Lámina del spot con métricas y análisis temporal
       this.createIndividualSpotSlide(result, index, temporalAnalysis[index]);
@@ -62,29 +76,15 @@ class PPTXExportServiceCompatible {
       }
     });
 
-    // 5. SLIDE DE ANÁLISIS DE IA GENERAL (DESPUÉS DE TODOS LOS SPOTS INDIVIDUALES)
-    if (batchAIAnalysis && Object.keys(batchAIAnalysis).length > 0) {
-      this.createGeneralAISlide(batchAIAnalysis, results);
-    }
-
-    // 6. SLIDE DE ANÁLISIS TEMPORAL AVANZADO
+    // 9. SLIDE DE ANÁLISIS TEMPORAL AVANZADO
     if (Object.keys(temporalAnalysis).length > 0) {
       this.createTemporalAnalysisSlide(temporalAnalysis, results);
     }
 
-    // 7. SLIDE DE ANÁLISIS PREDICTIVO
+    // 10. SLIDE DE ANÁLISIS PREDICTIVO
     if (predictiveAnalysis && Object.keys(predictiveAnalysis).length > 0) {
       this.createPredictiveAnalysisSlide(predictiveAnalysis);
     }
-
-    // 8. SLIDE DE VINCULACIÓN DIRECTA
-    this.createDirectCorrelationSlide(results);
-
-    // 9. SLIDE DE RECOMENDACIONES ESTRATÉGICAS
-    this.createRecommendationsSlide(results, batchAIAnalysis);
-
-    // 10. SLIDE DE CONCLUSIONES
-    this.createConclusionsSlide(results, batchAIAnalysis);
 
     return this.pptx;
   }
