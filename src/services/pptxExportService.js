@@ -356,7 +356,7 @@ class PPTXExportService {
     // Métricas detalladas
     slide.addText('📊 Métricas Detalladas:', {
       x: 0.5, y: leftY, w: 4.5, h: 0.3,
-      fontSize: 12, bold: true, color: '374151'
+      fontSize: 14, bold: true, color: '374151'
     });
     leftY += 0.4;
 
@@ -378,7 +378,7 @@ class PPTXExportService {
 
     slide.addTable(metricsData, {
       x: 0.5, y: leftY, w: 4.5, h: 1.8,
-      fontSize: 9,
+      fontSize: 10,
       border: { type: 'solid', color: 'E5E7EB', pt: 1 },
       fill: 'F9FAFB'
     });
@@ -388,14 +388,14 @@ class PPTXExportService {
     if (temporalImpact) {
       slide.addText('⏰ Análisis Temporal:', {
         x: 0.5, y: leftY, w: 4.5, h: 0.3,
-        fontSize: 12, bold: true, color: '059669'
+        fontSize: 14, bold: true, color: '059669'
       });
       leftY += 0.4;
       
       if (temporalImpact.temporalScore !== undefined) {
         slide.addText(`Score: ${temporalImpact.temporalScore.toFixed(2)}/1.0`, {
           x: 0.7, y: leftY, w: 4.3, h: 0.25,
-          fontSize: 9, color: '047857'
+          fontSize: 10, color: '047857'
         });
         leftY += 0.35;
       }
@@ -405,7 +405,7 @@ class PPTXExportService {
         
         slide.addText(`Pico: ${peakText}`, {
           x: 0.7, y: leftY, w: 4.3, h: 0.25,
-          fontSize: 9, color: '047857'
+          fontSize: 10, color: '047857'
         });
         leftY += 0.35;
       }
@@ -413,7 +413,7 @@ class PPTXExportService {
       if (temporalImpact.temporalInsights && temporalImpact.temporalInsights.length > 0) {
         slide.addText('Insights:', {
           x: 0.7, y: leftY, w: 4.3, h: 0.25,
-          fontSize: 9, bold: true, color: '047857'
+          fontSize: 10, bold: true, color: '047857'
         });
         leftY += 0.3;
 
@@ -421,7 +421,7 @@ class PPTXExportService {
         temporalImpact.temporalInsights.forEach((insight) => {
           slide.addText(`• ${insight}`, {
             x: 0.9, y: leftY, w: 4.1, h: 0.2,
-            fontSize: 8, color: '047857'
+            fontSize: 9, color: '047857'
           });
           leftY += 0.25;
         });
