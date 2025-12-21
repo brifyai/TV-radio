@@ -1,8 +1,8 @@
 // Servicio PPTX con IA Adaptativa - Versión inteligente que resuelve automáticamente
 // el problema de contenido que se sale de las láminas
 
-import PptxGenJS from 'pptxgenjs';
-import PPTXAdaptiveLayoutService from './pptxAdaptiveLayoutService.js';
+const PptxGenJS = require('pptxgenjs');
+const PPTXAdaptiveLayoutService = require('./pptxAdaptiveLayoutService.js');
 
 class PPTXExportServiceWithAI {
   constructor() {
@@ -798,6 +798,7 @@ class PPTXExportServiceWithAI {
         break;
       default:
         this.applySingleColumnLayout(slide, items, fontScale, currentY);
+        break;
     }
   }
 
@@ -884,6 +885,9 @@ class PPTXExportServiceWithAI {
       case 'low':
         fontSize = 10 * fontScale;
         break;
+      default:
+        fontSize = 12 * fontScale;
+        break;
     }
     
     // Asegurar tamaño mínimo legible
@@ -939,4 +943,4 @@ class PPTXExportServiceWithAI {
   }
 }
 
-export default PPTXExportServiceWithAI;
+module.exports = PPTXExportServiceWithAI;
