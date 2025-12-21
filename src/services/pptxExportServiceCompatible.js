@@ -50,13 +50,22 @@ class PPTXExportServiceCompatible {
     // 3. SLIDE DE MÉTRICAS GENERALES
     this.createGeneralMetricsSlide(results);
 
-    // 4. SLIDES INDIVIDUALES POR CADA SPOT (SOLO MÉTRICAS Y ANÁLISIS TEMPORAL)
+    // 4. SLIDES INDIVIDUALES POR CADA SPOT CON SU ANÁLISIS DE IA CONSECUTIVO
     results.forEach((result, index) => {
+      // Lámina del spot con métricas y análisis temporal
       this.createIndividualSpotSlide(result, index, temporalAnalysis[index]);
+      
+      // Lámina consecutiva con análisis inteligente del mismo spot
+      const spotAiAnalysis = aiAnalysis[index];
+      if (spotAiAnalysis) {
+        this.createIndividualSpotAISlide(result, index, spotAiAnalysis);
+      }
     });
 
-    // 5. SLIDES SEPARADAS DE ANÁLISIS INTELIGENTE E INSIGHTS CLAVES
-    this.createIntelligentAnalysisSlides(results, aiAnalysis, batchAIAnalysis);
+    // 5. SLIDE DE ANÁLISIS DE IA GENERAL (DESPUÉS DE TODOS LOS SPOTS INDIVIDUALES)
+    if (batchAIAnalysis && Object.keys(batchAIAnalysis).length > 0) {
+      this.createGeneralAISlide(batchAIAnalysis, results);
+    }
 
     // 6. SLIDE DE ANÁLISIS TEMPORAL AVANZADO
     if (Object.keys(temporalAnalysis).length > 0) {
@@ -66,11 +75,6 @@ class PPTXExportServiceCompatible {
     // 7. SLIDE DE ANÁLISIS PREDICTIVO
     if (predictiveAnalysis && Object.keys(predictiveAnalysis).length > 0) {
       this.createPredictiveAnalysisSlide(predictiveAnalysis);
-    }
-
-    // 8. SLIDE DE ANÁLISIS DE IA GENERAL
-    if (batchAIAnalysis && Object.keys(batchAIAnalysis).length > 0) {
-      this.createAIAnalysisSlide(batchAIAnalysis);
     }
 
     // 8. SLIDE DE VINCULACIÓN DIRECTA
@@ -465,28 +469,13 @@ class PPTXExportServiceCompatible {
     }
   }
 
-  createIntelligentAnalysisSlides(results, aiAnalysis, batchAIAnalysis) {
-    // Crear láminas individuales de análisis de IA para cada spot
-    results.forEach((result, index) => {
-      const spotAiAnalysis = aiAnalysis[index];
-      if (spotAiAnalysis) {
-        this.createIndividualSpotAISlide(result, index, spotAiAnalysis);
-      }
-    });
-
-    // Crear lámina de análisis de IA general si existe
-    if (batchAIAnalysis && Object.keys(batchAIAnalysis).length > 0) {
-      this.createGeneralAISlide(batchAIAnalysis, results);
-    }
-  }
-
   createIndividualSpotAISlide(result, index, aiAnalysis) {
     const slide = this.pptx.addSlide();
     
     // Título del slide
-    slide.addText(`Analisis Inteligente - Spot ${index + 1}`, {
+    slide.addText(`Analisis Inteligente - Spot ${index + 1}: ${this.cleanText(result.spot?.titulo_programa || result.spot?.nombre || 'Sin nombre')}`, {
       x: 0.5, y: 0.3, w: 9, h: 0.6,
-      fontSize: 20, bold: true, color: '7C3AED'
+      fontSize: 18, bold: true, color: '7C3AED'
     });
 
     // Información del spot
