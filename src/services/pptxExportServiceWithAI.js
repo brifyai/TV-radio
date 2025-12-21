@@ -427,7 +427,7 @@ class PPTXExportServiceWithAI {
       title: title
     });
 
-    // Aplicar las decisiones
+    // Crear láminas para cada distribución
     decisions.contentDistribution.forEach((distribution, index) => {
       const slide = this.pptx.addSlide();
       
@@ -772,8 +772,16 @@ class PPTXExportServiceWithAI {
       slide.background = { color: slideContext.backgroundColor };
     }
 
-    // Aplicar las decisiones de IA
-    this.adaptiveLayoutService.applyAdaptiveLayout(slide, contentItems, decisions);
+    // Crear láminas adicionales si es necesario
+    const slides = [slide];
+    for (let i = 1; i < decisions.contentDistribution.length; i++) {
+      slides.push(this.pptx.addSlide());
+    }
+
+    // Aplicar las decisiones de IA a cada lámina
+    decisions.contentDistribution.forEach((distribution, index) => {
+      this.applyLayoutToSlideWithAI(slides[index], distribution.items, distribution, 1.2);
+    });
   }
 
   // Método para aplicar layout específico con IA

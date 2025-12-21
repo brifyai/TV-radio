@@ -290,16 +290,22 @@ class PPTXAdaptiveLayoutService {
    * @param {Object} slide - Objeto de lámina PPTX
    * @param {Array} contentItems - Elementos de contenido
    * @param {Object} decisions - Decisiones de IA
+   * @returns {Array} Array de láminas creadas
    */
   applyAdaptiveLayout(slide, contentItems, decisions) {
+    const slides = [slide];
+    
     decisions.contentDistribution.forEach((distribution, index) => {
       if (index > 0) {
-        // Crear nueva lámina si es necesario
-        slide = slide.pptx.addSlide();
+        // Solo retornar información sobre la necesidad de crear nueva lámina
+        // La creación real se maneja desde el servicio principal
       }
 
-      this.applyLayoutToSlide(slide, distribution.items, distribution);
+      // Aplicar layout a la lámina correspondiente
+      this.applyLayoutToSlide(slides[index], distribution.items, distribution);
     });
+    
+    return slides;
   }
 
   /**
