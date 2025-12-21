@@ -375,7 +375,7 @@ class PPTXExportService {
       fill: 'F9FAFB'
     });
 
-    // Análisis de IA (contenido expandible)
+    // Análisis de IA (contenido expandible) - Reorganizado para evitar superposiciones
     if (aiAnalysis) {
       slide.addText('🤖 Análisis Inteligente:', {
         x: 5.2, y: 2.8, w: 4.3, h: 0.3,
@@ -384,20 +384,20 @@ class PPTXExportService {
 
       if (aiAnalysis.summary) {
         slide.addText(`Resumen: ${aiAnalysis.summary}`, {
-          x: 5.2, y: 3.2, w: 4.3, h: 0.8,
+          x: 5.2, y: 3.2, w: 4.3, h: 0.6,
           fontSize: 10, color: '5B21B6'
         });
       }
 
       if (aiAnalysis.insights && aiAnalysis.insights.length > 0) {
         slide.addText('Insights Clave:', {
-          x: 5.2, y: 4.1, w: 4.3, h: 0.3,
+          x: 5.2, y: 3.9, w: 4.3, h: 0.3,
           fontSize: 11, bold: true, color: '5B21B6'
         });
 
         aiAnalysis.insights.slice(0, 2).forEach((insight, i) => {
           slide.addText(`• ${typeof insight === 'string' ? insight : insight?.descripcion || JSON.stringify(insight)}`, {
-            x: 5.4, y: 4.4 + (i * 0.3), w: 4.1, h: 0.25,
+            x: 5.4, y: 4.2 + (i * 0.25), w: 4.1, h: 0.22,
             fontSize: 9, color: '5B21B6'
           });
         });
@@ -405,20 +405,20 @@ class PPTXExportService {
 
       if (aiAnalysis.recommendations && aiAnalysis.recommendations.length > 0) {
         slide.addText('Recomendaciones:', {
-          x: 5.2, y: 5.1, w: 4.3, h: 0.3,
+          x: 5.2, y: 4.8, w: 4.3, h: 0.3,
           fontSize: 11, bold: true, color: '5B21B6'
         });
 
         aiAnalysis.recommendations.slice(0, 2).forEach((rec, i) => {
           slide.addText(`• ${rec}`, {
-            x: 5.4, y: 5.4 + (i * 0.3), w: 4.1, h: 0.25,
+            x: 5.4, y: 5.1 + (i * 0.25), w: 4.1, h: 0.22,
             fontSize: 9, color: '5B21B6'
           });
         });
       }
     }
 
-    // Análisis temporal (contenido expandible)
+    // Análisis temporal (contenido expandible) - Reposicionado
     if (temporalImpact) {
       slide.addText('⏰ Análisis Temporal:', {
         x: 0.5, y: 5.2, w: 4.5, h: 0.3,
@@ -454,9 +454,9 @@ class PPTXExportService {
       }
     }
 
-    // Timeline de visitas (contenido expandible)
+    // Timeline de visitas (contenido expandible) - Reposicionado para evitar superposición
     slide.addText('📈 Timeline de Visitas (30 min):', {
-      x: 5.2, y: 6.2, w: 4.3, h: 0.3,
+      x: 5.2, y: 5.6, w: 4.3, h: 0.3,
       fontSize: 12, bold: true, color: 'DC2626'
     });
 
@@ -472,8 +472,8 @@ class PPTXExportService {
 
       timelineData.forEach((data, i) => {
         slide.addText(`${data.time}: ${data.visits} visitas`, {
-          x: 5.4, y: 6.6 + (i * 0.25), w: 4.1, h: 0.2,
-          fontSize: 9, color: 'DC2626'
+          x: 5.4, y: 5.9 + (i * 0.2), w: 4.1, h: 0.18,
+          fontSize: 8, color: 'DC2626'
         });
       });
     }
