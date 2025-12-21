@@ -307,7 +307,7 @@ class PPTXExportService {
       fontSize: 20, bold: true, color: '1E40AF'
     });
 
-    // Información básica del spot - REORGANIZADA
+    // Información básica del spot
     const spotInfo = [
       `Fecha: ${result.spot?.fecha || 'N/A'} | Hora: ${result.spot?.hora || 'N/A'}`,
       `Canal: ${result.spot?.canal || 'N/A'} | Duración: ${result.spot?.duracion || 'N/A'}s`
@@ -320,7 +320,7 @@ class PPTXExportService {
       });
     });
 
-    // Tipo y versión en líneas separadas para evitar texto muy largo
+    // Tipo y versión
     const tipo = result.spot?.tipo_comercial || 'N/A';
     const version = result.spot?.version || 'N/A';
     
@@ -345,17 +345,20 @@ class PPTXExportService {
       color: isDirectCorrelation ? '059669' : '7C3AED'
     });
 
-    // LAYOUT REORGANIZADO PARA EVITAR SUPERPOSICIONES
-    // ================================================
+    // LAYOUT COMPLETAMENTE REORGANIZADO CON POSICIONAMIENTO DINÁMICO
+    // ================================================================
     
     // COLUMNA IZQUIERDA (x: 0.5, w: 4.5)
     // ====================================
     
+    let leftY = 2.8; // Posición inicial para columna izquierda
+    
     // Métricas detalladas
     slide.addText('📊 Métricas Detalladas:', {
-      x: 0.5, y: 2.8, w: 4.5, h: 0.3,
+      x: 0.5, y: leftY, w: 4.5, h: 0.3,
       fontSize: 14, bold: true, color: '374151'
     });
+    leftY += 0.4;
 
     const metricsData = [
       ['Métrica', 'Durante Spot', 'Referencia', 'Cambio %'],
@@ -374,27 +377,27 @@ class PPTXExportService {
     ];
 
     slide.addTable(metricsData, {
-      x: 0.5, y: 3.2, w: 4.5, h: 1.8,
+      x: 0.5, y: leftY, w: 4.5, h: 1.8,
       fontSize: 10,
       border: { type: 'solid', color: 'E5E7EB', pt: 1 },
       fill: 'F9FAFB'
     });
+    leftY += 2.0; // Espacio para la tabla
 
-    // Análisis temporal en columna izquierda (REUBICADO)
+    // Análisis temporal en columna izquierda
     if (temporalImpact) {
       slide.addText('⏰ Análisis Temporal:', {
-        x: 0.5, y: 5.2, w: 4.5, h: 0.3,
+        x: 0.5, y: leftY, w: 4.5, h: 0.3,
         fontSize: 14, bold: true, color: '059669'
       });
-
-      let temporalY = 5.6;
+      leftY += 0.4;
       
       if (temporalImpact.temporalScore !== undefined) {
         slide.addText(`Score: ${temporalImpact.temporalScore.toFixed(2)}/1.0`, {
-          x: 0.7, y: temporalY, w: 4.3, h: 0.25,
+          x: 0.7, y: leftY, w: 4.3, h: 0.25,
           fontSize: 10, color: '047857'
         });
-        temporalY += 0.35;
+        leftY += 0.35;
       }
 
       if (temporalImpact.peakTime && temporalImpact.peakTime.length > 0) {
@@ -402,41 +405,43 @@ class PPTXExportService {
         const limitedPeak = peakText.length > 60 ? peakText.substring(0, 57) + '...' : peakText;
         
         slide.addText(`Pico: ${limitedPeak}`, {
-          x: 0.7, y: temporalY, w: 4.3, h: 0.25,
+          x: 0.7, y: leftY, w: 4.3, h: 0.25,
           fontSize: 10, color: '047857'
         });
-        temporalY += 0.35;
+        leftY += 0.35;
       }
 
       if (temporalImpact.temporalInsights && temporalImpact.temporalInsights.length > 0) {
         slide.addText('Insights:', {
-          x: 0.7, y: temporalY, w: 4.3, h: 0.25,
+          x: 0.7, y: leftY, w: 4.3, h: 0.25,
           fontSize: 10, bold: true, color: '047857'
         });
-        temporalY += 0.3;
+        leftY += 0.3;
 
         // Mostrar solo 1 insight temporal
         const insight = temporalImpact.temporalInsights[0];
         const limitedInsight = insight.length > 70 ? insight.substring(0, 67) + '...' : insight;
         
         slide.addText(`• ${limitedInsight}`, {
-          x: 0.9, y: temporalY, w: 4.1, h: 0.2,
+          x: 0.9, y: leftY, w: 4.1, h: 0.2,
           fontSize: 9, color: '047857'
         });
+        leftY += 0.3;
       }
     }
 
     // COLUMNA DERECHA (x: 5.2, w: 4.3)
     // =================================
     
-    // Análisis de IA en columna derecha (REUBICADO)
+    let rightY = 2.8; // Posición inicial para columna derecha
+    
+    // Análisis de IA en columna derecha
     if (aiAnalysis) {
       slide.addText('🤖 Análisis Inteligente:', {
-        x: 5.2, y: 2.8, w: 4.3, h: 0.3,
+        x: 5.2, y: rightY, w: 4.3, h: 0.3,
         fontSize: 14, bold: true, color: '7C3AED'
       });
-
-      let currentY = 3.2;
+      rightY += 0.4;
       
       if (aiAnalysis.summary) {
         // Limitar el resumen para evitar desbordamiento
@@ -445,18 +450,18 @@ class PPTXExportService {
           aiAnalysis.summary;
           
         slide.addText(`Resumen: ${summaryText}`, {
-          x: 5.2, y: currentY, w: 4.3, h: 0.6,
+          x: 5.2, y: rightY, w: 4.3, h: 0.6,
           fontSize: 10, color: '5B21B6'
         });
-        currentY += 0.8;
+        rightY += 0.8;
       }
 
       if (aiAnalysis.insights && aiAnalysis.insights.length > 0) {
         slide.addText('Insights Clave:', {
-          x: 5.2, y: currentY, w: 4.3, h: 0.3,
+          x: 5.2, y: rightY, w: 4.3, h: 0.3,
           fontSize: 11, bold: true, color: '5B21B6'
         });
-        currentY += 0.4;
+        rightY += 0.4;
 
         // Mostrar solo 1 insight para evitar superposición
         const insight = aiAnalysis.insights[0];
@@ -464,36 +469,37 @@ class PPTXExportService {
         const limitedInsight = insightText.length > 80 ? insightText.substring(0, 77) + '...' : insightText;
         
         slide.addText(`• ${limitedInsight}`, {
-          x: 5.4, y: currentY, w: 4.1, h: 0.22,
+          x: 5.4, y: rightY, w: 4.1, h: 0.22,
           fontSize: 9, color: '5B21B6'
         });
-        currentY += 0.35;
+        rightY += 0.35;
       }
 
       if (aiAnalysis.recommendations && aiAnalysis.recommendations.length > 0) {
         slide.addText('Recomendaciones:', {
-          x: 5.2, y: currentY, w: 4.3, h: 0.3,
+          x: 5.2, y: rightY, w: 4.3, h: 0.3,
           fontSize: 11, bold: true, color: '5B21B6'
         });
-        currentY += 0.4;
+        rightY += 0.4;
 
         // Mostrar solo 1 recomendación para evitar superposición
         const rec = aiAnalysis.recommendations[0];
         const limitedRec = rec.length > 80 ? rec.substring(0, 77) + '...' : rec;
         
         slide.addText(`• ${limitedRec}`, {
-          x: 5.4, y: currentY, w: 4.1, h: 0.22,
+          x: 5.4, y: rightY, w: 4.1, h: 0.22,
           fontSize: 9, color: '5B21B6'
         });
-        currentY += 0.35;
+        rightY += 0.35;
       }
     }
 
-    // Timeline de visitas en columna derecha (REUBICADO)
+    // Timeline de visitas - POSICIONAMIENTO DINÁMICO
     slide.addText('📈 Timeline (30 min):', {
-      x: 5.2, y: 5.2, w: 4.3, h: 0.3,
+      x: 5.2, y: rightY, w: 4.3, h: 0.3,
       fontSize: 12, bold: true, color: 'DC2626'
     });
+    rightY += 0.4;
 
     // Simular timeline basado en datos reales
     const baseVisits = result.metrics?.spot?.activeUsers || 0;
@@ -505,10 +511,9 @@ class PPTXExportService {
         { time: '30 min', visits: Math.round(baseVisits * 0.12) }
       ];
 
-      let timelineY = 5.6;
       timelineData.forEach((data, i) => {
         slide.addText(`${data.time}: ${data.visits}`, {
-          x: 5.4, y: timelineY + (i * 0.18), w: 4.1, h: 0.16,
+          x: 5.4, y: rightY + (i * 0.18), w: 4.1, h: 0.16,
           fontSize: 8, color: 'DC2626'
         });
       });
