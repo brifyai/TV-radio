@@ -514,10 +514,10 @@ class PPTXExportServiceCompatible {
         const insightText = typeof insight === 'string' ? insight : insight?.descripcion || JSON.stringify(insight);
         
         slide.addText(`${insightIndex + 1}. ${this.cleanText(insightText)}`, {
-          x: 0.7, y: currentY, w: 8.5, h: 0.4,
+          x: 0.7, y: currentY, w: 8.5, h: 0.3,
           fontSize: 10, color: '5B21B6'
         });
-        currentY += 0.5;
+        currentY += 0.35; // Reducido de 0.5 a 0.35
       });
     }
 
@@ -531,10 +531,10 @@ class PPTXExportServiceCompatible {
 
       aiAnalysis.recommendations.forEach((recommendation, recIndex) => {
         slide.addText(`${recIndex + 1}. ${this.cleanText(recommendation)}`, {
-          x: 0.7, y: currentY, w: 8.5, h: 0.4,
+          x: 0.7, y: currentY, w: 8.5, h: 0.3,
           fontSize: 10, color: '5B21B6'
         });
-        currentY += 0.5;
+        currentY += 0.35; // Reducido de 0.5 a 0.35
       });
     }
 
@@ -554,7 +554,7 @@ class PPTXExportServiceCompatible {
 
       impactData.forEach((data, i) => {
         slide.addText(`• ${data}`, {
-          x: 0.7, y: currentY + (i * 0.3), w: 8.5, h: 0.25,
+          x: 0.7, y: currentY + (i * 0.25), w: 8.5, h: 0.22, // Reducido de 0.3 a 0.25
           fontSize: 9, color: '374151'
         });
       });
