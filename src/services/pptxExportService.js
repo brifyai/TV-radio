@@ -402,9 +402,8 @@ class PPTXExportService {
 
       if (temporalImpact.peakTime && temporalImpact.peakTime.length > 0) {
         const peakText = temporalImpact.peakTime.join(', ');
-        const limitedPeak = peakText.length > 60 ? peakText.substring(0, 57) + '...' : peakText;
         
-        slide.addText(`Pico: ${limitedPeak}`, {
+        slide.addText(`Pico: ${peakText}`, {
           x: 0.7, y: leftY, w: 4.3, h: 0.25,
           fontSize: 10, color: '047857'
         });
@@ -418,15 +417,14 @@ class PPTXExportService {
         });
         leftY += 0.3;
 
-        // Mostrar solo 1 insight temporal
-        const insight = temporalImpact.temporalInsights[0];
-        const limitedInsight = insight.length > 70 ? insight.substring(0, 67) + '...' : insight;
-        
-        slide.addText(`• ${limitedInsight}`, {
-          x: 0.9, y: leftY, w: 4.1, h: 0.2,
-          fontSize: 9, color: '047857'
+        // Mostrar todos los insights temporales
+        temporalImpact.temporalInsights.forEach((insight) => {
+          slide.addText(`• ${insight}`, {
+            x: 0.9, y: leftY, w: 4.1, h: 0.2,
+            fontSize: 9, color: '047857'
+          });
+          leftY += 0.25;
         });
-        leftY += 0.3;
       }
     }
 
@@ -444,12 +442,7 @@ class PPTXExportService {
       rightY += 0.4;
       
       if (aiAnalysis.summary) {
-        // Limitar el resumen para evitar desbordamiento
-        const summaryText = aiAnalysis.summary.length > 100 ?
-          aiAnalysis.summary.substring(0, 97) + '...' :
-          aiAnalysis.summary;
-          
-        slide.addText(`Resumen: ${summaryText}`, {
+        slide.addText(`Resumen: ${aiAnalysis.summary}`, {
           x: 5.2, y: rightY, w: 4.3, h: 0.6,
           fontSize: 10, color: '5B21B6'
         });
@@ -463,16 +456,16 @@ class PPTXExportService {
         });
         rightY += 0.4;
 
-        // Mostrar solo 1 insight para evitar superposición
-        const insight = aiAnalysis.insights[0];
-        const insightText = typeof insight === 'string' ? insight : insight?.descripcion || JSON.stringify(insight);
-        const limitedInsight = insightText.length > 80 ? insightText.substring(0, 77) + '...' : insightText;
-        
-        slide.addText(`• ${limitedInsight}`, {
-          x: 5.4, y: rightY, w: 4.1, h: 0.22,
-          fontSize: 9, color: '5B21B6'
+        // Mostrar todos los insights
+        aiAnalysis.insights.forEach((insight) => {
+          const insightText = typeof insight === 'string' ? insight : insight?.descripcion || JSON.stringify(insight);
+          
+          slide.addText(`• ${insightText}`, {
+            x: 5.4, y: rightY, w: 4.1, h: 0.22,
+            fontSize: 9, color: '5B21B6'
+          });
+          rightY += 0.25;
         });
-        rightY += 0.35;
       }
 
       if (aiAnalysis.recommendations && aiAnalysis.recommendations.length > 0) {
@@ -482,15 +475,14 @@ class PPTXExportService {
         });
         rightY += 0.4;
 
-        // Mostrar solo 1 recomendación para evitar superposición
-        const rec = aiAnalysis.recommendations[0];
-        const limitedRec = rec.length > 80 ? rec.substring(0, 77) + '...' : rec;
-        
-        slide.addText(`• ${limitedRec}`, {
-          x: 5.4, y: rightY, w: 4.1, h: 0.22,
-          fontSize: 9, color: '5B21B6'
+        // Mostrar todas las recomendaciones
+        aiAnalysis.recommendations.forEach((rec) => {
+          slide.addText(`• ${rec}`, {
+            x: 5.4, y: rightY, w: 4.1, h: 0.22,
+            fontSize: 9, color: '5B21B6'
+          });
+          rightY += 0.25;
         });
-        rightY += 0.35;
       }
     }
 
