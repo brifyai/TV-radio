@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Download, FileText, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
-import PPTXExportServiceCompatible from '../../services/pptxExportServiceCompatible';
+import PPTXExportServiceWithAI from '../../services/pptxExportServiceWithAI';
 
 const PPTXExportButton = ({
   analysisResults,
@@ -27,7 +27,7 @@ const PPTXExportButton = ({
     setExportStatus(null);
 
     try {
-      const exportService = new PPTXExportServiceCompatible();
+      const exportService = new PPTXExportServiceWithAI();
       
       // Preparar datos COMPLETOS para exportación (incluyendo contenido expandible)
       const exportData = {
