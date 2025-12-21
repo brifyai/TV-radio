@@ -2,24 +2,24 @@
  * Sistema de logging controlado para evitar spam en consola
  */
 
-// Configuración del logger - REDUCIDO PARA EVITAR BUCLES
+// Configuración del logger - AJUSTADO PARA EVITAR BUCLES
 const LOG_CONFIG = {
   // Máximo de mensajes por tipo en un período de tiempo
   maxLogsPerMinute: {
-    log: 5,      // Reducido drásticamente de 50 a 5
-    warn: 3,     // Reducido drásticamente de 20 a 3
-    error: 2,    // Reducido drásticamente de 10 a 2
-    debug: 2     // Reducido drásticamente de 30 a 2
+    log: 20,     // Aumentado de 5 a 20 para evitar bloqueos
+    warn: 10,    // Aumentado de 3 a 10 para advertencias importantes
+    error: 5,    // Aumentado de 2 a 5 para errores críticos
+    debug: 10    // Aumentado de 2 a 10 para debugging
   },
-  // Período de tiempo en milisegundos
-  timeWindow: 60000, // 1 minuto
-  // Si estamos en desarrollo, permitir más logs pero aún limitados
+  // Período de tiempo en milisegundos - REDUCIDO para limpieza más frecuente
+  timeWindow: 30000, // 30 segundos en lugar de 60
+  // Si estamos en desarrollo, permitir más logs
   development: {
     maxLogsPerMinute: {
-      log: 10,    // Reducido de 100 a 10
-      warn: 5,    // Reducido de 50 a 5
-      error: 3,   // Reducido de 20 a 3
-      debug: 5    // Reducido de 100 a 5
+      log: 50,    // Permitir más logs en desarrollo
+      warn: 20,   // Permitir más advertencias
+      error: 10,  // Permitir más errores para debugging
+      debug: 30   // Permitir más debug
     }
   }
 };

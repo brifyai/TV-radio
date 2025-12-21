@@ -729,33 +729,57 @@ const SpotAnalysis = () => {
     };
   }, [getAnalyticsData, formatGADate, processAnalyticsData, calculateImpact, parseDateTime]);
 
-  // Generar análisis de IA automáticamente
+  // Generar análisis de IA automáticamente - OPTIMIZADO
   const generateAutomaticAIAnalysis = useCallback(async (results) => {
     console.log('🤖 Iniciando análisis automático de IA...');
     
     try {
-      // Generar análisis batch general
-      const batchAnalysis = await generateBatchAIAnalysis(results);
-      setBatchAIAnalysis(batchAnalysis);
-      console.log('✅ Análisis IA general completado');
+      // Generar análisis batch general primero
+      try {
+        const batchAnalysis = await generateBatchAIAnalysis(results);
+        setBatchAIAnalysis(batchAnalysis);
+        console.log('✅ Análisis IA general completado');
+      } catch (batchError) {
+        console.warn('⚠️ Error en análisis batch, continuando con individuales:', batchError);
+        setBatchAIAnalysis({
+          insights: ['Análisis batch no disponible'],
+          recommendations: ['Verificar configuración de API'],
+          summary: 'Análisis limitado por configuración de API'
+        });
+      }
       
-      // Generar análisis individual para cada spot
+      // Generar análisis individual para cada spot con límite de concurrencia
       const aiResults = {};
-      for (let i = 0; i < results.length; i++) {
-        try {
-          const spotAnalysis = await generateAIAnalysis(results[i]);
-          aiResults[i] = spotAnalysis;
-          console.log(`✅ Análisis IA para spot ${i + 1} completado`);
-          
-          // Pausa entre análisis individuales para no sobrecargar la API
-          await new Promise(resolve => setTimeout(resolve, 1000));
-        } catch (error) {
-          console.warn(`⚠️ Error en análisis IA para spot ${i + 1}:`, error);
-          aiResults[i] = {
-            insights: ['Error al generar análisis de IA'],
-            recommendations: ['Inténtalo nuevamente'],
-            summary: 'Error en análisis de IA'
-          };
+      const maxConcurrent = 2; // Máximo 2 análisis simultáneos
+      const delayBetweenBatches = 2000; // 2 segundos entre lotes
+      
+      for (let i = 0; i < results.length; i += maxConcurrent) {
+        const batch = results.slice(i, i + maxConcurrent);
+        const batchPromises = batch.map(async (spotResult, batchIndex) => {
+          const spotIndex = i + batchIndex;
+          try {
+            const spotAnalysis = await generateAIAnalysis(spotResult);
+            aiResults[spotIndex] = spotAnalysis;
+            console.log(`✅ Análisis IA para spot ${spotIndex + 1} completado`);
+            return spotIndex;
+          } catch (error) {
+            console.warn(`⚠️ Error en análisis IA para spot ${spotIndex + 1}:`, error);
+            aiResults[spotIndex] = {
+              insights: [`Error al generar análisis para spot ${spotIndex + 1}`],
+              recommendations: ['Verificar configuración de API de IA'],
+              summary: `Error en análisis de spot ${spotIndex + 1}`
+            };
+            return spotIndex;
+          }
+        });
+        
+        // Esperar a que termine el lote actual
+        await Promise.allSettled(batchPromises);
+        
+        // Pausa entre lotes para no sobrecargar la API
+        if (i + maxConcurrent < results.length) {
+          console.log(`⏳ Pausa de ${delayBetweenBatches}ms antes del siguiente lote...`);
+          await new Promise(resolve => setTimeout(resolve, delayBetweenBatches));
         }
       }
       
@@ -763,8 +787,31 @@ const SpotAnalysis = () => {
       console.log('🎉 Análisis automático de IA completado');
       
     } catch (error) {
-      console.error('❌ Error en análisis automático de IA:', error);
-      // No mostrar error al usuario, solo loggear
+      console.error('❌ Error crítico en análisis automático de IA:', error);
+      
+      // Fallback completo si todo falla
+      const fallbackResults = {};
+      results.forEach((_, index) => {
+        fallbackResults[index] = {
+          insights: [
+            `Spot ${index + 1}: Análisis no disponible por problemas de API`,
+            'Se recomienda verificar la configuración de IA',
+            'Los datos de impacto están basados en métricas reales de Google Analytics'
+          ],
+          recommendations: [
+            'Verificar configuración de API keys para IA',
+            'Los datos de análisis de impacto siguen siendo válidos'
+          ],
+          summary: `Análisis de spot ${index + 1} limitado por configuración de API`
+        };
+      });
+      
+      setAiAnalysis(fallbackResults);
+      setBatchAIAnalysis({
+        insights: ['Análisis de IA no disponible'],
+        recommendations: ['Verificar configuración de API keys'],
+        summary: 'Análisis limitado por problemas de API'
+      });
     }
   }, []);
 
