@@ -490,61 +490,61 @@ class PPTXExportServiceCompatible {
     // Resumen del análisis
     if (aiAnalysis.summary) {
       slide.addText('Resumen del Analisis:', {
-        x: 0.5, y: currentY, w: 9, h: 0.3,
-        fontSize: 14, bold: true, color: '5B21B6'
+        x: 0.5, y: currentY, w: 9, h: 0.25,
+        fontSize: 13, bold: true, color: '5B21B6'
       });
-      currentY += 0.4;
+      currentY += 0.3;
 
       slide.addText(this.cleanText(aiAnalysis.summary), {
-        x: 0.5, y: currentY, w: 9, h: 0.8,
-        fontSize: 11, color: '5B21B6'
+        x: 0.5, y: currentY, w: 9, h: 0.7,
+        fontSize: 10, color: '5B21B6'
       });
-      currentY += 1.0;
+      currentY += 0.8;
     }
 
     // Insights clave
     if (aiAnalysis.insights && aiAnalysis.insights.length > 0) {
       slide.addText('Insights Clave:', {
-        x: 0.5, y: currentY, w: 9, h: 0.3,
-        fontSize: 14, bold: true, color: '5B21B6'
+        x: 0.5, y: currentY, w: 9, h: 0.25,
+        fontSize: 13, bold: true, color: '5B21B6'
       });
-      currentY += 0.4;
+      currentY += 0.3;
 
       aiAnalysis.insights.forEach((insight, insightIndex) => {
         const insightText = typeof insight === 'string' ? insight : insight?.descripcion || JSON.stringify(insight);
         
         slide.addText(`${insightIndex + 1}. ${this.cleanText(insightText)}`, {
-          x: 0.7, y: currentY, w: 8.5, h: 0.3,
-          fontSize: 10, color: '5B21B6'
+          x: 0.7, y: currentY, w: 8.5, h: 0.25,
+          fontSize: 9, color: '5B21B6'
         });
-        currentY += 0.35; // Reducido de 0.5 a 0.35
+        currentY += 0.28; // Reducido de 0.35 a 0.28
       });
     }
 
     // Recomendaciones
     if (aiAnalysis.recommendations && aiAnalysis.recommendations.length > 0 && currentY < 6.5) {
       slide.addText('Recomendaciones:', {
-        x: 0.5, y: currentY, w: 9, h: 0.3,
-        fontSize: 14, bold: true, color: '5B21B6'
+        x: 0.5, y: currentY, w: 9, h: 0.25,
+        fontSize: 13, bold: true, color: '5B21B6'
       });
-      currentY += 0.4;
+      currentY += 0.3;
 
       aiAnalysis.recommendations.forEach((recommendation, recIndex) => {
         slide.addText(`${recIndex + 1}. ${this.cleanText(recommendation)}`, {
-          x: 0.7, y: currentY, w: 8.5, h: 0.3,
-          fontSize: 10, color: '5B21B6'
+          x: 0.7, y: currentY, w: 8.5, h: 0.25,
+          fontSize: 9, color: '5B21B6'
         });
-        currentY += 0.35; // Reducido de 0.5 a 0.35
+        currentY += 0.28; // Reducido de 0.35 a 0.28
       });
     }
 
     // Métricas de impacto para contexto
-    if (currentY < 6.5) {
+    if (currentY < 6.3) {
       slide.addText('Contexto de Impacto:', {
-        x: 0.5, y: currentY, w: 9, h: 0.3,
-        fontSize: 12, bold: true, color: '374151'
+        x: 0.5, y: currentY, w: 9, h: 0.25,
+        fontSize: 11, bold: true, color: '374151'
       });
-      currentY += 0.4;
+      currentY += 0.3;
 
       const impactData = [
         `Usuarios Activos: ${(result.metrics?.spot?.activeUsers || 0).toLocaleString()} (${(result.impact?.activeUsers?.percentageChange || 0) >= 0 ? '+' : ''}${(result.impact?.activeUsers?.percentageChange || 0).toFixed(1)}%)`,
@@ -554,8 +554,8 @@ class PPTXExportServiceCompatible {
 
       impactData.forEach((data, i) => {
         slide.addText(`• ${data}`, {
-          x: 0.7, y: currentY + (i * 0.25), w: 8.5, h: 0.22, // Reducido de 0.3 a 0.25
-          fontSize: 9, color: '374151'
+          x: 0.7, y: currentY + (i * 0.22), w: 8.5, h: 0.2, // Reducido de 0.25 a 0.22
+          fontSize: 8, color: '374151'
         });
       });
     }
