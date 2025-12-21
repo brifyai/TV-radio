@@ -439,14 +439,14 @@ class PPTXExportService {
         x: 5.2, y: rightY, w: 4.3, h: 0.3,
         fontSize: 14, bold: true, color: '7C3AED'
       });
-      rightY += 0.4;
-      
+      rightY += 0.5;
+
       if (aiAnalysis.summary) {
         slide.addText(`Resumen: ${aiAnalysis.summary}`, {
           x: 5.2, y: rightY, w: 4.3, h: 0.6,
           fontSize: 10, color: '5B21B6'
         });
-        rightY += 0.8;
+        rightY += 1.0;
       }
 
       if (aiAnalysis.insights && aiAnalysis.insights.length > 0) {
@@ -454,7 +454,7 @@ class PPTXExportService {
           x: 5.2, y: rightY, w: 4.3, h: 0.3,
           fontSize: 11, bold: true, color: '5B21B6'
         });
-        rightY += 0.4;
+        rightY += 0.5;
 
         // Mostrar todos los insights
         aiAnalysis.insights.forEach((insight) => {
@@ -464,7 +464,7 @@ class PPTXExportService {
             x: 5.4, y: rightY, w: 4.1, h: 0.22,
             fontSize: 9, color: '5B21B6'
           });
-          rightY += 0.25;
+          rightY += 0.4;
         });
       }
 
@@ -473,7 +473,7 @@ class PPTXExportService {
           x: 5.2, y: rightY, w: 4.3, h: 0.3,
           fontSize: 11, bold: true, color: '5B21B6'
         });
-        rightY += 0.4;
+        rightY += 0.5;
 
         // Mostrar todas las recomendaciones
         aiAnalysis.recommendations.forEach((rec) => {
@@ -481,7 +481,7 @@ class PPTXExportService {
             x: 5.4, y: rightY, w: 4.1, h: 0.22,
             fontSize: 9, color: '5B21B6'
           });
-          rightY += 0.25;
+          rightY += 0.4;
         });
       }
     }
@@ -491,7 +491,7 @@ class PPTXExportService {
       x: 5.2, y: rightY, w: 4.3, h: 0.3,
       fontSize: 12, bold: true, color: 'DC2626'
     });
-    rightY += 0.4;
+    rightY += 0.5;
 
     // Simular timeline basado en datos reales
     const baseVisits = result.metrics?.spot?.activeUsers || 0;
