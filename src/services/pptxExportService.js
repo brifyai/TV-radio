@@ -316,7 +316,7 @@ class PPTXExportService {
     spotInfo.forEach((info, i) => {
       slide.addText(info, {
         x: 0.5, y: 1 + (i * 0.3), w: 9, h: 0.25,
-        fontSize: 11, color: '6B7280'
+        fontSize: 9, color: '6B7280'
       });
     });
 
@@ -326,12 +326,12 @@ class PPTXExportService {
     
     slide.addText(`Tipo: ${tipo}`, {
       x: 0.5, y: 1.6, w: 9, h: 0.25,
-      fontSize: 11, color: '6B7280'
+      fontSize: 9, color: '6B7280'
     });
     
     slide.addText(`Versión: ${version}`, {
       x: 0.5, y: 1.9, w: 9, h: 0.25,
-      fontSize: 11, color: '6B7280'
+      fontSize: 9, color: '6B7280'
     });
 
     // Estado de vinculación
