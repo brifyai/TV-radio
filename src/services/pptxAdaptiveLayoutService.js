@@ -1,489 +1,480 @@
-// Servicio de IA Adaptativa para Layout PPTX
-// Sistema inteligente que adapta automáticamente el contenido a las láminas
+// Servicio de IA Adaptativa para Layout de PPTX
+// Analiza contenido y ajusta automáticamente para evitar desbordamiento
+
+const PptxGenJS = require('pptxgenjs').default || require('pptxgenjs');
 
 class PPTXAdaptiveLayoutService {
   constructor() {
-    // Configuración de dimensiones de lámina PPTX estándar
     this.slideDimensions = {
-      width: 10,    // 10 pulgadas de ancho
-      height: 7.5,  // 7.5 pulgadas de alto
-      margin: 0.5,  // Margen de 0.5 pulgadas
-      maxContentHeight: 6.5 // Altura máxima para contenido (7.5 - 0.5 margen superior - 0.5 margen inferior)
+      width: 10, // pulgadas
+      height: 7.5, // pulgadas
+      margin: 0.5
     };
-
-    // Configuración de fuentes y espaciado
-    this.fontConfig = {
-      title: { size: 24, lineHeight: 0.8 },
-      subtitle: { size: 16, lineHeight: 0.6 },
-      body: { size: 12, lineHeight: 0.4 },
-      small: { size: 10, lineHeight: 0.3 }
-    };
-
-    // Límites de contenido por tipo
-    this.contentLimits = {
-      maxLinesPerSlide: 25,
+    
+    this.contentConstraints = {
       minFontSize: 8,
-      maxFontSize: 36,
-      optimalLineSpacing: 0.3,
-      // NUEVO: Caracteres aproximados por línea según tamaño de fuente
-      charsPerLine: {
-        24: 35, // Título: ~35 caracteres por línea
-        16: 50, // Subtítulo: ~50 caracteres por línea
-        12: 65, // Body: ~65 caracteres por línea
-        10: 75  // Small: ~75 caracteres por línea
-      }
-    };
-
-    // Algoritmos de decisión de IA
-    this.decisionAlgorithms = {
-      calculateContentSpace: this.calculateContentSpace.bind(this),
-      analyzeTextDensity: this.analyzeTextDensity.bind(this),
-      determineOptimalLayout: this.determineOptimalLayout.bind(this),
-      calculateFontScaling: this.calculateFontScaling.bind(this)
+      maxFontSize: 24,
+      minLineHeight: 1.2,
+      maxLineHeight: 1.8,
+      minSpacing: 0.2,
+      maxSpacing: 0.8
     };
   }
 
   /**
-   * Función principal de IA que decide cómo adaptar el contenido
-   * @param {Array} contentItems - Array de elementos de contenido
-   * @param {Object} slideContext - Contexto de la lámina actual
-   * @returns {Object} Decisiones de adaptación
+   * Analiza y adapta contenido para una lámina específica
+   * @param {Object} slide - Objeto slide de PptxGenJS
+   * @param {Object} contentData - Datos del contenido a разместить
+   * @param {Object} layoutConfig - Configuración del layout
+   * @returns {Object} Resultado del análisis y adaptación
    */
-  makeAdaptiveDecisions(contentItems, slideContext) {
-    const decisions = {
-      shouldSplit: false,
-      optimalLayout: 'single',
-      fontScale: 1.0,
-      spacingAdjustment: 1.0,
-      contentDistribution: [],
-      reasoning: []
-    };
+  analyzeAndAdaptSlideContent(slide, contentData, layoutConfig = {}) {
+    try {
+      const analysis = {
+        originalContent: contentData,
+        adaptations: [],
+        finalLayout: null,
+        spaceAnalysis: null,
+        success: false
+      };
 
-    // 1. Analizar densidad del contenido
-    const contentAnalysis = this.analyzeTextDensity(contentItems);
-    decisions.reasoning.push(`Densidad de contenido: ${contentAnalysis.density}%`);
+      // 1. Analizar espacio disponible
+      const availableSpace = this.calculateAvailableSpace(layoutConfig);
+      analysis.spaceAnalysis = availableSpace;
 
-    // 2. Calcular espacio requerido vs disponible
-    const spaceAnalysis = this.calculateContentSpace(contentItems, contentAnalysis);
-    decisions.reasoning.push(`Espacio requerido: ${spaceAnalysis.requiredSpace.toFixed(2)}" vs disponible: ${spaceAnalysis.availableSpace.toFixed(2)}"`);
-
-    // 3. Decidir si se debe dividir el contenido
-    if (spaceAnalysis.requiredSpace > spaceAnalysis.availableSpace * 0.9) {
-      decisions.shouldSplit = true;
-      decisions.reasoning.push('Contenido excede 90% del espacio disponible - se recomienda división');
-    }
-
-    // 4. Determinar layout óptimo
-    decisions.optimalLayout = this.determineOptimalLayout(contentItems, contentAnalysis, spaceAnalysis);
-    decisions.reasoning.push(`Layout óptimo seleccionado: ${decisions.optimalLayout}`);
-
-    // 5. Calcular escalado de fuente si es necesario
-    if (spaceAnalysis.requiredSpace > spaceAnalysis.availableSpace) {
-      decisions.fontScale = this.calculateFontScaling(spaceAnalysis);
-      decisions.reasoning.push(`Escalado de fuente aplicado: ${(decisions.fontScale * 100).toFixed(1)}%`);
-    }
-
-    // 6. Calcular distribución de contenido
-    decisions.contentDistribution = this.distributeContentIntelligently(contentItems, decisions);
-
-    return decisions;
-  }
-
-  /**
-   * Analiza la densidad del contenido para determinar complejidad
-   */
-  analyzeTextDensity(contentItems) {
-    let totalCharacters = 0;
-    let totalLines = 0;
-    let hasComplexElements = false;
-
-    contentItems.forEach(item => {
-      if (item.text) {
-        // CORREGIDO: Calcular líneas reales para densidad
-        const fontSize = this.getFontSizeForItem(item);
-        const charsPerLine = this.contentLimits.charsPerLine[fontSize] || 65;
-        const lines = Math.ceil(item.text.length / charsPerLine);
-        
-        totalLines += lines;
-        totalCharacters += item.text.length;
-      }
+      // 2. Calcular espacio requerido por el contenido
+      const requiredSpace = this.calculateRequiredSpace(contentData);
       
-      // Detectar elementos complejos (tablas, listas largas, etc.)
-      if (item.type === 'table' || (item.items && item.items.length > 5)) {
-        hasComplexElements = true;
+      // 3. Determinar si necesita adaptación
+      const needsAdaptation = this.needsAdaptation(availableSpace, requiredSpace);
+      
+      if (!needsAdaptation) {
+        analysis.finalLayout = this.createOptimalLayout(contentData, availableSpace);
+        analysis.success = true;
+        return analysis;
       }
-    });
 
-    // Calcular densidad como porcentaje de contenido complejo
-    const density = Math.min(100, (totalCharacters / 500) * 100 + (hasComplexElements ? 30 : 0));
+      // 4. Aplicar estrategias de adaptación
+      const adaptedContent = this.applyAdaptationStrategies(contentData, availableSpace, requiredSpace);
+      analysis.adaptations = adaptedContent.strategies;
+      analysis.finalLayout = adaptedContent.layout;
+      analysis.success = true;
 
+      return analysis;
+
+    } catch (error) {
+      console.error('Error en análisis adaptativo:', error);
+      return {
+        success: false,
+        error: error.message,
+        fallbackLayout: this.createFallbackLayout(contentData)
+      };
+    }
+  }
+
+  /**
+   * Calcula el espacio disponible en la lámina
+   */
+  calculateAvailableSpace(layoutConfig = {}) {
+    const { width, height, margin } = this.slideDimensions;
+    const configMargin = layoutConfig.margin || margin;
+    
     return {
-      totalCharacters,
-      totalLines,
-      hasComplexElements,
-      density: Math.round(density),
-      complexity: density > 70 ? 'high' : density > 40 ? 'medium' : 'low'
+      total: {
+        width: width - (configMargin * 2),
+        height: height - (configMargin * 2)
+      },
+      usable: {
+        width: width - (configMargin * 2),
+        height: height - (configMargin * 2)
+      },
+      margins: {
+        top: configMargin,
+        right: configMargin,
+        bottom: configMargin,
+        left: configMargin
+      }
     };
   }
 
   /**
-   * Calcula el espacio requerido vs disponible para el contenido
+   * Calcula el espacio requerido por el contenido
    */
-  calculateContentSpace(contentItems, contentAnalysis) {
-    let requiredSpace = 0;
-    const availableSpace = this.slideDimensions.maxContentHeight;
-
-    contentItems.forEach(item => {
-      let itemSpace = 0;
-
-      if (item.text) {
-        // CORREGIDO: Calcular líneas reales basado en ancho y caracteres por línea
-        const fontSize = this.getFontSizeForItem(item);
-        const charsPerLine = this.contentLimits.charsPerLine[fontSize] || 65;
-        const lines = Math.ceil(item.text.length / charsPerLine);
-        const lineHeight = this.fontConfig.body.lineHeight * (fontSize / 12);
-        itemSpace += lines * lineHeight;
-      }
-
-      if (item.type === 'table') {
-        const rows = item.data ? item.data.length : 3;
-        itemSpace += rows * 0.4; // 0.4 pulgadas por fila
-      }
-
-      if (item.items && Array.isArray(item.items)) {
-        itemSpace += item.items.length * this.fontConfig.body.lineHeight;
-      }
-
-      // Agregar espaciado entre elementos
-      itemSpace += 0.2;
-      requiredSpace += itemSpace;
-    });
-
-    return {
-      requiredSpace: Math.max(requiredSpace, 1), // Mínimo 1 pulgada
-      availableSpace,
-      utilizationPercentage: (requiredSpace / availableSpace) * 100
+  calculateRequiredSpace(contentData) {
+    const space = {
+      text: 0,
+      tables: 0,
+      images: 0,
+      total: 0
     };
-  }
 
-  /**
-   * Determina el layout óptimo basado en el análisis de contenido
-   */
-  determineOptimalLayout(contentItems, contentAnalysis, spaceAnalysis) {
-    const itemCount = contentItems.length;
-    
-    // Si hay muchos elementos pequeños, usar grid
-    if (itemCount >= 4 && contentAnalysis.complexity === 'low') {
-      return 'grid-2x2';
-    }
-    
-    // Si hay elementos medianos, usar layout vertical
-    if (itemCount >= 2 && itemCount <= 4) {
-      return 'vertical-list';
-    }
-    
-    // Si hay contenido complejo, usar layout de tarjetas
-    if (contentAnalysis.hasComplexElements) {
-      return 'card-layout';
-    }
-    
-    // Default: layout simple
-    return 'single-column';
-  }
-
-  /**
-   * Calcula el factor de escalado de fuente necesario
-   */
-  calculateFontScaling(spaceAnalysis) {
-    const overage = spaceAnalysis.requiredSpace / spaceAnalysis.availableSpace;
-    
-    if (overage <= 1.1) {
-      return 0.95; // Reducción mínima
-    } else if (overage <= 1.3) {
-      return 0.85; // Reducción moderada
-    } else if (overage <= 1.6) {
-      return 0.75; // Reducción significativa
-    } else {
-      return 0.65; // Reducción máxima
-    }
-  }
-
-  /**
-   * Distribuye el contenido inteligentemente entre láminas
-   */
-  distributeContentIntelligently(contentItems, decisions) {
-    const distribution = [];
-    
-    if (!decisions.shouldSplit) {
-      // Todo el contenido cabe en una lámina
-      distribution.push({
-        slideIndex: 0,
-        items: contentItems,
-        layout: decisions.optimalLayout,
-        fontScale: decisions.fontScale
+    // Analizar texto
+    if (contentData.textElements) {
+      contentData.textElements.forEach(element => {
+        const lines = this.estimateTextLines(element.text, element.width || 8);
+        const lineHeight = element.fontSize * (element.lineHeight || 1.2) * 0.0139; // Convertir a pulgadas
+        space.text += lines * lineHeight + (element.marginBottom || 0.1);
       });
-    } else {
-      // Dividir contenido en múltiples láminas
-      const itemsPerSlide = this.calculateOptimalItemsPerSlide(contentItems, decisions);
-      let currentIndex = 0;
-      
-      while (currentIndex < contentItems.length) {
-        const slideItems = contentItems.slice(currentIndex, currentIndex + itemsPerSlide);
-        distribution.push({
-          slideIndex: distribution.length,
-          items: slideItems,
-          layout: this.determineLayoutForSlide(slideItems),
-          fontScale: 1.0 // Reset font scale for new slides
+    }
+
+    // Analizar tablas
+    if (contentData.tables) {
+      contentData.tables.forEach(table => {
+        const rows = table.data.length;
+        const rowHeight = 0.3; // Altura estimada por fila
+        space.tables += rows * rowHeight + 0.2; // Margen adicional
+      });
+    }
+
+    // Analizar imágenes
+    if (contentData.images) {
+      contentData.images.forEach(image => {
+        space.images += (image.height || 2) + 0.1;
+      });
+    }
+
+    space.total = space.text + space.tables + space.images;
+    return space;
+  }
+
+  /**
+   * Estima el número de líneas para un texto
+   */
+  estimateTextLines(text, width) {
+    if (!text || typeof text !== 'string') return 1;
+    
+    const avgCharsPerLine = Math.floor(width * 12); // Estimación: 12 caracteres por pulgada
+    const lines = Math.ceil(text.length / avgCharsPerLine);
+    return Math.max(1, lines);
+  }
+
+  /**
+   * Determina si el contenido necesita adaptación
+   */
+  needsAdaptation(availableSpace, requiredSpace) {
+    const tolerance = 0.1; // 10% de tolerancia
+    return requiredSpace.total > (availableSpace.usable.height * (1 - tolerance));
+  }
+
+  /**
+   * Aplica estrategias de adaptación
+   */
+  applyAdaptationStrategies(contentData, availableSpace, requiredSpace) {
+    const strategies = [];
+    let adaptedContent = JSON.parse(JSON.stringify(contentData));
+    let currentSpace = availableSpace.usable.height;
+    let remainingSpace = requiredSpace.total - currentSpace;
+
+    // Estrategia 1: Reducir tamaño de fuente
+    if (remainingSpace > 0) {
+      const fontReduction = this.calculateFontReduction(remainingSpace, currentSpace);
+      adaptedContent = this.adjustFontSizes(adaptedContent, fontReduction);
+      strategies.push({
+        type: 'font_reduction',
+        value: fontReduction,
+        description: `Reducción de fuente en ${fontReduction}pt`
+      });
+      remainingSpace = this.calculateRequiredSpace(adaptedContent).total - currentSpace;
+    }
+
+    // Estrategia 2: Reducir espaciado
+    if (remainingSpace > 0) {
+      const spacingReduction = this.calculateSpacingReduction(remainingSpace, currentSpace);
+      adaptedContent = this.adjustSpacing(adaptedContent, spacingReduction);
+      strategies.push({
+        type: 'spacing_reduction',
+        value: spacingReduction,
+        description: `Reducción de espaciado en ${spacingReduction}`
+      });
+      remainingSpace = this.calculateRequiredSpace(adaptedContent).total - currentSpace;
+    }
+
+    // Estrategia 3: Truncar texto largo
+    if (remainingSpace > 0) {
+      const truncationResult = this.truncateLongText(adaptedContent, remainingSpace);
+      adaptedContent = truncationResult.content;
+      strategies.push({
+        type: 'text_truncation',
+        value: truncationResult.truncatedElements,
+        description: `Truncación de ${truncationResult.truncatedElements} elementos de texto`
+      });
+      remainingSpace = this.calculateRequiredSpace(adaptedContent).total - currentSpace;
+    }
+
+    // Estrategia 4: Dividir en múltiples slides
+    if (remainingSpace > 0) {
+      const splitResult = this.splitContentAcrossSlides(adaptedContent);
+      strategies.push({
+        type: 'content_split',
+        value: splitResult.slideCount,
+        description: `División en ${splitResult.slideCount} slides`
+      });
+      adaptedContent = splitResult.content;
+    }
+
+    const layout = this.createOptimalLayout(adaptedContent, availableSpace);
+    
+    return {
+      strategies,
+      layout,
+      content: adaptedContent
+    };
+  }
+
+  /**
+   * Calcula la reducción de fuente necesaria
+   */
+  calculateFontReduction(overflow, totalSpace) {
+    const overflowPercentage = overflow / totalSpace;
+    const maxReduction = 8; // Máximo 8 puntos de reducción
+    return Math.min(maxReduction, Math.ceil(overflowPercentage * 4));
+  }
+
+  /**
+   * Ajusta tamaños de fuente
+   */
+  adjustFontSizes(contentData, reduction) {
+    if (contentData.textElements) {
+      contentData.textElements.forEach(element => {
+        element.fontSize = Math.max(
+          this.contentConstraints.minFontSize,
+          (element.fontSize || 12) - reduction
+        );
+      });
+    }
+    return contentData;
+  }
+
+  /**
+   * Calcula la reducción de espaciado
+   */
+  calculateSpacingReduction(overflow, totalSpace) {
+    const overflowPercentage = overflow / totalSpace;
+    const maxReduction = 0.4; // Máximo 0.4 pulgadas de reducción
+    return Math.min(maxReduction, overflowPercentage * 0.3);
+  }
+
+  /**
+   * Ajusta espaciado
+   */
+  adjustSpacing(contentData, reduction) {
+    if (contentData.textElements) {
+      contentData.textElements.forEach(element => {
+        element.marginBottom = Math.max(
+          this.contentConstraints.minSpacing,
+          (element.marginBottom || 0.2) - reduction
+        );
+      });
+    }
+    return contentData;
+  }
+
+  /**
+   * Trunca texto largo
+   */
+  truncateLongText(contentData, overflow) {
+    let truncatedElements = 0;
+    
+    if (contentData.textElements) {
+      contentData.textElements.forEach(element => {
+        if (element.text && element.text.length > 200) {
+          // Truncar a 150 caracteres y agregar "..."
+          element.text = element.text.substring(0, 150) + '...';
+          truncatedElements++;
+        }
+      });
+    }
+
+    return {
+      content: contentData,
+      truncatedElements
+    };
+  }
+
+  /**
+   * Divide contenido en múltiples slides
+   */
+  splitContentAcrossSlides(contentData) {
+    // Esta es una estrategia compleja que requeriría coordinación
+    // con el servicio principal para crear slides adicionales
+    // Por ahora, retornamos el contenido original con标记 de que necesita split
+    
+    return {
+      content: {
+        ...contentData,
+        requiresSplit: true,
+        splitInfo: {
+          reason: 'Contenido excede espacio disponible',
+          suggestedSlides: Math.ceil(this.calculateRequiredSpace(contentData).total / 5) // 5 pulgadas por slide
+        }
+      },
+      slideCount: 2
+    };
+  }
+
+  /**
+   * Crea layout óptimo
+   */
+  createOptimalLayout(contentData, availableSpace) {
+    const layout = {
+      elements: [],
+      totalHeight: 0,
+      distribution: 'vertical'
+    };
+
+    let currentY = availableSpace.margins.top;
+
+    // Posicionar elementos de texto
+    if (contentData.textElements) {
+      contentData.textElements.forEach(element => {
+        const height = this.calculateTextHeight(element);
+        layout.elements.push({
+          type: 'text',
+          content: element,
+          position: {
+            x: availableSpace.margins.left,
+            y: currentY,
+            width: element.width || availableSpace.usable.width,
+            height: height
+          }
         });
-        currentIndex += itemsPerSlide;
-      }
-    }
-    
-    return distribution;
-  }
-
-  /**
-   * Calcula el número óptimo de elementos por lámina
-   */
-  calculateOptimalItemsPerSlide(contentItems, decisions) {
-    const totalItems = contentItems.length;
-    const avgComplexity = contentItems.reduce((sum, item) => {
-      return sum + (item.text ? item.text.length : 100);
-    }, 0) / totalItems;
-
-    // Si el contenido es muy denso, mostrar menos elementos por lámina
-    if (avgComplexity > 300) {
-      return Math.max(1, Math.ceil(totalItems / 3));
-    } else if (avgComplexity > 150) {
-      return Math.max(1, Math.ceil(totalItems / 2));
-    } else {
-      return Math.max(2, Math.ceil(totalItems / 2));
-    }
-  }
-
-  /**
-   * Determina el layout específico para una lámina
-   */
-  determineLayoutForSlide(items) {
-    if (items.length === 1) {
-      return 'single-item';
-    } else if (items.length === 2) {
-      return 'two-column';
-    } else if (items.length <= 4) {
-      return 'grid-2x2';
-    } else {
-      return 'vertical-list';
-    }
-  }
-
-  /**
-   * Obtiene el tamaño de fuente apropiado para un elemento
-   */
-  getFontSizeForItem(item) {
-    if (item.importance === 'high') return this.fontConfig.title.size;
-    if (item.importance === 'medium') return this.fontConfig.subtitle.size;
-    return this.fontConfig.body.size;
-  }
-
-  /**
-   * Aplica las decisiones de IA al contenido
-   * @param {Object} slide - Objeto de lámina PPTX
-   * @param {Array} contentItems - Elementos de contenido
-   * @param {Object} decisions - Decisiones de IA
-   * @returns {Array} Array de láminas creadas
-   */
-  applyAdaptiveLayout(slide, contentItems, decisions) {
-    const slides = [slide];
-    
-    decisions.contentDistribution.forEach((distribution, index) => {
-      if (index > 0) {
-        // Solo retornar información sobre la necesidad de crear nueva lámina
-        // La creación real se maneja desde el servicio principal
-      }
-
-      // Aplicar layout a la lámina correspondiente
-      this.applyLayoutToSlide(slides[index], distribution.items, distribution);
-    });
-    
-    return slides;
-  }
-
-  /**
-   * Aplica un layout específico a una lámina
-   */
-  applyLayoutToSlide(slide, items, distribution) {
-    const layout = distribution.layout;
-    const fontScale = distribution.fontScale;
-
-    switch (layout) {
-      case 'grid-2x2':
-        this.applyGridLayout(slide, items, fontScale);
-        break;
-      case 'two-column':
-        this.applyTwoColumnLayout(slide, items, fontScale);
-        break;
-      case 'vertical-list':
-        this.applyVerticalLayout(slide, items, fontScale);
-        break;
-      case 'card-layout':
-        this.applyCardLayout(slide, items, fontScale);
-        break;
-      default:
-        this.applySingleColumnLayout(slide, items, fontScale);
-    }
-  }
-
-  /**
-   * Layout de grid 2x2 para múltiples elementos
-   */
-  applyGridLayout(slide, items, fontScale) {
-    const cellWidth = 4.5;
-    const cellHeight = 3;
-    const startX = 0.5;
-    const startY = 1.5;
-
-    items.forEach((item, index) => {
-      const row = Math.floor(index / 2);
-      const col = index % 2;
-      const x = startX + (col * (cellWidth + 0.2));
-      const y = startY + (row * (cellHeight + 0.3));
-
-      this.addContentToPosition(slide, item, x, y, cellWidth, fontScale);
-    });
-  }
-
-  /**
-   * Layout de dos columnas
-   */
-  applyTwoColumnLayout(slide, items, fontScale) {
-    const columnWidth = 4.5;
-    const startX = 0.5;
-    const startY = 1.5;
-
-    items.forEach((item, index) => {
-      const x = startX + (index * (columnWidth + 0.3));
-      this.addContentToPosition(slide, item, x, startY, columnWidth, fontScale);
-    });
-  }
-
-  /**
-   * Layout vertical para listas
-   */
-  applyVerticalLayout(slide, items, fontScale) {
-    let currentY = 1.5;
-    const itemHeight = 1.2;
-
-    items.forEach((item) => {
-      this.addContentToPosition(slide, item, 0.5, currentY, 9, fontScale);
-      currentY += itemHeight;
-    });
-  }
-
-  /**
-   * Layout de tarjetas para contenido complejo
-   */
-  applyCardLayout(slide, items, fontScale) {
-    const cardWidth = 4.2;
-    const cardHeight = 2.5;
-    const startX = 0.5;
-    const startY = 1.5;
-    const spacing = 0.3;
-
-    items.forEach((item, index) => {
-      const x = startX + (index % 2) * (cardWidth + spacing);
-      const y = startY + Math.floor(index / 2) * (cardHeight + spacing);
-
-      // Agregar fondo de tarjeta
-      slide.addShape(slide.shapes.RECTANGLE, {
-        x: x, y: y, w: cardWidth, h: cardHeight,
-        fill: { color: 'F9FAFB' },
-        line: { color: 'E5E7EB', width: 1 }
-      });
-
-      this.addContentToPosition(slide, item, x + 0.1, y + 0.1, cardWidth - 0.2, fontScale);
-    });
-  }
-
-  /**
-   * Layout de columna única
-   */
-  applySingleColumnLayout(slide, items, fontScale) {
-    let currentY = 1.5;
-    
-    items.forEach((item) => {
-      const contentHeight = this.calculateItemHeight(item, fontScale);
-      this.addContentToPosition(slide, item, 0.5, currentY, 9, fontScale);
-      currentY += contentHeight + 0.3;
-    });
-  }
-
-  /**
-   * Agrega contenido a una posición específica
-   */
-  addContentToPosition(slide, item, x, y, width, fontScale) {
-    const fontSize = this.getFontSizeForItem(item) * fontScale;
-    
-    if (item.text) {
-      slide.addText(item.text, {
-        x: x,
-        y: y,
-        w: width,
-        h: 1,
-        fontSize: Math.max(fontSize, this.contentLimits.minFontSize),
-        color: item.color || '374151',
-        bold: item.bold || false
+        currentY += height + (element.marginBottom || 0.1);
       });
     }
-  }
 
-  /**
-   * Calcula la altura de un elemento
-   */
-  calculateItemHeight(item, fontScale) {
-    if (item.text) {
-      const lines = item.text.split('\n').length;
-      const lineHeight = this.fontConfig.body.lineHeight * fontScale;
-      return lines * lineHeight;
+    // Posicionar tablas
+    if (contentData.tables) {
+      contentData.tables.forEach(table => {
+        const height = table.data.length * 0.3 + 0.2;
+        layout.elements.push({
+          type: 'table',
+          content: table,
+          position: {
+            x: availableSpace.margins.left,
+            y: currentY,
+            width: availableSpace.usable.width,
+            height: height
+          }
+        });
+        currentY += height + 0.1;
+      });
     }
-    return 1;
+
+    layout.totalHeight = currentY - availableSpace.margins.top;
+    return layout;
   }
 
   /**
-   * Método público para validar si el contenido cabe en una lámina
-   * @param {Array} contentItems - Elementos de contenido
-   * @returns {Object} Resultado de validación
+   * Calcula altura de texto
    */
-  validateContentFits(contentItems) {
-    const analysis = this.analyzeTextDensity(contentItems);
-    const spaceAnalysis = this.calculateContentSpace(contentItems, analysis);
-    
+  calculateTextHeight(textElement) {
+    const lines = this.estimateTextLines(textElement.text, textElement.width || 8);
+    const lineHeight = (textElement.fontSize || 12) * (textElement.lineHeight || 1.2) * 0.0139;
+    return lines * lineHeight;
+  }
+
+  /**
+   * Crea layout de fallback
+   */
+  createFallbackLayout(contentData) {
     return {
-      fits: spaceAnalysis.utilizationPercentage <= 100,
-      utilization: spaceAnalysis.utilizationPercentage,
-      recommendations: this.generateRecommendations(spaceAnalysis, analysis)
+      elements: [{
+        type: 'text',
+        content: {
+          text: 'Error: No se pudo adaptar el contenido',
+          fontSize: 12,
+          color: 'FF0000'
+        },
+        position: { x: 0.5, y: 0.5, width: 9, height: 1 }
+      }],
+      totalHeight: 1,
+      distribution: 'simple'
     };
   }
 
   /**
-   * Genera recomendaciones para optimizar el contenido
+   * Aplica el layout adaptado al slide
    */
-  generateRecommendations(spaceAnalysis, contentAnalysis) {
-    const recommendations = [];
-    
-    if (spaceAnalysis.utilizationPercentage > 100) {
-      recommendations.push('El contenido excede el espacio disponible');
-      recommendations.push('Considere reducir el texto o dividir en múltiples láminas');
+  applyAdaptedLayout(slide, analysisResult) {
+    if (!analysisResult.success || !analysisResult.finalLayout) {
+      console.warn('No se pudo aplicar layout adaptado, usando fallback');
+      this.applyFallbackLayout(slide, analysisResult.originalContent);
+      return;
     }
-    
-    if (contentAnalysis.complexity === 'high') {
-      recommendations.push('El contenido es muy denso, considere usar un layout de tarjetas');
+
+    const layout = analysisResult.finalLayout;
+
+    layout.elements.forEach(element => {
+      const pos = element.position;
+      const content = element.content;
+
+      if (element.type === 'text') {
+        slide.addText(content.text, {
+          x: pos.x,
+          y: pos.y,
+          w: pos.width,
+          h: pos.height,
+          fontSize: content.fontSize || 12,
+          color: content.color || '000000',
+          bold: content.bold || false,
+          align: content.align || 'left'
+        });
+      } else if (element.type === 'table') {
+        slide.addTable(content.data, {
+          x: pos.x,
+          y: pos.y,
+          w: pos.width,
+          h: pos.height,
+          fontSize: content.fontSize || 10,
+          border: content.border || { type: 'solid', color: 'E5E7EB', pt: 1 }
+        });
+      }
+    });
+  }
+
+  /**
+   * Aplica layout de fallback
+   */
+  applyFallbackLayout(slide, contentData) {
+    slide.addText('Contenido no disponible', {
+      x: 0.5, y: 0.5, w: 9, h: 1,
+      fontSize: 12, color: 'FF0000'
+    });
+  }
+
+  /**
+   * Genera reporte de adaptaciones aplicadas
+   */
+  generateAdaptationReport(analysisResult) {
+    if (!analysisResult.success) {
+      return {
+        status: 'failed',
+        error: analysisResult.error,
+        recommendations: ['Revisar configuración de contenido', 'Verificar espacio disponible']
+      };
     }
-    
-    if (contentAnalysis.totalLines > 20) {
-      recommendations.push('Muchas líneas detectadas, considere usar viñetas o reducir texto');
+
+    const report = {
+      status: 'success',
+      adaptations: analysisResult.adaptations,
+      spaceUtilization: {
+        available: analysisResult.spaceAnalysis?.usable?.height || 0,
+        used: analysisResult.finalLayout?.totalHeight || 0,
+        efficiency: ((analysisResult.finalLayout?.totalHeight || 0) / (analysisResult.spaceAnalysis?.usable?.height || 1) * 100).toFixed(1) + '%'
+      },
+      recommendations: []
+    };
+
+    // Generar recomendaciones basadas en las adaptaciones
+    if (analysisResult.adaptations.length > 2) {
+      report.recommendations.push('Considerar dividir el contenido en múltiples slides');
     }
-    
-    return recommendations;
+
+    if (analysisResult.adaptations.some(a => a.type === 'text_truncation')) {
+      report.recommendations.push('Revisar longitud de textos para mejor legibilidad');
+    }
+
+    return report;
   }
 }
 
