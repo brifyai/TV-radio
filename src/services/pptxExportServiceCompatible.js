@@ -468,95 +468,102 @@ class PPTXExportServiceCompatible {
   createIndividualSpotAISlide(result, index, aiAnalysis) {
     const slide = this.pptx.addSlide();
     
-    // Título del slide
+    // Título del slide - MÁS COMPACTO
     slide.addText(`Analisis Inteligente - Spot ${index + 1}: ${this.cleanText(result.spot?.titulo_programa || result.spot?.nombre || 'Sin nombre')}`, {
-      x: 0.5, y: 0.3, w: 9, h: 0.6,
-      fontSize: 18, bold: true, color: '7C3AED'
+      x: 0.5, y: 0.2, w: 9, h: 0.5,
+      fontSize: 16, bold: true, color: '7C3AED'
     });
 
-    // Información del spot
+    // Información del spot - MÁS COMPACTA
     slide.addText(`Spot: ${this.cleanText(result.spot?.titulo_programa || result.spot?.nombre || 'Sin nombre')}`, {
-      x: 0.5, y: 1, w: 9, h: 0.4,
-      fontSize: 14, color: '374151'
+      x: 0.5, y: 0.8, w: 9, h: 0.3,
+      fontSize: 12, color: '374151'
     });
 
     slide.addText(`Fecha: ${this.cleanText(result.spot?.fecha || 'N/A')} | Hora: ${this.cleanText(result.spot?.hora || 'N/A')} | Canal: ${this.cleanText(result.spot?.canal || 'N/A')}`, {
-      x: 0.5, y: 1.5, w: 9, h: 0.3,
-      fontSize: 10, color: '6B7280'
+      x: 0.5, y: 1.1, w: 9, h: 0.25,
+      fontSize: 9, color: '6B7280'
     });
 
-    let currentY = 2.2;
+    let currentY = 1.5; // INICIAMOS MÁS ARRIBA
 
-    // Resumen del análisis
+    // Resumen del análisis - MOVIDO ARRIBA Y MÁS COMPACTO
     if (aiAnalysis.summary) {
       slide.addText('Resumen del Analisis:', {
-        x: 0.5, y: currentY, w: 9, h: 0.25,
-        fontSize: 13, bold: true, color: '5B21B6'
+        x: 0.5, y: currentY, w: 9, h: 0.2,
+        fontSize: 12, bold: true, color: '5B21B6'
       });
-      currentY += 0.3;
+      currentY += 0.25;
 
       slide.addText(this.cleanText(aiAnalysis.summary), {
-        x: 0.5, y: currentY, w: 9, h: 0.7,
-        fontSize: 10, color: '5B21B6'
+        x: 0.5, y: currentY, w: 9, h: 0.6, // REDUCIDO de 0.7 a 0.6
+        fontSize: 9, color: '5B21B6'
       });
-      currentY += 0.8;
+      currentY += 0.65; // REDUCIDO de 0.8 a 0.65
     }
 
-    // Insights clave
+    // Insights clave - MÁS COMPACTOS
     if (aiAnalysis.insights && aiAnalysis.insights.length > 0) {
       slide.addText('Insights Clave:', {
-        x: 0.5, y: currentY, w: 9, h: 0.25,
-        fontSize: 13, bold: true, color: '5B21B6'
+        x: 0.5, y: currentY, w: 9, h: 0.2,
+        fontSize: 12, bold: true, color: '5B21B6'
       });
-      currentY += 0.3;
+      currentY += 0.25;
 
       aiAnalysis.insights.forEach((insight, insightIndex) => {
         const insightText = typeof insight === 'string' ? insight : insight?.descripcion || JSON.stringify(insight);
         
         slide.addText(`${insightIndex + 1}. ${this.cleanText(insightText)}`, {
-          x: 0.7, y: currentY, w: 8.5, h: 0.25,
-          fontSize: 9, color: '5B21B6'
+          x: 0.7, y: currentY, w: 8.5, h: 0.22, // REDUCIDO de 0.25 a 0.22
+          fontSize: 8, color: '5B21B6'
         });
-        currentY += 0.28; // Reducido de 0.35 a 0.28
+        currentY += 0.24; // REDUCIDO de 0.28 a 0.24
       });
     }
 
-    // Recomendaciones
-    if (aiAnalysis.recommendations && aiAnalysis.recommendations.length > 0 && currentY < 6.5) {
-      slide.addText('Recomendaciones:', {
-        x: 0.5, y: currentY, w: 9, h: 0.25,
-        fontSize: 13, bold: true, color: '5B21B6'
-      });
-      currentY += 0.3;
-
-      aiAnalysis.recommendations.forEach((recommendation, recIndex) => {
-        slide.addText(`${recIndex + 1}. ${this.cleanText(recommendation)}`, {
-          x: 0.7, y: currentY, w: 8.5, h: 0.25,
-          fontSize: 9, color: '5B21B6'
+    // Recomendaciones - MÁS COMPACTAS Y CON LÍMITE ESTRICTO
+    if (aiAnalysis.recommendations && aiAnalysis.recommendations.length > 0 && currentY < 5.8) { // LÍMITE MÁS ESTRICTO
+      const availableSpace = 5.8 - currentY;
+      const maxRecommendations = Math.min(aiAnalysis.recommendations.length, Math.floor(availableSpace / 0.24));
+      
+      if (maxRecommendations > 0) {
+        slide.addText('Recomendaciones:', {
+          x: 0.5, y: currentY, w: 9, h: 0.2,
+          fontSize: 12, bold: true, color: '5B21B6'
         });
-        currentY += 0.28; // Reducido de 0.35 a 0.28
-      });
+        currentY += 0.25;
+
+        aiAnalysis.recommendations.slice(0, maxRecommendations).forEach((recommendation, recIndex) => {
+          slide.addText(`${recIndex + 1}. ${this.cleanText(recommendation)}`, {
+            x: 0.7, y: currentY, w: 8.5, h: 0.22,
+            fontSize: 8, color: '5B21B6'
+          });
+          currentY += 0.24;
+        });
+      }
     }
 
-    // Métricas de impacto para contexto
-    if (currentY < 6.3) {
+    // Métricas de impacto - SOLO SI HAY ESPACIO SUFICIENTE
+    if (currentY < 6.0) { // LÍMITE MÁS ESTRICTO
       slide.addText('Contexto de Impacto:', {
-        x: 0.5, y: currentY, w: 9, h: 0.25,
-        fontSize: 11, bold: true, color: '374151'
+        x: 0.5, y: currentY, w: 9, h: 0.2,
+        fontSize: 10, bold: true, color: '374151'
       });
-      currentY += 0.3;
+      currentY += 0.25;
 
       const impactData = [
-        `Usuarios Activos: ${(result.metrics?.spot?.activeUsers || 0).toLocaleString()} (${(result.impact?.activeUsers?.percentageChange || 0) >= 0 ? '+' : ''}${(result.impact?.activeUsers?.percentageChange || 0).toFixed(1)}%)`,
-        `Sesiones: ${(result.metrics?.spot?.sessions || 0).toLocaleString()} (${(result.impact?.sessions?.percentageChange || 0) >= 0 ? '+' : ''}${(result.impact?.sessions?.percentageChange || 0).toFixed(1)}%)`,
-        `Vistas de Pagina: ${(result.metrics?.spot?.pageviews || 0).toLocaleString()} (${(result.impact?.pageviews?.percentageChange || 0) >= 0 ? '+' : ''}${(result.impact?.pageviews?.percentageChange || 0).toFixed(1)}%)`
+        `Usuarios: ${(result.metrics?.spot?.activeUsers || 0).toLocaleString()} (${(result.impact?.activeUsers?.percentageChange || 0) >= 0 ? '+' : ''}${(result.impact?.activeUsers?.percentageChange || 0).toFixed(1)}%)`,
+        `Sesiones: ${(result.metrics?.spot?.sessions || 0).toLocaleString()} (${(result.impact?.sessions?.percentageChange || 0) >= 0 ? '+' : ''}${(result.impact?.sessions?.percentageChange || 0).toFixed(1)}%)`
       ];
 
       impactData.forEach((data, i) => {
-        slide.addText(`• ${data}`, {
-          x: 0.7, y: currentY + (i * 0.22), w: 8.5, h: 0.2, // Reducido de 0.25 a 0.22
-          fontSize: 8, color: '374151'
-        });
+        if (currentY < 6.8) { // VERIFICAR ESPACIO ANTES DE AGREGAR
+          slide.addText(`• ${data}`, {
+            x: 0.7, y: currentY, w: 8.5, h: 0.18,
+            fontSize: 7, color: '374151'
+          });
+          currentY += 0.2;
+        }
       });
     }
   }
