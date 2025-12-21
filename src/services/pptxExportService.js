@@ -433,7 +433,7 @@ class PPTXExportService {
     // COLUMNA DERECHA (x: 5.2, w: 4.3) - LÁMINAS INDIVIDUALES (DESDE LÁMINA 4)
     // ========================================================================
     
-    let rightY = 0.8; // Posición inicial AÚN MÁS ARRIBA para lámina individual
+    let rightY = 0.4; // Posición inicial MUY ARRIBA para lámina individual
     
     // Análisis de IA en columna derecha
     if (aiAnalysis) {
