@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Download, FileText, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
-import PPTXExportServiceWithAI from '../../services/pptxExportServiceWithAI';
+import PPTXExportServiceSimple from '../../services/pptxExportServiceSimple';
 
 const PPTXExportButton = ({
   analysisResults,
@@ -27,7 +27,7 @@ const PPTXExportButton = ({
     setExportStatus(null);
 
     try {
-      const exportService = new PPTXExportServiceWithAI();
+      const exportService = new PPTXExportServiceSimple();
       
       // Preparar datos COMPLETOS para exportación (incluyendo contenido expandible)
       const exportData = {
@@ -156,7 +156,7 @@ const PPTXExportButton = ({
           exit={{ opacity: 0, y: -10 }}
           className={`absolute top-full left-0 mt-2 px-3 py-2 rounded-lg border text-xs font-medium z-10 ${getStatusStyles()}`}
         >
-          {exportStatus === 'success' && 'Presentación PPTX descargada exitosamente'}
+          {exportStatus === 'success' && 'Presentación PPTX simplificada descargada exitosamente'}
           {exportStatus === 'error' && 'Error al generar la presentación. Inténtalo nuevamente.'}
         </motion.div>
       )}
