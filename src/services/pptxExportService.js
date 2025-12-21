@@ -307,7 +307,7 @@ class PPTXExportService {
       fontSize: 20, bold: true, color: '1E40AF'
     });
 
-    // Información básica del spot
+    // Información básica del spot - REORGANIZADA
     const spotInfo = [
       `Fecha: ${result.spot?.fecha || 'N/A'} | Hora: ${result.spot?.hora || 'N/A'}`,
       `Canal: ${result.spot?.canal || 'N/A'} | Duración: ${result.spot?.duracion || 'N/A'}s`
@@ -336,16 +336,21 @@ class PPTXExportService {
 
     // Estado de vinculación
     const isDirectCorrelation = result.impact?.activeUsers?.directCorrelation;
-    const impact = result.impact?.activeUsers?.percentageChange || 0;
     
-    slide.addText(isDirectCorrelation ? 
-      '🎯 VINCULACIÓN DIRECTA CONFIRMADA' : 
+    slide.addText(isDirectCorrelation ?
+      '🎯 VINCULACIÓN DIRECTA CONFIRMADA' :
       '📊 IMPACTO ANALIZADO', {
       x: 0.5, y: 2.2, w: 9, h: 0.4,
-      fontSize: 14, bold: true, 
+      fontSize: 14, bold: true,
       color: isDirectCorrelation ? '059669' : '7C3AED'
     });
 
+    // LAYOUT REORGANIZADO PARA EVITAR SUPERPOSICIONES
+    // ================================================
+    
+    // COLUMNA IZQUIERDA (x: 0.5, w: 4.5)
+    // ====================================
+    
     // Métricas detalladas
     slide.addText('📊 Métricas Detalladas:', {
       x: 0.5, y: 2.8, w: 4.5, h: 0.3,
@@ -354,15 +359,15 @@ class PPTXExportService {
 
     const metricsData = [
       ['Métrica', 'Durante Spot', 'Referencia', 'Cambio %'],
-      ['Usuarios Activos', 
+      ['Usuarios Activos',
        (result.metrics?.spot?.activeUsers || 0).toLocaleString(),
        Math.round(result.impact?.activeUsers?.reference || 0).toLocaleString(),
        `${(result.impact?.activeUsers?.percentageChange || 0) >= 0 ? '+' : ''}${(result.impact?.activeUsers?.percentageChange || 0).toFixed(1)}%`],
-      ['Sesiones', 
+      ['Sesiones',
        (result.metrics?.spot?.sessions || 0).toLocaleString(),
        Math.round(result.impact?.sessions?.reference || 0).toLocaleString(),
        `${(result.impact?.sessions?.percentageChange || 0) >= 0 ? '+' : ''}${(result.impact?.sessions?.percentageChange || 0).toFixed(1)}%`],
-      ['Vistas de Página', 
+      ['Vistas de Página',
        (result.metrics?.spot?.pageviews || 0).toLocaleString(),
        Math.round(result.impact?.pageviews?.reference || 0).toLocaleString(),
        `${(result.impact?.pageviews?.percentageChange || 0) >= 0 ? '+' : ''}${(result.impact?.pageviews?.percentageChange || 0).toFixed(1)}%`]
@@ -375,88 +380,118 @@ class PPTXExportService {
       fill: 'F9FAFB'
     });
 
-    // Análisis de IA (contenido expandible) - Reorganizado para evitar superposiciones
-    if (aiAnalysis) {
-      slide.addText('🤖 Análisis Inteligente:', {
-        x: 5.2, y: 2.8, w: 4.3, h: 0.3,
-        fontSize: 14, bold: true, color: '7C3AED'
-      });
-
-      if (aiAnalysis.summary) {
-        slide.addText(`Resumen: ${aiAnalysis.summary}`, {
-          x: 5.2, y: 3.2, w: 4.3, h: 0.6,
-          fontSize: 10, color: '5B21B6'
-        });
-      }
-
-      if (aiAnalysis.insights && aiAnalysis.insights.length > 0) {
-        slide.addText('Insights Clave:', {
-          x: 5.2, y: 3.9, w: 4.3, h: 0.3,
-          fontSize: 11, bold: true, color: '5B21B6'
-        });
-
-        aiAnalysis.insights.slice(0, 2).forEach((insight, i) => {
-          slide.addText(`• ${typeof insight === 'string' ? insight : insight?.descripcion || JSON.stringify(insight)}`, {
-            x: 5.4, y: 4.2 + (i * 0.25), w: 4.1, h: 0.22,
-            fontSize: 9, color: '5B21B6'
-          });
-        });
-      }
-
-      if (aiAnalysis.recommendations && aiAnalysis.recommendations.length > 0) {
-        slide.addText('Recomendaciones:', {
-          x: 5.2, y: 4.8, w: 4.3, h: 0.3,
-          fontSize: 11, bold: true, color: '5B21B6'
-        });
-
-        aiAnalysis.recommendations.slice(0, 2).forEach((rec, i) => {
-          slide.addText(`• ${rec}`, {
-            x: 5.4, y: 5.1 + (i * 0.25), w: 4.1, h: 0.22,
-            fontSize: 9, color: '5B21B6'
-          });
-        });
-      }
-    }
-
-    // Análisis temporal (contenido expandible) - Reposicionado
+    // Análisis temporal en columna izquierda (REUBICADO)
     if (temporalImpact) {
       slide.addText('⏰ Análisis Temporal:', {
         x: 0.5, y: 5.2, w: 4.5, h: 0.3,
         fontSize: 14, bold: true, color: '059669'
       });
 
+      let temporalY = 5.6;
+      
       if (temporalImpact.temporalScore !== undefined) {
-        slide.addText(`Score Temporal: ${temporalImpact.temporalScore.toFixed(2)}/1.0`, {
-          x: 0.7, y: 5.6, w: 4.3, h: 0.25,
+        slide.addText(`Score: ${temporalImpact.temporalScore.toFixed(2)}/1.0`, {
+          x: 0.7, y: temporalY, w: 4.3, h: 0.25,
           fontSize: 10, color: '047857'
         });
+        temporalY += 0.35;
       }
 
       if (temporalImpact.peakTime && temporalImpact.peakTime.length > 0) {
-        slide.addText(`Pico de actividad: ${temporalImpact.peakTime.join(', ')}`, {
-          x: 0.7, y: 5.9, w: 4.3, h: 0.25,
+        const peakText = temporalImpact.peakTime.join(', ');
+        const limitedPeak = peakText.length > 60 ? peakText.substring(0, 57) + '...' : peakText;
+        
+        slide.addText(`Pico: ${limitedPeak}`, {
+          x: 0.7, y: temporalY, w: 4.3, h: 0.25,
           fontSize: 10, color: '047857'
         });
+        temporalY += 0.35;
       }
 
       if (temporalImpact.temporalInsights && temporalImpact.temporalInsights.length > 0) {
-        slide.addText('Insights Temporales:', {
-          x: 0.7, y: 6.2, w: 4.3, h: 0.25,
+        slide.addText('Insights:', {
+          x: 0.7, y: temporalY, w: 4.3, h: 0.25,
           fontSize: 10, bold: true, color: '047857'
         });
+        temporalY += 0.3;
 
-        temporalImpact.temporalInsights.slice(0, 2).forEach((insight, i) => {
-          slide.addText(`• ${insight}`, {
-            x: 0.9, y: 6.5 + (i * 0.25), w: 4.1, h: 0.2,
-            fontSize: 9, color: '047857'
-          });
+        // Mostrar solo 1 insight temporal
+        const insight = temporalImpact.temporalInsights[0];
+        const limitedInsight = insight.length > 70 ? insight.substring(0, 67) + '...' : insight;
+        
+        slide.addText(`• ${limitedInsight}`, {
+          x: 0.9, y: temporalY, w: 4.1, h: 0.2,
+          fontSize: 9, color: '047857'
         });
       }
     }
 
-    // Timeline de visitas (contenido expandible) - Reposicionado para evitar superposición
-    slide.addText('📈 Timeline de Visitas (30 min):', {
-      x: 5.2, y: 5.6, w: 4.3, h: 0.3,
+    // COLUMNA DERECHA (x: 5.2, w: 4.3)
+    // =================================
+    
+    // Análisis de IA en columna derecha (REUBICADO)
+    if (aiAnalysis) {
+      slide.addText('🤖 Análisis Inteligente:', {
+        x: 5.2, y: 2.8, w: 4.3, h: 0.3,
+        fontSize: 14, bold: true, color: '7C3AED'
+      });
+
+      let currentY = 3.2;
+      
+      if (aiAnalysis.summary) {
+        // Limitar el resumen para evitar desbordamiento
+        const summaryText = aiAnalysis.summary.length > 100 ?
+          aiAnalysis.summary.substring(0, 97) + '...' :
+          aiAnalysis.summary;
+          
+        slide.addText(`Resumen: ${summaryText}`, {
+          x: 5.2, y: currentY, w: 4.3, h: 0.6,
+          fontSize: 10, color: '5B21B6'
+        });
+        currentY += 0.8;
+      }
+
+      if (aiAnalysis.insights && aiAnalysis.insights.length > 0) {
+        slide.addText('Insights Clave:', {
+          x: 5.2, y: currentY, w: 4.3, h: 0.3,
+          fontSize: 11, bold: true, color: '5B21B6'
+        });
+        currentY += 0.4;
+
+        // Mostrar solo 1 insight para evitar superposición
+        const insight = aiAnalysis.insights[0];
+        const insightText = typeof insight === 'string' ? insight : insight?.descripcion || JSON.stringify(insight);
+        const limitedInsight = insightText.length > 80 ? insightText.substring(0, 77) + '...' : insightText;
+        
+        slide.addText(`• ${limitedInsight}`, {
+          x: 5.4, y: currentY, w: 4.1, h: 0.22,
+          fontSize: 9, color: '5B21B6'
+        });
+        currentY += 0.35;
+      }
+
+      if (aiAnalysis.recommendations && aiAnalysis.recommendations.length > 0) {
+        slide.addText('Recomendaciones:', {
+          x: 5.2, y: currentY, w: 4.3, h: 0.3,
+          fontSize: 11, bold: true, color: '5B21B6'
+        });
+        currentY += 0.4;
+
+        // Mostrar solo 1 recomendación para evitar superposición
+        const rec = aiAnalysis.recommendations[0];
+        const limitedRec = rec.length > 80 ? rec.substring(0, 77) + '...' : rec;
+        
+        slide.addText(`• ${limitedRec}`, {
+          x: 5.4, y: currentY, w: 4.1, h: 0.22,
+          fontSize: 9, color: '5B21B6'
+        });
+        currentY += 0.35;
+      }
+    }
+
+    // Timeline de visitas en columna derecha (REUBICADO)
+    slide.addText('📈 Timeline (30 min):', {
+      x: 5.2, y: 5.2, w: 4.3, h: 0.3,
       fontSize: 12, bold: true, color: 'DC2626'
     });
 
@@ -470,9 +505,10 @@ class PPTXExportService {
         { time: '30 min', visits: Math.round(baseVisits * 0.12) }
       ];
 
+      let timelineY = 5.6;
       timelineData.forEach((data, i) => {
-        slide.addText(`${data.time}: ${data.visits} visitas`, {
-          x: 5.4, y: 5.9 + (i * 0.2), w: 4.1, h: 0.18,
+        slide.addText(`${data.time}: ${data.visits}`, {
+          x: 5.4, y: timelineY + (i * 0.18), w: 4.1, h: 0.16,
           fontSize: 8, color: 'DC2626'
         });
       });
