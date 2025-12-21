@@ -361,14 +361,37 @@ class PPTXExportServiceCompatible {
       color: isDirectCorrelation ? '059669' : '7C3AED'
     });
 
-    // LAYOUT CORREGIDO - DISTRIBUCIÓN VERTICAL SIN SUPERPOSICIÓN
-    // ==========================================================
+    // LAYOUT REORGANIZADO - TIMELINE EN PARTE SUPERIOR DERECHA
+    // ========================================================
     
-    let currentY = 2.8; // Posición inicial para evitar superposición
+    let currentY = 2.8; // Posición inicial para contenido principal
     
-    // Métricas detalladas - PRIMERA SECCIÓN
+    // Timeline de visitas - PARTE SUPERIOR DERECHA (MOVIDO AQUÍ)
+    const baseVisits = result.metrics?.spot?.activeUsers || 0;
+    if (baseVisits > 0) {
+      slide.addText('Timeline (30 min):', {
+        x: 5.2, y: 2.8, w: 4.3, h: 0.3,
+        fontSize: 12, bold: true, color: 'DC2626'
+      });
+
+      const timelineData = [
+        { time: '1 min', visits: Math.round(baseVisits * 0.95) },
+        { time: '5 min', visits: Math.round(baseVisits * 0.70) },
+        { time: '15 min', visits: Math.round(baseVisits * 0.35) },
+        { time: '30 min', visits: Math.round(baseVisits * 0.12) }
+      ];
+
+      timelineData.forEach((data, i) => {
+        slide.addText(`${data.time}: ${data.visits}`, {
+          x: 5.4, y: 3.2 + (i * 0.18), w: 4.1, h: 0.16,
+          fontSize: 8, color: 'DC2626'
+        });
+      });
+    }
+    
+    // Métricas detalladas - COLUMNA IZQUIERDA
     slide.addText('Metricas Detalladas:', {
-      x: 0.5, y: currentY, w: 9, h: 0.3,
+      x: 0.5, y: currentY, w: 4.5, h: 0.3,
       fontSize: 14, bold: true, color: '374151'
     });
     currentY += 0.4;
@@ -390,24 +413,24 @@ class PPTXExportServiceCompatible {
     ];
 
     slide.addTable(metricsData, {
-      x: 0.5, y: currentY, w: 9, h: 1.8,
+      x: 0.5, y: currentY, w: 4.5, h: 1.8,
       fontSize: 10,
       border: { type: 'solid', color: 'E5E7EB', pt: 1 },
       fill: 'F9FAFB'
     });
     currentY += 2.0; // Espacio para la tabla
 
-    // Análisis temporal - SEGUNDA SECCIÓN
+    // Análisis temporal - COLUMNA IZQUIERDA (BAJO MÉTRICAS)
     if (temporalImpact) {
       slide.addText('Analisis Temporal:', {
-        x: 0.5, y: currentY, w: 9, h: 0.3,
+        x: 0.5, y: currentY, w: 4.5, h: 0.3,
         fontSize: 14, bold: true, color: '059669'
       });
       currentY += 0.4;
       
       if (temporalImpact.temporalScore !== undefined) {
         slide.addText(`Score: ${temporalImpact.temporalScore.toFixed(2)}/1.0`, {
-          x: 0.7, y: currentY, w: 8.5, h: 0.25,
+          x: 0.7, y: currentY, w: 4.3, h: 0.25,
           fontSize: 10, color: '047857'
         });
         currentY += 0.35;
@@ -417,7 +440,7 @@ class PPTXExportServiceCompatible {
         const peakText = temporalImpact.peakTime.join(', ');
         
         slide.addText(`Pico: ${this.cleanText(peakText)}`, {
-          x: 0.7, y: currentY, w: 8.5, h: 0.25,
+          x: 0.7, y: currentY, w: 4.3, h: 0.25,
           fontSize: 10, color: '047857'
         });
         currentY += 0.35;
@@ -425,7 +448,7 @@ class PPTXExportServiceCompatible {
 
       if (temporalImpact.temporalInsights && temporalImpact.temporalInsights.length > 0) {
         slide.addText('Insights Temporales:', {
-          x: 0.7, y: currentY, w: 8.5, h: 0.25,
+          x: 0.7, y: currentY, w: 4.3, h: 0.25,
           fontSize: 10, bold: true, color: '047857'
         });
         currentY += 0.3;
@@ -433,37 +456,10 @@ class PPTXExportServiceCompatible {
         // Mostrar todos los insights temporales
         temporalImpact.temporalInsights.forEach((insight) => {
           slide.addText(`• ${this.cleanText(insight)}`, {
-            x: 0.9, y: currentY, w: 8.3, h: 0.2,
+            x: 0.9, y: currentY, w: 4.1, h: 0.2,
             fontSize: 9, color: '047857'
           });
           currentY += 0.25;
-        });
-      }
-    }
-
-    // Timeline de visitas - TERCERA SECCIÓN (SI HAY ESPACIO)
-    if (currentY < 6.5) {
-      slide.addText('Timeline (30 min):', {
-        x: 0.5, y: currentY, w: 9, h: 0.3,
-        fontSize: 12, bold: true, color: 'DC2626'
-      });
-      currentY += 0.4;
-
-      // Simular timeline basado en datos reales
-      const baseVisits = result.metrics?.spot?.activeUsers || 0;
-      if (baseVisits > 0) {
-        const timelineData = [
-          { time: '1 min', visits: Math.round(baseVisits * 0.95) },
-          { time: '5 min', visits: Math.round(baseVisits * 0.70) },
-          { time: '15 min', visits: Math.round(baseVisits * 0.35) },
-          { time: '30 min', visits: Math.round(baseVisits * 0.12) }
-        ];
-
-        timelineData.forEach((data, i) => {
-          slide.addText(`${data.time}: ${data.visits}`, {
-            x: 0.7, y: currentY + (i * 0.18), w: 8.5, h: 0.16,
-            fontSize: 8, color: 'DC2626'
-          });
         });
       }
     }
