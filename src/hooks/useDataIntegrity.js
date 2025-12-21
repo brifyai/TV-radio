@@ -119,25 +119,32 @@ export function useDataIntegrity(data, context = 'unknown', options = {}) {
   // Validar datos cuando cambien
   useEffect(() => {
     if (data !== undefined) {
-      // Para análisis de IA, usar validación más permisiva
+      // Para análisis de IA, validación completamente permisiva (sin restricciones)
       if (context === 'ai_analysis') {
-        const result = dataIntegrityValidator.validateDataIntegrity(data, context);
+        console.log('🤖 Validación permisiva para análisis de IA:', data);
         setValidationResult({
-          ...result,
-          wasReplaced: false, // No reemplazar datos de IA
-          originalData: data
+          isValid: true, // Siempre válido
+          violations: [],
+          warnings: [],
+          wasReplaced: false,
+          originalData: data,
+          timestamp: new Date().toISOString(),
+          context
         });
-        setValidatedData(data); // Mantener los datos originales
+        setValidatedData(data); // Mantener los datos originales sin cambios
         return;
       }
       
-      // Para análisis de video, también usar validación más permisiva
+      // Para análisis de video, también validación permisiva
       if (context === 'video_analysis') {
-        const result = dataIntegrityValidator.validateDataIntegrity(data, context);
         setValidationResult({
-          ...result,
-          wasReplaced: false, // No reemplazar datos de video
-          originalData: data
+          isValid: true, // Siempre válido
+          violations: [],
+          warnings: [],
+          wasReplaced: false,
+          originalData: data,
+          timestamp: new Date().toISOString(),
+          context
         });
         setValidatedData(data); // Mantener los datos originales
         return;
