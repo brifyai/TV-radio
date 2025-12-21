@@ -16,6 +16,7 @@
     "lucide-react": "^0.294.0",
     "postcss": "^8.4.32",
     "pptxgenjs": "^3.12.0",
+    "puppeteer": "^24.34.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-intersection-observer": "^10.0.0",
@@ -54,6 +55,7 @@
   "devDependencies": {
     "@craco/craco": "^7.1.0",
     "buffer": "^6.0.3",
+    "playwright-core": "^1.57.0",
     "process": "^0.11.10",
     "react-scripts": "5.0.1"
   }
