@@ -1,3 +1,14 @@
-# Trigger rebuild - PPTX Fix
-# Updated: 2025-12-21 03:03:35 UTC
-# Changes: Fixed text overlapping in PPTX export (slide 4+)
+EBUILD_TRIGGER.txt</path>
+<content">NETLIFY REBUILD TRIGGER
+=======================
+
+Este archivo se creó para forzar un rebuild en Netlify después de implementar el sistema de IA adaptativa para PPTX.
+
+Cambios implementados:
+- Sistema PPTX IA que NO elimina contenido
+- Agrega láminas automáticamente cuando el contenido no cabe
+- IA decide distribución óptima de contenido
+- Integrado en botón "Exportar a PPTX"
+
+Commit: 910d5aa
+Fecha: 2025-12-21 19:49:17
