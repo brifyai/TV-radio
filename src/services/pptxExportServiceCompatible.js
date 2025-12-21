@@ -50,22 +50,25 @@ class PPTXExportServiceCompatible {
     // 3. SLIDE DE MÉTRICAS GENERALES
     this.createGeneralMetricsSlide(results);
 
-    // 4. SLIDES INDIVIDUALES POR CADA SPOT (TODO EL CONTENIDO EXPANDIBLE)
+    // 4. SLIDES INDIVIDUALES POR CADA SPOT (SOLO MÉTRICAS Y ANÁLISIS TEMPORAL)
     results.forEach((result, index) => {
-      this.createIndividualSpotSlide(result, index, aiAnalysis[index], temporalAnalysis[index]);
+      this.createIndividualSpotSlide(result, index, temporalAnalysis[index]);
     });
 
-    // 5. SLIDE DE ANÁLISIS TEMPORAL AVANZADO
+    // 5. SLIDES SEPARADAS DE ANÁLISIS INTELIGENTE E INSIGHTS CLAVES
+    this.createIntelligentAnalysisSlides(results, aiAnalysis, batchAIAnalysis);
+
+    // 6. SLIDE DE ANÁLISIS TEMPORAL AVANZADO
     if (Object.keys(temporalAnalysis).length > 0) {
       this.createTemporalAnalysisSlide(temporalAnalysis, results);
     }
 
-    // 6. SLIDE DE ANÁLISIS PREDICTIVO
+    // 7. SLIDE DE ANÁLISIS PREDICTIVO
     if (predictiveAnalysis && Object.keys(predictiveAnalysis).length > 0) {
       this.createPredictiveAnalysisSlide(predictiveAnalysis);
     }
 
-    // 7. SLIDE DE ANÁLISIS DE IA GENERAL
+    // 8. SLIDE DE ANÁLISIS DE IA GENERAL
     if (batchAIAnalysis && Object.keys(batchAIAnalysis).length > 0) {
       this.createAIAnalysisSlide(batchAIAnalysis);
     }
@@ -307,7 +310,7 @@ class PPTXExportServiceCompatible {
     });
   }
 
-  createIndividualSpotSlide(result, index, aiAnalysis, temporalImpact) {
+  createIndividualSpotSlide(result, index, temporalImpact) {
     const slide = this.pptx.addSlide();
     
     // Título del slide
@@ -417,7 +420,7 @@ class PPTXExportServiceCompatible {
       }
 
       if (temporalImpact.temporalInsights && temporalImpact.temporalInsights.length > 0) {
-        slide.addText('Insights:', {
+        slide.addText('Insights Temporales:', {
           x: 0.7, y: currentY, w: 8.5, h: 0.25,
           fontSize: 10, bold: true, color: '047857'
         });
@@ -434,43 +437,7 @@ class PPTXExportServiceCompatible {
       }
     }
 
-    // Análisis de IA - TERCERA SECCIÓN (SI HAY ESPACIO)
-    if (aiAnalysis && currentY < 6.5) { // Verificar que hay espacio
-      slide.addText('Analisis Inteligente:', {
-        x: 0.5, y: currentY, w: 9, h: 0.3,
-        fontSize: 14, bold: true, color: '7C3AED'
-      });
-      currentY += 0.4;
-
-      if (aiAnalysis.summary) {
-        slide.addText(`Resumen: ${this.cleanText(aiAnalysis.summary)}`, {
-          x: 0.5, y: currentY, w: 9, h: 0.6,
-          fontSize: 10, color: '5B21B6'
-        });
-        currentY += 0.8;
-      }
-
-      if (aiAnalysis.insights && aiAnalysis.insights.length > 0 && currentY < 6.5) {
-        slide.addText('Insights Clave:', {
-          x: 0.5, y: currentY, w: 9, h: 0.3,
-          fontSize: 11, bold: true, color: '5B21B6'
-        });
-        currentY += 0.4;
-
-        // Mostrar insights limitados para evitar superposición
-        aiAnalysis.insights.slice(0, 3).forEach((insight) => {
-          const insightText = typeof insight === 'string' ? insight : insight?.descripcion || JSON.stringify(insight);
-          
-          slide.addText(`• ${this.cleanText(insightText)}`, {
-            x: 0.7, y: currentY, w: 8.5, h: 0.22,
-            fontSize: 9, color: '5B21B6'
-          });
-          currentY += 0.3;
-        });
-      }
-    }
-
-    // Timeline de visitas - CUARTA SECCIÓN (SI HAY ESPACIO)
+    // Timeline de visitas - TERCERA SECCIÓN (SI HAY ESPACIO)
     if (currentY < 6.5) {
       slide.addText('Timeline (30 min):', {
         x: 0.5, y: currentY, w: 9, h: 0.3,
@@ -495,6 +462,210 @@ class PPTXExportServiceCompatible {
           });
         });
       }
+    }
+  }
+
+  createIntelligentAnalysisSlides(results, aiAnalysis, batchAIAnalysis) {
+    // Crear láminas individuales de análisis de IA para cada spot
+    results.forEach((result, index) => {
+      const spotAiAnalysis = aiAnalysis[index];
+      if (spotAiAnalysis) {
+        this.createIndividualSpotAISlide(result, index, spotAiAnalysis);
+      }
+    });
+
+    // Crear lámina de análisis de IA general si existe
+    if (batchAIAnalysis && Object.keys(batchAIAnalysis).length > 0) {
+      this.createGeneralAISlide(batchAIAnalysis, results);
+    }
+  }
+
+  createIndividualSpotAISlide(result, index, aiAnalysis) {
+    const slide = this.pptx.addSlide();
+    
+    // Título del slide
+    slide.addText(`Analisis Inteligente - Spot ${index + 1}`, {
+      x: 0.5, y: 0.3, w: 9, h: 0.6,
+      fontSize: 20, bold: true, color: '7C3AED'
+    });
+
+    // Información del spot
+    slide.addText(`Spot: ${this.cleanText(result.spot?.titulo_programa || result.spot?.nombre || 'Sin nombre')}`, {
+      x: 0.5, y: 1, w: 9, h: 0.4,
+      fontSize: 14, color: '374151'
+    });
+
+    slide.addText(`Fecha: ${this.cleanText(result.spot?.fecha || 'N/A')} | Hora: ${this.cleanText(result.spot?.hora || 'N/A')} | Canal: ${this.cleanText(result.spot?.canal || 'N/A')}`, {
+      x: 0.5, y: 1.5, w: 9, h: 0.3,
+      fontSize: 10, color: '6B7280'
+    });
+
+    let currentY = 2.2;
+
+    // Resumen del análisis
+    if (aiAnalysis.summary) {
+      slide.addText('Resumen del Analisis:', {
+        x: 0.5, y: currentY, w: 9, h: 0.3,
+        fontSize: 14, bold: true, color: '5B21B6'
+      });
+      currentY += 0.4;
+
+      slide.addText(this.cleanText(aiAnalysis.summary), {
+        x: 0.5, y: currentY, w: 9, h: 0.8,
+        fontSize: 11, color: '5B21B6'
+      });
+      currentY += 1.0;
+    }
+
+    // Insights clave
+    if (aiAnalysis.insights && aiAnalysis.insights.length > 0) {
+      slide.addText('Insights Clave:', {
+        x: 0.5, y: currentY, w: 9, h: 0.3,
+        fontSize: 14, bold: true, color: '5B21B6'
+      });
+      currentY += 0.4;
+
+      aiAnalysis.insights.forEach((insight, insightIndex) => {
+        const insightText = typeof insight === 'string' ? insight : insight?.descripcion || JSON.stringify(insight);
+        
+        slide.addText(`${insightIndex + 1}. ${this.cleanText(insightText)}`, {
+          x: 0.7, y: currentY, w: 8.5, h: 0.4,
+          fontSize: 10, color: '5B21B6'
+        });
+        currentY += 0.5;
+      });
+    }
+
+    // Recomendaciones
+    if (aiAnalysis.recommendations && aiAnalysis.recommendations.length > 0 && currentY < 6.5) {
+      slide.addText('Recomendaciones:', {
+        x: 0.5, y: currentY, w: 9, h: 0.3,
+        fontSize: 14, bold: true, color: '5B21B6'
+      });
+      currentY += 0.4;
+
+      aiAnalysis.recommendations.forEach((recommendation, recIndex) => {
+        slide.addText(`${recIndex + 1}. ${this.cleanText(recommendation)}`, {
+          x: 0.7, y: currentY, w: 8.5, h: 0.4,
+          fontSize: 10, color: '5B21B6'
+        });
+        currentY += 0.5;
+      });
+    }
+
+    // Métricas de impacto para contexto
+    if (currentY < 6.5) {
+      slide.addText('Contexto de Impacto:', {
+        x: 0.5, y: currentY, w: 9, h: 0.3,
+        fontSize: 12, bold: true, color: '374151'
+      });
+      currentY += 0.4;
+
+      const impactData = [
+        `Usuarios Activos: ${(result.metrics?.spot?.activeUsers || 0).toLocaleString()} (${(result.impact?.activeUsers?.percentageChange || 0) >= 0 ? '+' : ''}${(result.impact?.activeUsers?.percentageChange || 0).toFixed(1)}%)`,
+        `Sesiones: ${(result.metrics?.spot?.sessions || 0).toLocaleString()} (${(result.impact?.sessions?.percentageChange || 0) >= 0 ? '+' : ''}${(result.impact?.sessions?.percentageChange || 0).toFixed(1)}%)`,
+        `Vistas de Pagina: ${(result.metrics?.spot?.pageviews || 0).toLocaleString()} (${(result.impact?.pageviews?.percentageChange || 0) >= 0 ? '+' : ''}${(result.impact?.pageviews?.percentageChange || 0).toFixed(1)}%)`
+      ];
+
+      impactData.forEach((data, i) => {
+        slide.addText(`• ${data}`, {
+          x: 0.7, y: currentY + (i * 0.3), w: 8.5, h: 0.25,
+          fontSize: 9, color: '374151'
+        });
+      });
+    }
+  }
+
+  createGeneralAISlide(batchAIAnalysis, results) {
+    const slide = this.pptx.addSlide();
+    
+    slide.addText('Analisis Inteligente General', {
+      x: 0.5, y: 0.3, w: 9, h: 0.6,
+      fontSize: 24, bold: true, color: '7C3AED'
+    });
+
+    slide.addText(`Analisis completo de ${results.length} spots con IA avanzada`, {
+      x: 0.5, y: 1, w: 9, h: 0.4,
+      fontSize: 12, color: '6B7280'
+    });
+
+    let currentY = 1.6;
+
+    // Resumen ejecutivo de IA
+    if (batchAIAnalysis.summary) {
+      slide.addText('Resumen Ejecutivo de IA:', {
+        x: 0.5, y: currentY, w: 9, h: 0.3,
+        fontSize: 16, bold: true, color: '5B21B6'
+      });
+      currentY += 0.4;
+
+      slide.addText(this.cleanText(batchAIAnalysis.summary), {
+        x: 0.5, y: currentY, w: 9, h: 1,
+        fontSize: 12, color: '5B21B6'
+      });
+      currentY += 1.2;
+    }
+
+    // Insights generales
+    if (batchAIAnalysis.insights && batchAIAnalysis.insights.length > 0) {
+      slide.addText('Insights Generales Identificados:', {
+        x: 0.5, y: currentY, w: 9, h: 0.3,
+        fontSize: 16, bold: true, color: '5B21B6'
+      });
+      currentY += 0.4;
+
+      batchAIAnalysis.insights.forEach((insight, index) => {
+        const insightText = typeof insight === 'string' ? insight : insight?.descripcion || JSON.stringify(insight);
+        
+        slide.addText(`${index + 1}. ${this.cleanText(insightText)}`, {
+          x: 0.7, y: currentY, w: 8.5, h: 0.5,
+          fontSize: 11, color: '5B21B6'
+        });
+        currentY += 0.6;
+      });
+    }
+
+    // Recomendaciones estratégicas
+    if (batchAIAnalysis.recommendations && batchAIAnalysis.recommendations.length > 0 && currentY < 6.5) {
+      slide.addText('Recomendaciones Estrategicas:', {
+        x: 0.5, y: currentY, w: 9, h: 0.3,
+        fontSize: 16, bold: true, color: '5B21B6'
+      });
+      currentY += 0.4;
+
+      batchAIAnalysis.recommendations.forEach((recommendation, index) => {
+        slide.addText(`${index + 1}. ${this.cleanText(recommendation)}`, {
+          x: 0.7, y: currentY, w: 8.5, h: 0.5,
+          fontSize: 11, color: '5B21B6'
+        });
+        currentY += 0.6;
+      });
+    }
+
+    // Estadísticas de análisis
+    if (currentY < 6.5) {
+      slide.addText('Estadisticas del Analisis:', {
+        x: 0.5, y: currentY, w: 9, h: 0.3,
+        fontSize: 14, bold: true, color: '374151'
+      });
+      currentY += 0.4;
+
+      const directCorrelationCount = results.filter(r => r.impact?.activeUsers?.directCorrelation).length;
+      const avgImpact = results.reduce((sum, r) => sum + (r.impact?.activeUsers?.percentageChange || 0), 0) / results.length;
+
+      const stats = [
+        `Total de spots analizados: ${results.length}`,
+        `Spots con vinculacion directa: ${directCorrelationCount} (${((directCorrelationCount/results.length)*100).toFixed(1)}%)`,
+        `Impacto promedio en usuarios: ${avgImpact >= 0 ? '+' : ''}${avgImpact.toFixed(1)}%`,
+        `Analisis de IA completado para todos los spots`
+      ];
+
+      stats.forEach((stat, i) => {
+        slide.addText(`• ${stat}`, {
+          x: 0.7, y: currentY + (i * 0.3), w: 8.5, h: 0.25,
+          fontSize: 10, color: '374151'
+        });
+      });
     }
   }
 
