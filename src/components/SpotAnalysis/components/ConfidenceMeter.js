@@ -61,11 +61,9 @@ const ConfidenceMeter = ({ confidenceScore = 85, analysisData }) => {
           <h3 className="text-xl font-bold text-gray-900">Nivel de Confianza</h3>
           <p className="text-sm text-gray-600">Certeza del análisis estadístico</p>
         </div>
-        <motion.div
-          animate={{ rotate: 360 }}
-          transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-          className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full"
-        />
+        <div className="w-8 h-8 flex items-center justify-center">
+          <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+        </div>
       </div>
 
       <div className="flex items-center justify-center">
