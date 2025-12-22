@@ -2,8 +2,16 @@ import React, { useState, useEffect, useRef } from 'react';
 import html2canvas from 'html2canvas';
 import { Download, Loader2 } from 'lucide-react';
 
-const ImageExportButton = ({ 
-  targetRef, 
+/**
+ * Componente de botón para exportar imágenes con posicionamiento inteligente
+ * @param {Object} targetRef - Referencia al elemento a exportar
+ * @param {string} filename - Nombre del archivo de descarga
+ * @param {string} className - Clases CSS adicionales
+ * @param {string} variant - Variante del botón ('default', 'minimal', 'floating')
+ * @param {string} position - Posición inicial ('top-right', 'top-left', 'bottom-right', 'bottom-left')
+ */
+const ImageExportButton = ({
+  targetRef,
   filename = 'analisis-spot',
   className = '',
   variant = 'default', // 'default', 'minimal', 'floating'
