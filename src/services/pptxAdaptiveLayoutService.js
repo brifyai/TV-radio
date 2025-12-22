@@ -478,4 +478,9 @@ class PPTXAdaptiveLayoutService {
   }
 }
 
-module.exports = PPTXAdaptiveLayoutService;
+export default PPTXAdaptiveLayoutService;
+
+// Compatibilidad con CommonJS
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = PPTXAdaptiveLayoutService;
+}

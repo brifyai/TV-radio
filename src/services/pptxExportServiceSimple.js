@@ -1,14 +1,18 @@
 // Servicio PPTX Ultra-Simplificado - Versión funcional garantizada
 // Enfoque minimalista para asegurar compatibilidad total con PowerPoint
 
-const PptxGenJS = require('pptxgenjs').default || require('pptxgenjs');
-const PPTXAdaptiveLayoutService = require('./pptxAdaptiveLayoutService');
+import PptxGenJS from 'pptxgenjs';
+import PPTXAdaptiveLayoutService from './pptxAdaptiveLayoutService';
+
+// Fallback para CommonJS
+const PPTXGenJS_Fallback = PptxGenJS.default || PptxGenJS;
+const PPTXAdaptiveLayoutService_Fallback = PPTXAdaptiveLayoutService.default || PPTXAdaptiveLayoutService;
 
 class PPTXExportServiceSimple {
   constructor() {
     this.analysisData = null;
     this.pptx = null;
-    this.adaptiveLayoutService = new PPTXAdaptiveLayoutService();
+    this.adaptiveLayoutService = new PPTXAdaptiveLayoutService_Fallback();
   }
 
   async generateSpotAnalysisPresentation(analysisData) {
@@ -28,7 +32,7 @@ class PPTXExportServiceSimple {
     }
 
     // Crear nueva presentación con configuración básica
-    this.pptx = new PptxGenJS();
+    this.pptx = new PPTXGenJS_Fallback();
     
     // Configurar propiedades básicas
     this.pptx.author = 'BrifyAI';
@@ -760,4 +764,9 @@ class PPTXExportServiceSimple {
   }
 }
 
-module.exports = PPTXExportServiceSimple;
+export default PPTXExportServiceSimple;
+
+// Compatibilidad con CommonJS
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = PPTXExportServiceSimple;
+}
