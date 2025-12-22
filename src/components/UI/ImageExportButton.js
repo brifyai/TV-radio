@@ -3,17 +3,16 @@ import html2canvas from 'html2canvas';
 import { Download, Loader2 } from 'lucide-react';
 
 /**
- * Componente de botón para exportar imágenes con posicionamiento fijo
+ * Componente de botón para exportar imágenes - VERSIÓN SIMPLIFICADA
+ * Elimina parpadeo y posicionamiento complejo
  * @param {Object} targetRef - Referencia al elemento a exportar
  * @param {string} filename - Nombre del archivo de descarga
  * @param {string} className - Clases CSS adicionales
- * @param {string} variant - Variante del botón ('default', 'minimal', 'floating')
  */
 const ImageExportButton = ({
   targetRef,
   filename = 'analisis-spot',
-  className = '',
-  variant = 'floating'
+  className = ''
 }) => {
   const [isExporting, setIsExporting] = useState(false);
 
@@ -125,26 +124,15 @@ const ImageExportButton = ({
     }
   };
 
-  // Estilos según la variante - más pequeños y discretos
-  const getVariantStyles = () => {
-    switch (variant) {
-      case 'minimal':
-        return 'p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded';
-      case 'floating':
-        return 'p-1.5 bg-white border border-gray-200 rounded shadow-sm text-gray-500 hover:text-gray-700 hover:shadow-md';
-      default:
-        return 'p-1.5 text-gray-500 hover:text-gray-700 hover:bg-gray-50 rounded transition-all';
-    }
-  };
-
   return (
     <button
       onClick={exportAsImage}
       disabled={isExporting}
       className={`
         absolute top-2 right-2 z-20 inline-flex items-center justify-center
-        ${getVariantStyles()}
-        ${isExporting ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
+        p-1.5 bg-white border border-gray-200 rounded shadow-sm text-gray-500
+        hover:text-gray-700 hover:shadow-md cursor-pointer
+        ${isExporting ? 'opacity-50 cursor-not-allowed' : ''}
         ${className}
       `}
       title="Exportar como imagen en alta calidad"

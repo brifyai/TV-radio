@@ -1185,8 +1185,6 @@ const SpotAnalysis = () => {
               <ImageExportButton
                 targetRef={{ current: document.querySelector('[data-export-id="impact-timeline"]') }}
                 filename="timeline-impacto"
-                variant="floating"
-                position="top-right"
                 className="opacity-90 hover:opacity-100"
               />
               <ImpactTimeline spotData={spotsData} analysisResults={analysisResults} />
@@ -1195,8 +1193,6 @@ const SpotAnalysis = () => {
               <ImageExportButton
                 targetRef={{ current: document.querySelector('[data-export-id="confidence-meter"]') }}
                 filename="medidor-confianza"
-                variant="floating"
-                position="top-right"
                 className="opacity-90 hover:opacity-100"
               />
               <ConfidenceMeter analysisData={analysisResults} />
@@ -1205,8 +1201,6 @@ const SpotAnalysis = () => {
               <ImageExportButton
                 targetRef={{ current: document.querySelector('[data-export-id="smart-insights"]') }}
                 filename="insights-inteligentes"
-                variant="floating"
-                position="top-right"
                 className="opacity-90 hover:opacity-100"
               />
               <SmartInsights analysisResults={analysisResults} batchAIAnalysis={batchAIAnalysis} />
@@ -1215,8 +1209,6 @@ const SpotAnalysis = () => {
               <ImageExportButton
                 targetRef={{ current: document.querySelector('[data-export-id="traffic-heatmap"]') }}
                 filename="mapa-calor-trafico"
-                variant="floating"
-                position="top-right"
                 className="opacity-90 hover:opacity-100"
               />
               <TrafficHeatmap analysisResults={analysisResults} />
@@ -1228,8 +1220,6 @@ const SpotAnalysis = () => {
             <ImageExportButton
               targetRef={{ current: document.querySelector('[data-export-id="video-analysis"]') }}
               filename="analisis-video-completo"
-              variant="floating"
-              position="top-right"
               className="opacity-90 hover:opacity-100"
             />
             <VideoAnalysisDashboard
@@ -1245,8 +1235,6 @@ const SpotAnalysis = () => {
             <ImageExportButton
               targetRef={{ current: document.querySelector('[data-export-id="traffic-chart"]') }}
               filename="grafico-trafico-horas"
-              variant="floating"
-              position="top-right"
               className="opacity-90 hover:opacity-100"
             />
             <TrafficChart analysisResults={analysisResults} />
@@ -1298,8 +1286,6 @@ const SpotAnalysis = () => {
                             <ImageExportButton
                               targetRef={{ current: document.querySelector(`[data-export-id="spot-direct-${startIndex + index}"]`) }}
                               filename={`spot-vinculacion-directa-${startIndex + index + 1}`}
-                              variant="floating"
-                              position="top-right"
                               className="opacity-90 hover:opacity-100"
                             />
                           </div>
@@ -1776,8 +1762,6 @@ const SpotAnalysis = () => {
           <ImageExportButton
             targetRef={{ current: document.querySelector('[data-export-id="temporal-analysis"]') }}
             filename="analisis-temporal-completo"
-            variant="floating"
-            position="top-right"
             className="opacity-90 hover:opacity-100"
           />
           <TemporalAnalysisDashboard
@@ -1794,8 +1778,6 @@ const SpotAnalysis = () => {
           <ImageExportButton
             targetRef={{ current: document.querySelector('[data-export-id="predictive-analysis"]') }}
             filename="analisis-predictivo-ia"
-            variant="floating"
-            position="top-right"
             className="opacity-90 hover:opacity-100"
           />
           <PredictiveAnalyticsDashboard
@@ -2038,8 +2020,6 @@ const SpotAnalysis = () => {
                   <ImageExportButton
                     targetRef={{ current: document.querySelector(`[data-export-id="spot-classic-${index}"]`) }}
                     filename={`spot-analisis-${index + 1}`}
-                    variant="minimal"
-                    position="top-right"
                     className="opacity-80 hover:opacity-100"
                   />
                 </div>
