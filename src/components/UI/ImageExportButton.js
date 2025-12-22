@@ -3,96 +3,43 @@ import html2canvas from 'html2canvas';
 import { Download, Loader2 } from 'lucide-react';
 
 /**
- * Componente de botón para exportar imágenes con posicionamiento inteligente
+ * Componente de botón para exportar imágenes con posicionamiento fijo en esquina superior derecha
  * @param {Object} targetRef - Referencia al elemento a exportar
  * @param {string} filename - Nombre del archivo de descarga
  * @param {string} className - Clases CSS adicionales
  * @param {string} variant - Variante del botón ('default', 'minimal', 'floating')
- * @param {string} position - Posición inicial ('top-right', 'top-left', 'bottom-right', 'bottom-left')
  */
 const ImageExportButton = ({
   targetRef,
   filename = 'analisis-spot',
   className = '',
-  variant = 'floating', // 'default', 'minimal', 'floating'
-  position = 'top-right' // 'top-right', 'top-left', 'bottom-right', 'bottom-left'
+  variant = 'minimal' // 'default', 'minimal', 'floating'
 }) => {
   const [isExporting, setIsExporting] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
-  const [finalPosition, setFinalPosition] = useState(position);
   const buttonRef = useRef(null);
 
-  // Detectar colisiones y reposicionar automáticamente
+  // Verificar que el botón esté visible en el viewport
   useEffect(() => {
-    const detectAndResolveCollisions = () => {
-      if (!buttonRef.current || !targetRef?.current) return;
-
-      const buttonRect = buttonRef.current.getBoundingClientRect();
-      const targetRect = targetRef.current.getBoundingClientRect();
+    const checkVisibility = () => {
+      if (!buttonRef.current) return;
       
-      // Verificar si el botón está tapando contenido del elemento target
-      const isColliding = (
-        buttonRect.left < targetRect.right &&
-        buttonRect.right > targetRect.left &&
-        buttonRect.top < targetRect.bottom &&
-        buttonRect.bottom > targetRect.top
+      const buttonRect = buttonRef.current.getBoundingClientRect();
+      const isVisible = (
+        buttonRect.top >= 0 &&
+        buttonRect.left >= 0 &&
+        buttonRect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
+        buttonRect.right <= (window.innerWidth || document.documentElement.clientWidth)
       );
-
-      if (isColliding) {
-        console.log('🔄 Detectada colisión, reposicionando botón...');
-        
-        // Intentar posiciones alternativas en orden de prioridad
-        const alternativePositions = [
-          'top-left',
-          'bottom-right', 
-          'bottom-left'
-        ];
-        
-        let newPosition = position;
-        
-        // Si la posición inicial es top-right, probar top-left primero
-        if (position === 'top-right') {
-          newPosition = 'top-left';
-        }
-        
-        // Aplicar la nueva posición
-        setFinalPosition(newPosition);
-        
-        // Verificar si la nueva posición también colisiona
-        setTimeout(() => {
-          if (buttonRef.current) {
-            const newButtonRect = buttonRef.current.getBoundingClientRect();
-            const stillColliding = (
-              newButtonRect.left < targetRect.right &&
-              newButtonRect.right > targetRect.left &&
-              newButtonRect.top < targetRect.bottom &&
-              newButtonRect.bottom > targetRect.top
-            );
-            
-            if (stillColliding) {
-              console.log('🔄 Siguiente posición alternativa...');
-              setFinalPosition('bottom-right');
-            }
-          }
-        }, 50);
+      
+      if (!isVisible) {
+        console.log('Botón no visible en viewport');
       }
     };
 
-    // Verificar después de que el DOM esté listo
-    const timer = setTimeout(detectAndResolveCollisions, 200);
-    
-    // También verificar en resize de ventana
-    const handleResize = () => {
-      setTimeout(detectAndResolveCollisions, 100);
-    };
-    
-    window.addEventListener('resize', handleResize);
-    
-    return () => {
-      clearTimeout(timer);
-      window.removeEventListener('resize', handleResize);
-    };
-  }, [position, targetRef]);
+    const timer = setTimeout(checkVisibility, 100);
+    return () => clearTimeout(timer);
+  }, []);
 
   const exportAsImage = async () => {
     if (!targetRef?.current) {
@@ -156,31 +103,15 @@ const ImageExportButton = ({
     }
   };
 
-  // Estilos según la variante
+  // Estilos según la variante - más pequeños y discretos
   const getVariantStyles = () => {
     switch (variant) {
       case 'minimal':
-        return 'p-1.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100';
+        return 'p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded';
       case 'floating':
-        return 'p-2 bg-white border border-gray-200 rounded-lg shadow-lg text-gray-600 hover:text-gray-800 hover:shadow-xl';
+        return 'p-1.5 bg-white border border-gray-200 rounded shadow-sm text-gray-500 hover:text-gray-700 hover:shadow-md';
       default:
-        return 'p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-all';
-    }
-  };
-
-  // Obtener clases de posicionamiento dinámico
-  const getPositionClasses = () => {
-    switch (finalPosition) {
-      case 'top-left':
-        return 'top-4 left-4';
-      case 'top-right':
-        return 'top-4 right-4';
-      case 'bottom-left':
-        return 'bottom-4 left-4';
-      case 'bottom-right':
-        return 'bottom-4 right-4';
-      default:
-        return 'top-4 right-4';
+        return 'p-1.5 text-gray-500 hover:text-gray-700 hover:bg-gray-50 rounded transition-all';
     }
   };
 
@@ -196,22 +127,21 @@ const ImageExportButton = ({
         onClick={exportAsImage}
         disabled={isExporting}
         className={`
-          absolute z-10 inline-flex items-center justify-center
+          absolute top-0 right-0 z-10 inline-flex items-center justify-center
           ${getVariantStyles()}
-          ${getPositionClasses()}
           ${isExporting ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
           ${className}
         `}
         title="Exportar como imagen en alta calidad"
       >
         {isExporting ? (
-          <Loader2 className="h-4 w-4 animate-spin" />
+          <Loader2 className="h-3 w-3 animate-spin" />
         ) : (
-          <Download className="h-4 w-4" />
+          <Download className="h-3 w-3" />
         )}
         
         {variant === 'default' && !isExporting && (
-          <span className="ml-2 text-sm font-medium">Exportar</span>
+          <span className="ml-1 text-xs font-medium">Exportar</span>
         )}
       </button>
     </div>
