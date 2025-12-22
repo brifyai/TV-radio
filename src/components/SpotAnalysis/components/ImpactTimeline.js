@@ -156,7 +156,7 @@ const ImpactTimeline = ({ spotData, analysisResults }) => {
               <span className="font-medium">Impacto:</span> +{bestSpot.impact?.activeUsers?.percentageChange?.toFixed(1) || 0}%
             </p>
             <p className="text-xs text-green-700 truncate">
-              {bestSpot.titulo_programa || bestSpot.nombre || 'N/A'}
+              {bestSpot.spot?.titulo_programa || bestSpot.spot?.nombre || 'N/A'}
             </p>
           </div>
         </motion.div>
@@ -179,7 +179,7 @@ const ImpactTimeline = ({ spotData, analysisResults }) => {
               <span className="font-medium">Impacto:</span> {minImpact.toFixed(1)}%
             </p>
             <p className="text-xs text-red-700 truncate">
-              {worstSpot.titulo_programa || worstSpot.nombre || 'N/A'}
+              {worstSpot.spot?.titulo_programa || worstSpot.spot?.nombre || 'N/A'}
             </p>
           </div>
         </motion.div>
