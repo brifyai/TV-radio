@@ -181,7 +181,7 @@ const ImageExportButton = ({
         {isExporting ? (
           <Loader2 className="h-4 w-4 animate-spin" />
         ) : (
-          <Download className="h-4 w-4" />
+          <Download className="h-4 w-4 text-blue-600" />
         )}
         
         {variant === 'default' && !isExporting && (
