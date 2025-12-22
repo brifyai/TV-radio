@@ -311,7 +311,7 @@ const Layout = () => {
       )}
 
       {/* Main content */}
-      <div className={`flex flex-col flex-1 ${!fullscreenMode ? 'md:pl-72' : ''}`}>
+      <div className={`flex flex-col flex-1 ${!fullscreenMode ? 'md:pl-72' : ''} ${location.pathname === '/spot-analysis' ? 'overflow-visible' : 'overflow-hidden'}`}>
         {/* Header - siempre visible */}
         <header className="bg-white shadow">
           <div className="w-full px-4 sm:px-6 lg:px-8">
