@@ -1,14 +1,5 @@
-EBUILD_TRIGGER.txt</path>
-<content">NETLIFY REBUILD TRIGGER
-=======================
-
-Este archivo se creó para forzar un rebuild en Netlify después de implementar el sistema de IA adaptativa para PPTX.
-
-Cambios implementados:
-- Sistema PPTX IA que NO elimina contenido
-- Agrega láminas automáticamente cuando el contenido no cabe
-- IA decide distribución óptima de contenido
-- Integrado en botón "Exportar a PPTX"
-
-Commit: 910d5aa
-Fecha: 2025-12-21 19:49:17
+Trigger de rebuild para Netlify
+Fecha: 2025-12-22T12:17:02.114Z
+Commit local: ca08d7b
+Problema: Netlify deployando commit anterior 877583a en lugar del más reciente
+Solución: Forzar rebuild para sincronizar con commits locales
