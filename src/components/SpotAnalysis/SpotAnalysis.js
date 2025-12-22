@@ -1175,25 +1175,27 @@ const SpotAnalysis = () => {
           )}
 
           {/* Componentes principales en formato vertical uno debajo del otro - FORZANDO ANCHO COMPLETO */}
-          {/* Análisis de Impacto - ocupando todo el ancho */}
-          <FullWidthContainer data-export-id="impact-timeline">
-            <ImpactTimeline spotData={spotsData} analysisResults={analysisResults} />
-          </FullWidthContainer>
-          
-          {/* Nivel de Confianza - ocupando todo el ancho */}
-          <FullWidthContainer data-export-id="confidence-meter">
-            <ConfidenceMeter analysisData={analysisResults} />
-          </FullWidthContainer>
-          
-          {/* Smart Insights - ocupando todo el ancho */}
-          <FullWidthContainer data-export-id="smart-insights">
-            <SmartInsights analysisResults={analysisResults} batchAIAnalysis={batchAIAnalysis} />
-          </FullWidthContainer>
-          
-          {/* Mapa de Calor de Tráfico - ocupando todo el ancho */}
-          <FullWidthContainer data-export-id="traffic-heatmap">
-            <TrafficHeatmap analysisResults={analysisResults} />
-          </FullWidthContainer>
+          <div className="flex flex-col space-y-6 w-full">
+            {/* Análisis de Impacto - ocupando todo el ancho */}
+            <div className="w-full" data-export-id="impact-timeline">
+              <ImpactTimeline spotData={spotsData} analysisResults={analysisResults} />
+            </div>
+            
+            {/* Nivel de Confianza - ocupando todo el ancho */}
+            <div className="w-full" data-export-id="confidence-meter">
+              <ConfidenceMeter analysisData={analysisResults} />
+            </div>
+            
+            {/* Smart Insights - ocupando todo el ancho */}
+            <div className="w-full" data-export-id="smart-insights">
+              <SmartInsights analysisResults={analysisResults} batchAIAnalysis={batchAIAnalysis} />
+            </div>
+            
+            {/* Mapa de Calor de Tráfico - ocupando todo el ancho */}
+            <div className="w-full" data-export-id="traffic-heatmap">
+              <TrafficHeatmap analysisResults={analysisResults} />
+            </div>
+          </div>
           
           {/* Segunda fila: 4 componentes diferentes de Tráfico */}
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
