@@ -1,14 +1,65 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import html2canvas from 'html2canvas';
-import { Camera, Download, Loader2 } from 'lucide-react';
+import { Download, Loader2 } from 'lucide-react';
 
 const ImageExportButton = ({ 
   targetRef, 
   filename = 'analisis-spot',
   className = '',
-  variant = 'default' // 'default', 'minimal', 'floating'
+  variant = 'default', // 'default', 'minimal', 'floating'
+  position = 'top-right' // 'top-right', 'top-left', 'bottom-right', 'bottom-left'
 }) => {
   const [isExporting, setIsExporting] = useState(false);
+  const [isVisible, setIsVisible] = useState(true);
+  const [currentPosition, setCurrentPosition] = useState(position);
+  const buttonRef = useRef(null);
+  const containerRef = useRef(null);
+
+  // Detectar colisiones y ajustar posición
+  const checkForCollisions = () => {
+    if (!buttonRef.current || !containerRef.current) return;
+
+    const buttonRect = buttonRef.current.getBoundingClientRect();
+    const containerRect = containerRef.current.getBoundingClientRect();
+    
+    // Verificar si el botón está fuera del contenedor o colisionando con contenido
+    const isOutOfBounds = 
+      buttonRect.right > containerRect.right ||
+      buttonRect.left < containerRect.left ||
+      buttonRect.bottom > containerRect.bottom ||
+      buttonRect.top < containerRect.top;
+
+    if (isOutOfBounds) {
+      // Intentar posiciones alternativas
+      const positions = ['top-left', 'top-right', 'bottom-left', 'bottom-right'];
+      const currentIndex = positions.indexOf(currentPosition);
+      
+      for (let i = 1; i <= positions.length; i++) {
+        const nextPosition = positions[(currentIndex + i) % positions.length];
+        setCurrentPosition(nextPosition);
+        break;
+      }
+    }
+  };
+
+  // Verificar colisiones cuando el componente se monta
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      checkForCollisions();
+    }, 100);
+
+    return () => clearTimeout(timer);
+  }, [currentPosition]);
+
+  // Verificar colisiones cuando la ventana cambia de tamaño
+  useEffect(() => {
+    const handleResize = () => {
+      checkForCollisions();
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [currentPosition]);
 
   const exportAsImage = async () => {
     if (!targetRef?.current) {
@@ -16,6 +67,8 @@ const ImageExportButton = ({
       return;
     }
 
+    // Ocultar botón durante la descarga
+    setIsVisible(false);
     setIsExporting(true);
     
     try {
@@ -63,6 +116,10 @@ const ImageExportButton = ({
       alert('Error al exportar la imagen. Por favor, inténtalo nuevamente.');
     } finally {
       setIsExporting(false);
+      // Mostrar botón nuevamente después de un breve delay
+      setTimeout(() => {
+        setIsVisible(true);
+      }, 1000);
     }
   };
 
@@ -78,32 +135,52 @@ const ImageExportButton = ({
     }
   };
 
+  // Obtener clases de posicionamiento
+  const getPositionClasses = () => {
+    switch (currentPosition) {
+      case 'top-left':
+        return 'top-4 left-4';
+      case 'top-right':
+        return 'top-4 right-4';
+      case 'bottom-left':
+        return 'bottom-4 left-4';
+      case 'bottom-right':
+        return 'bottom-4 right-4';
+      default:
+        return 'top-4 right-4';
+    }
+  };
+
+  if (!isVisible) {
+    return null;
+  }
+
   return (
-    <button
-      onClick={exportAsImage}
-      disabled={isExporting}
-      className={`
-        inline-flex items-center justify-center
-        ${getVariantStyles()}
-        ${isExporting ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
-        ${className}
-      `}
-      title="Exportar como imagen en alta calidad"
-    >
-      {isExporting ? (
-        <Loader2 className="h-4 w-4 animate-spin" />
-      ) : (
-        <Camera className="h-4 w-4" />
-      )}
-      
-      {variant === 'default' && !isExporting && (
-        <span className="ml-2 text-sm font-medium">Exportar</span>
-      )}
-      
-      {variant === 'floating' && !isExporting && (
-        <span className="ml-2 text-sm font-medium">IMG</span>
-      )}
-    </button>
+    <div ref={containerRef} className="relative">
+      <button
+        ref={buttonRef}
+        onClick={exportAsImage}
+        disabled={isExporting}
+        className={`
+          absolute z-10 inline-flex items-center justify-center
+          ${getVariantStyles()}
+          ${getPositionClasses()}
+          ${isExporting ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
+          ${className}
+        `}
+        title="Exportar como imagen en alta calidad"
+      >
+        {isExporting ? (
+          <Loader2 className="h-4 w-4 animate-spin" />
+        ) : (
+          <Download className="h-4 w-4" />
+        )}
+        
+        {variant === 'default' && !isExporting && (
+          <span className="ml-2 text-sm font-medium">Exportar</span>
+        )}
+      </button>
+    </div>
   );
 };
 
