@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import html2canvas from 'html2canvas';
 import { Download, Loader2 } from 'lucide-react';
 
 /**
- * Componente de botón para exportar imágenes con posicionamiento inteligente
+ * Componente de botón para exportar imágenes con posicionamiento simple y estable
  * @param {Object} targetRef - Referencia al elemento a exportar
  * @param {string} filename - Nombre del archivo de descarga
  * @param {string} className - Clases CSS adicionales
@@ -19,58 +19,31 @@ const ImageExportButton = ({
 }) => {
   const [isExporting, setIsExporting] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
-  const [currentPosition, setCurrentPosition] = useState(position);
   const buttonRef = useRef(null);
-  const containerRef = useRef(null);
 
-  // Detectar colisiones y ajustar posición (solo una vez al montar)
-  const checkForCollisions = useCallback(() => {
-    if (!buttonRef.current || !containerRef.current) return;
-
-    const buttonRect = buttonRef.current.getBoundingClientRect();
-    const containerRect = containerRef.current.getBoundingClientRect();
-    
-    // Verificar si el botón está fuera del contenedor
-    const isOutOfBounds =
-      buttonRect.right > containerRect.right ||
-      buttonRect.left < containerRect.left ||
-      buttonRect.bottom > containerRect.bottom ||
-      buttonRect.top < containerRect.top;
-
-    if (isOutOfBounds) {
-      // Intentar posiciones alternativas
-      const positions = ['top-left', 'top-right', 'bottom-left', 'bottom-right'];
-      const currentIndex = positions.indexOf(currentPosition);
+  // Lógica simple: solo verificar que el botón esté visible en el viewport
+  useEffect(() => {
+    const checkVisibility = () => {
+      if (!buttonRef.current) return;
       
-      for (let i = 1; i <= positions.length; i++) {
-        const nextPosition = positions[(currentIndex + i) % positions.length];
-        setCurrentPosition(nextPosition);
-        break;
+      const buttonRect = buttonRef.current.getBoundingClientRect();
+      const isVisible = (
+        buttonRect.top >= 0 &&
+        buttonRect.left >= 0 &&
+        buttonRect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
+        buttonRect.right <= (window.innerWidth || document.documentElement.clientWidth)
+      );
+      
+      // Si no está visible, no hacer nada - el usuario puede hacer scroll
+      if (!isVisible) {
+        console.log('Botón no visible en viewport');
       }
-    }
-  }, [currentPosition]);
-
-  // Verificar colisiones solo una vez al montar el componente
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      checkForCollisions();
-    }, 100);
-
-    return () => clearTimeout(timer);
-  }, [checkForCollisions]);
-
-  // Verificar colisiones cuando la ventana cambia de tamaño
-  useEffect(() => {
-    const handleResize = () => {
-      // Solo verificar si realmente hay un cambio significativo
-      setTimeout(() => {
-        checkForCollisions();
-      }, 100);
     };
 
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, [checkForCollisions]);
+    // Verificar solo una vez al montar
+    const timer = setTimeout(checkVisibility, 100);
+    return () => clearTimeout(timer);
+  }, []);
 
   const exportAsImage = async () => {
     if (!targetRef?.current) {
@@ -148,7 +121,7 @@ const ImageExportButton = ({
 
   // Obtener clases de posicionamiento
   const getPositionClasses = () => {
-    switch (currentPosition) {
+    switch (position) {
       case 'top-left':
         return 'top-4 left-4';
       case 'top-right':
@@ -167,7 +140,7 @@ const ImageExportButton = ({
   }
 
   return (
-    <div ref={containerRef} className="relative">
+    <div className="relative">
       <button
         ref={buttonRef}
         onClick={exportAsImage}
