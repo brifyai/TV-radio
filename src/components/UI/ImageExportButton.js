@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import html2canvas from 'html2canvas';
 import { Download, Loader2 } from 'lucide-react';
 
@@ -23,15 +23,15 @@ const ImageExportButton = ({
   const buttonRef = useRef(null);
   const containerRef = useRef(null);
 
-  // Detectar colisiones y ajustar posición
-  const checkForCollisions = () => {
+  // Detectar colisiones y ajustar posición (solo una vez al montar)
+  const checkForCollisions = useCallback(() => {
     if (!buttonRef.current || !containerRef.current) return;
 
     const buttonRect = buttonRef.current.getBoundingClientRect();
     const containerRect = containerRef.current.getBoundingClientRect();
     
-    // Verificar si el botón está fuera del contenedor o colisionando con contenido
-    const isOutOfBounds = 
+    // Verificar si el botón está fuera del contenedor
+    const isOutOfBounds =
       buttonRect.right > containerRect.right ||
       buttonRect.left < containerRect.left ||
       buttonRect.bottom > containerRect.bottom ||
@@ -48,26 +48,29 @@ const ImageExportButton = ({
         break;
       }
     }
-  };
+  }, [currentPosition]);
 
-  // Verificar colisiones cuando el componente se monta
+  // Verificar colisiones solo una vez al montar el componente
   useEffect(() => {
     const timer = setTimeout(() => {
       checkForCollisions();
     }, 100);
 
     return () => clearTimeout(timer);
-  }, [currentPosition]);
+  }, [checkForCollisions]);
 
   // Verificar colisiones cuando la ventana cambia de tamaño
   useEffect(() => {
     const handleResize = () => {
-      checkForCollisions();
+      // Solo verificar si realmente hay un cambio significativo
+      setTimeout(() => {
+        checkForCollisions();
+      }, 100);
     };
 
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, [currentPosition]);
+  }, [checkForCollisions]);
 
   const exportAsImage = async () => {
     if (!targetRef?.current) {
