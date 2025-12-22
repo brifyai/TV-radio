@@ -1170,35 +1170,40 @@ const SpotAnalysis = () => {
             </div>
           )}
 
-          {/* Componentes principales en formato horizontal uno al lado del otro */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="relative w-full" data-export-id="impact-timeline">
-              <ImpactTimeline spotData={spotsData} analysisResults={analysisResults} />
-            </div>
-            <div className="relative w-full" data-export-id="confidence-meter">
-              <ConfidenceMeter analysisData={analysisResults} />
-            </div>
-            <div className="relative w-full" data-export-id="smart-insights">
-              <SmartInsights analysisResults={analysisResults} batchAIAnalysis={batchAIAnalysis} />
-            </div>
-            <div className="relative w-full" data-export-id="traffic-heatmap">
-              <TrafficHeatmap analysisResults={analysisResults} />
-            </div>
+          {/* Componentes principales en formato vertical uno debajo del otro */}
+          {/* Análisis de Impacto - ocupando todo el ancho */}
+          <div className="relative w-full" data-export-id="impact-timeline">
+            <ImpactTimeline spotData={spotsData} analysisResults={analysisResults} />
           </div>
           
-          {/* Segunda fila: Análisis de Video en ancho completo */}
-          <div className="w-full relative" data-export-id="video-analysis">
-            <VideoAnalysisDashboard
-              analysisResults={analysisResults}
-              videoFile={videoFile}
-              spotData={spotsData}
-              isAnalyzing={analyzing}
-            />
+          {/* Nivel de Confianza - ocupando todo el ancho */}
+          <div className="relative w-full" data-export-id="confidence-meter">
+            <ConfidenceMeter analysisData={analysisResults} />
           </div>
           
-          {/* Tercera fila: Gráfico de tráfico por hora en ancho completo */}
-          <div className="w-full relative" data-export-id="traffic-chart">
-            <TrafficChart analysisResults={analysisResults} />
+          {/* Smart Insights - ocupando todo el ancho */}
+          <div className="relative w-full" data-export-id="smart-insights">
+            <SmartInsights analysisResults={analysisResults} batchAIAnalysis={batchAIAnalysis} />
+          </div>
+          
+          {/* Mapa de Calor de Tráfico - ocupando todo el ancho */}
+          <div className="relative w-full" data-export-id="traffic-heatmap">
+            <TrafficHeatmap analysisResults={analysisResults} />
+          </div>
+          
+          {/* Segunda fila: Análisis de Video y Gráfico de Tráfico por Hora alineados de lado a lado */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="relative w-full" data-export-id="video-analysis">
+              <VideoAnalysisDashboard
+                analysisResults={analysisResults}
+                videoFile={videoFile}
+                spotData={spotsData}
+                isAnalyzing={analyzing}
+              />
+            </div>
+            <div className="relative w-full" data-export-id="traffic-chart">
+              <TrafficChart analysisResults={analysisResults} />
+            </div>
           </div>
           
           {/* Desglose detallado de spots con vinculación directa */}
