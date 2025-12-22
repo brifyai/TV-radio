@@ -1175,24 +1175,24 @@ const SpotAnalysis = () => {
 
           {/* Componentes principales en formato vertical uno debajo del otro - FORZANDO ANCHO COMPLETO */}
           {/* Análisis de Impacto - ocupando todo el ancho */}
-          <div className="relative w-full max-w-none mx-0 px-0" data-export-id="impact-timeline" style={{ width: '100vw', marginLeft: 'calc(-50vw + 50%)' }}>
+          <FullWidthContainer data-export-id="impact-timeline">
             <ImpactTimeline spotData={spotsData} analysisResults={analysisResults} />
-          </div>
+          </FullWidthContainer>
           
           {/* Nivel de Confianza - ocupando todo el ancho */}
-          <div className="relative w-full max-w-none mx-0 px-0" data-export-id="confidence-meter" style={{ width: '100vw', marginLeft: 'calc(-50vw + 50%)' }}>
+          <FullWidthContainer data-export-id="confidence-meter">
             <ConfidenceMeter analysisData={analysisResults} />
-          </div>
+          </FullWidthContainer>
           
           {/* Smart Insights - ocupando todo el ancho */}
-          <div className="relative w-full max-w-none mx-0 px-0" data-export-id="smart-insights" style={{ width: '100vw', marginLeft: 'calc(-50vw + 50%)' }}>
+          <FullWidthContainer data-export-id="smart-insights">
             <SmartInsights analysisResults={analysisResults} batchAIAnalysis={batchAIAnalysis} />
-          </div>
+          </FullWidthContainer>
           
           {/* Mapa de Calor de Tráfico - ocupando todo el ancho */}
-          <div className="relative w-full max-w-none mx-0 px-0" data-export-id="traffic-heatmap" style={{ width: '100vw', marginLeft: 'calc(-50vw + 50%)' }}>
+          <FullWidthContainer data-export-id="traffic-heatmap">
             <TrafficHeatmap analysisResults={analysisResults} />
-          </div>
+          </FullWidthContainer>
           
           {/* Segunda fila: 4 componentes diferentes de Tráfico */}
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
