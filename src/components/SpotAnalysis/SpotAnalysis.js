@@ -34,9 +34,6 @@ import {
 // Importar componente de exportación PPTX
 import PPTXExportButton from '../UI/PPTXExportButton';
 
-// Importar componente de exportación de imagen
-import ImageExportButton from '../UI/ImageExportButton';
-
 // Importar componentes modernos
 import ImpactTimeline from './components/ImpactTimeline';
 import ConfidenceMeter from './components/ConfidenceMeter';
