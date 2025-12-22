@@ -195,8 +195,8 @@ const SmartInsights = ({ analysisResults, batchAIAnalysis, videoAnalysis }) => {
         </div>
       </div>
 
-      {/* Insights principales - Formato Horizontal */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 flex-1 overflow-y-auto">
+      {/* Insights principales - Ocupando todo el ancho */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 flex-1 overflow-y-auto w-full">
         {smartInsights.map((insight, index) => {
           const IconComponent = insight.icon;
           return (

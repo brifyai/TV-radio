@@ -119,9 +119,9 @@ const TrafficHeatmap = ({ analysisResults }) => {
         </div>
       </div>
 
-      {/* Heatmap Grid - Versión ultra compacta */}
-      <div className="mb-3">
-        <div className="grid grid-cols-8 gap-px">
+      {/* Heatmap Grid - Ocupando todo el ancho */}
+      <div className="mb-3 w-full">
+        <div className="grid grid-cols-8 gap-px w-full">
           {/* Header */}
           <div className="text-xs font-medium text-gray-500 p-0.5"></div>
           {['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'].map((day) => (
@@ -172,12 +172,12 @@ const TrafficHeatmap = ({ analysisResults }) => {
         </div>
       </div>
 
-      {/* Estadísticas rápidas - Formato Horizontal */}
+      {/* Estadísticas rápidas - Ocupando todo el ancho */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.8 }}
-        className="mt-3 grid grid-cols-2 gap-2"
+        className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2 w-full"
       >
         <div className="text-center p-2 rounded-lg bg-green-50">
           <p className="text-xs text-green-600 mb-1">Mejor Día</p>

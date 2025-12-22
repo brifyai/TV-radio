@@ -59,8 +59,8 @@ const ImpactTimeline = ({ spotData, analysisResults }) => {
         </div>
       </div>
 
-      {/* Métricas Principales - Formato Horizontal */}
-      <div className="grid grid-cols-4 gap-4 mb-6 flex-shrink-0">
+      {/* Métricas Principales - Ocupando todo el ancho */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 flex-shrink-0 w-full">
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -144,8 +144,8 @@ const ImpactTimeline = ({ spotData, analysisResults }) => {
         </motion.div>
       </div>
 
-      {/* Análisis Detallado - Formato Horizontal */}
-      <div className="grid grid-cols-2 gap-6 mb-6 flex-1">
+      {/* Análisis Detallado - Ocupando todo el ancho */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6 flex-1 w-full">
         {/* Mejor Spot */}
         <motion.div
           initial={{ opacity: 0, x: -20 }}

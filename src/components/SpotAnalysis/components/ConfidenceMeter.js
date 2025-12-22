@@ -134,12 +134,12 @@ const ConfidenceMeter = ({ confidenceScore = 85, analysisData }) => {
         </div>
       </motion.div>
 
-      {/* Factores de confianza - Formato Horizontal */}
+      {/* Factores de confianza - Ocupando todo el ancho */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.9 }}
-        className="grid grid-cols-2 gap-4 mb-4 flex-shrink-0"
+        className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4 flex-shrink-0 w-full"
       >
         <div className="text-center">
           <div className="w-3 h-3 bg-green-500 rounded-full mx-auto mb-2"></div>
