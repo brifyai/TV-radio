@@ -134,7 +134,7 @@ const ConfidenceMeter = ({ confidenceScore = 85, analysisData }) => {
         </div>
       </motion.div>
 
-      {/* Factores de confianza */}
+      {/* Factores de confianza - Formato Horizontal */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
