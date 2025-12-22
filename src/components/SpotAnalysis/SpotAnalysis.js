@@ -1170,7 +1170,7 @@ const SpotAnalysis = () => {
             </div>
           )}
 
-          {/* Componentes principales en formato vertical uno debajo de otro */}
+          {/* Componentes principales en formato vertical uno debajo de otro con ancho completo */}
           <div className="space-y-6">
             <div className="relative w-full" data-export-id="impact-timeline">
               <ImpactTimeline spotData={spotsData} analysisResults={analysisResults} />
