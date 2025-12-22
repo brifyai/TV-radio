@@ -1175,24 +1175,24 @@ const SpotAnalysis = () => {
           )}
 
           {/* Componentes principales en formato horizontal (4 columnas) */}
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 w-full">
+          <div className="flex flex-nowrap gap-6 w-full">
             {/* Análisis de Impacto */}
-            <div className="w-full" data-export-id="impact-timeline">
+            <div className="flex-1 min-w-[25%]" data-export-id="impact-timeline">
               <ImpactTimeline spotData={spotsData} analysisResults={analysisResults} />
             </div>
             
             {/* Nivel de Confianza */}
-            <div className="w-full" data-export-id="confidence-meter">
+            <div className="flex-1 min-w-[25%]" data-export-id="confidence-meter">
               <ConfidenceMeter analysisData={analysisResults} />
             </div>
             
             {/* Smart Insights */}
-            <div className="w-full" data-export-id="smart-insights">
+            <div className="flex-1 min-w-[25%]" data-export-id="smart-insights">
               <SmartInsights analysisResults={analysisResults} batchAIAnalysis={batchAIAnalysis} />
             </div>
             
             {/* Mapa de Calor de Tráfico */}
-            <div className="w-full" data-export-id="traffic-heatmap">
+            <div className="flex-1 min-w-[25%]" data-export-id="traffic-heatmap">
               <TrafficHeatmap analysisResults={analysisResults} />
             </div>
           </div>
