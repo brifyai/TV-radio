@@ -1171,17 +1171,17 @@ const SpotAnalysis = () => {
           )}
 
           {/* Primera fila: Componentes principales en grid 2x2 */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="relative" data-export-id="impact-timeline">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
+            <div className="relative h-full" data-export-id="impact-timeline">
               <ImpactTimeline spotData={spotsData} analysisResults={analysisResults} />
             </div>
-            <div className="relative" data-export-id="confidence-meter">
+            <div className="relative h-full" data-export-id="confidence-meter">
               <ConfidenceMeter analysisData={analysisResults} />
             </div>
-            <div className="relative" data-export-id="smart-insights">
+            <div className="relative h-full" data-export-id="smart-insights">
               <SmartInsights analysisResults={analysisResults} batchAIAnalysis={batchAIAnalysis} />
             </div>
-            <div className="relative" data-export-id="traffic-heatmap">
+            <div className="relative h-full" data-export-id="traffic-heatmap">
               <TrafficHeatmap analysisResults={analysisResults} />
             </div>
           </div>
