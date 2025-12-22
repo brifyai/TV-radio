@@ -51,6 +51,7 @@ import VideoAnalysisDashboard from './components/VideoAnalysisDashboard';
 // Importar hook de validación de integridad de datos
 import { useDataIntegrity, useAnalyticsDataIntegrity, useVideoAnalysisIntegrity } from '../../hooks/useDataIntegrity';
 import DataIntegrityWarning from '../UI/DataIntegrityWarning';
+import FullWidthContainer from '../UI/FullWidthContainer';
 
 const SpotAnalysis = () => {
   const { accounts, properties, getAnalyticsData, isConnected } = useGoogleAnalytics();
