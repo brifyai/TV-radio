@@ -1,6 +1,6 @@
 /**
  * Servicio de Análisis de IA para Spots de TV
- * Utiliza Groq API con modelo Llama 3.1-8b-instant
+ * Utiliza Groq API con modelo openai/gpt-oss-120b
  */
 
 const GROQ_API_KEY = process.env.REACT_APP_GROQ_API_KEY || '';
@@ -68,7 +68,7 @@ Responde ÚNICAMENTE con un objeto JSON válido con esta estructura:
     console.log(`🤖 Intentando análisis de IA con ${provider}...`);
     
     const requestBody = {
-      model: provider === 'Groq' ? 'llama-3.1-8b-instant' : 'Qwen/Qwen2.5-VL-72B-Instruct',
+      model: provider === 'Groq' ? 'openai/gpt-oss-120b' : 'Qwen/Qwen2.5-VL-72B-Instruct',
       messages: [
         {
           role: 'system',
@@ -399,7 +399,7 @@ Responde ÚNICAMENTE con un objeto JSON válido.
     console.log(`🤖 Intentando análisis batch de IA con ${provider}...`);
 
     const requestBody = {
-      model: provider === 'Groq' ? 'llama-3.1-8b-instant' : 'Qwen/Qwen2.5-VL-72B-Instruct',
+      model: provider === 'Groq' ? 'openai/gpt-oss-120b' : 'Qwen/Qwen2.5-VL-72B-Instruct',
       messages: [
         {
           role: 'system',
