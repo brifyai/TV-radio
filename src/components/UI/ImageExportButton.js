@@ -60,46 +60,83 @@ const ImageExportButton = ({
     setIsExporting(true);
     
     try {
-      // Obtener dimensiones reales del elemento como se renderiza
       const element = targetRef.current;
-      const rect = element.getBoundingClientRect();
       
-      // Asegurar que el elemento esté completamente visible
+      // Guardar estado original para restaurar después
+      const originalStyle = {
+        position: element.style.position,
+        width: element.style.width,
+        height: element.style.height,
+        transform: element.style.transform,
+        animation: element.style.animation,
+        transition: element.style.transition
+      };
+      
+      // Forzar layout fijo para exportación
+      element.style.position = 'relative';
+      element.style.width = '100%';
+      element.style.height = 'auto';
+      element.style.transform = 'none';
+      element.style.animation = 'none';
+      element.style.transition = 'none';
+      
+      // Asegurar que esté visible
       element.scrollIntoView({ behavior: 'instant', block: 'start' });
       
-      // Esperar un momento para que se complete el scroll
-      await new Promise(resolve => setTimeout(resolve, 100));
+      // Esperar renderizado completo
+      await new Promise(resolve => setTimeout(resolve, 800));
       
-      // Configuración para alta calidad con dimensiones correctas
+      // Configuración específica para componentes complejos
       const canvas = await html2canvas(element, {
-        scale: 2, // Duplicar la resolución para alta calidad
+        scale: 2,
         useCORS: true,
         allowTaint: true,
         backgroundColor: '#ffffff',
-        // Usar dimensiones reales del elemento renderizado
-        width: rect.width,
-        height: rect.height,
-        x: rect.left,
-        y: rect.top,
+        width: element.scrollWidth,
+        height: element.scrollHeight,
         scrollX: 0,
         scrollY: 0,
-        windowWidth: window.innerWidth,
-        windowHeight: window.innerHeight,
-        // Configuraciones adicionales para mejor calidad
         logging: false,
-        imageTimeout: 15000,
-        removeContainer: true,
+        imageTimeout: 25000,
+        removeContainer: false,
         onclone: (clonedDoc) => {
-          // Asegurar que los estilos se preserven en el clone
           const clonedElement = clonedDoc.querySelector('[data-export-id]');
           if (clonedElement) {
+            // Eliminar todas las transformaciones que pueden distorsionar
             clonedElement.style.transform = 'none';
             clonedElement.style.animation = 'none';
-            clonedElement.style.width = `${rect.width}px`;
-            clonedElement.style.height = `${rect.height}px`;
+            clonedElement.style.transition = 'none';
+            
+            // Forzar layout de desktop para grids responsivos
+            const grids = clonedElement.querySelectorAll('[class*="grid"]');
+            grids.forEach(grid => {
+              // Grid de 4 columnas (métricas principales)
+              if (grid.classList.contains('grid-cols-1') && grid.classList.contains('md:grid-cols-4')) {
+                grid.style.display = 'grid';
+                grid.style.gridTemplateColumns = 'repeat(4, 1fr)';
+                grid.style.gap = '1rem';
+              }
+              // Grid de 2 columnas (análisis detallado)
+              if (grid.classList.contains('grid-cols-1') && grid.classList.contains('md:grid-cols-2')) {
+                grid.style.display = 'grid';
+                grid.style.gridTemplateColumns = 'repeat(2, 1fr)';
+                grid.style.gap = '1.5rem';
+              }
+            });
+            
+            // Asegurar que todos los elementos internos mantengan su tamaño
+            const allElements = clonedElement.querySelectorAll('*');
+            allElements.forEach(el => {
+              el.style.transform = 'none';
+              el.style.animation = 'none';
+              el.style.transition = 'none';
+            });
           }
         }
       });
+      
+      // Restaurar estilo original
+      Object.assign(element.style, originalStyle);
 
       // Crear enlace de descarga
       const link = document.createElement('a');
