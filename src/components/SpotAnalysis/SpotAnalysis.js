@@ -40,6 +40,9 @@ import ConfidenceMeter from './components/ConfidenceMeter';
 import SmartInsights from './components/SmartInsights';
 import TrafficHeatmap from './components/TrafficHeatmap';
 import TrafficChart from './components/TrafficChart';
+import TrafficChart2 from './components/TrafficChart2';
+import TrafficChart3 from './components/TrafficChart3';
+import TrafficChart4 from './components/TrafficChart4';
 import TemporalAnalysisDashboard from './components/TemporalAnalysisDashboard';
 import ConversionAnalysisDashboard from './components/ConversionAnalysisDashboard';
 import PredictiveAnalyticsDashboard from './components/PredictiveAnalyticsDashboard';
@@ -1191,18 +1194,19 @@ const SpotAnalysis = () => {
             <TrafficHeatmap analysisResults={analysisResults} />
           </div>
           
-          {/* Segunda fila: Análisis de Video y Gráfico de Tráfico por Hora alineados de lado a lado */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="relative w-full" data-export-id="video-analysis">
-              <VideoAnalysisDashboard
-                analysisResults={analysisResults}
-                videoFile={videoFile}
-                spotData={spotsData}
-                isAnalyzing={analyzing}
-              />
-            </div>
-            <div className="relative w-full" data-export-id="traffic-chart">
+          {/* Segunda fila: 4 componentes diferentes de Tráfico */}
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            <div className="relative w-full" data-export-id="traffic-chart-1">
               <TrafficChart analysisResults={analysisResults} />
+            </div>
+            <div className="relative w-full" data-export-id="traffic-chart-2">
+              <TrafficChart2 analysisResults={analysisResults} />
+            </div>
+            <div className="relative w-full" data-export-id="traffic-chart-3">
+              <TrafficChart3 analysisResults={analysisResults} />
+            </div>
+            <div className="relative w-full" data-export-id="traffic-chart-4">
+              <TrafficChart4 analysisResults={analysisResults} />
             </div>
           </div>
           
