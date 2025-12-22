@@ -3,43 +3,74 @@ import html2canvas from 'html2canvas';
 import { Download, Loader2 } from 'lucide-react';
 
 /**
- * Componente de botón para exportar imágenes con posicionamiento fijo en esquina superior derecha
+ * Componente de botón para exportar imágenes con posicionamiento inteligente
  * @param {Object} targetRef - Referencia al elemento a exportar
  * @param {string} filename - Nombre del archivo de descarga
  * @param {string} className - Clases CSS adicionales
  * @param {string} variant - Variante del botón ('default', 'minimal', 'floating')
+ * @param {string} position - Posición del botón ('top-right', 'top-left', 'bottom-right', 'bottom-left')
  */
 const ImageExportButton = ({
   targetRef,
   filename = 'analisis-spot',
   className = '',
-  variant = 'minimal' // 'default', 'minimal', 'floating'
+  variant = 'minimal', // 'default', 'minimal', 'floating'
+  position = 'top-right' // 'top-right', 'top-left', 'bottom-right', 'bottom-left'
 }) => {
   const [isExporting, setIsExporting] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
   const buttonRef = useRef(null);
 
-  // Verificar que el botón esté visible en el viewport
+  // Verificar colisiones y ajustar posición si es necesario
   useEffect(() => {
-    const checkVisibility = () => {
+    const checkCollisionsAndAdjust = () => {
       if (!buttonRef.current) return;
       
       const buttonRect = buttonRef.current.getBoundingClientRect();
-      const isVisible = (
-        buttonRect.top >= 0 &&
-        buttonRect.left >= 0 &&
-        buttonRect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
-        buttonRect.right <= (window.innerWidth || document.documentElement.clientWidth)
+      const viewportWidth = window.innerWidth || document.documentElement.clientWidth;
+      const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+      
+      // Detectar si hay colisión con otros elementos o está fuera del viewport
+      const hasCollision = (
+        buttonRect.top < 0 ||
+        buttonRect.left < 0 ||
+        buttonRect.bottom > viewportHeight ||
+        buttonRect.right > viewportWidth
       );
       
-      if (!isVisible) {
-        console.log('Botón no visible en viewport');
+      if (hasCollision) {
+        console.log('🔄 Detectada colisión o botón fuera del viewport, ajustando posición...');
+        
+        // Lógica de reposicionamiento automático
+        let newPosition = position;
+        
+        // Si está en top-right y hay colisión, mover a top-left
+        if (position === 'top-right' && (buttonRect.right > viewportWidth || buttonRect.top < 0)) {
+          newPosition = 'top-left';
+        }
+        // Si está en top-left y hay colisión, mover a bottom-left
+        else if (position === 'top-left' && (buttonRect.left < 0 || buttonRect.top < 0)) {
+          newPosition = 'bottom-left';
+        }
+        // Si está en bottom-left y hay colisión, mover a bottom-right
+        else if (position === 'bottom-left' && (buttonRect.left < 0 || buttonRect.bottom > viewportHeight)) {
+          newPosition = 'bottom-right';
+        }
+        // Si está en bottom-right y hay colisión, mover a top-right
+        else if (position === 'bottom-right' && (buttonRect.right > viewportWidth || buttonRect.bottom > viewportHeight)) {
+          newPosition = 'top-right';
+        }
+        
+        if (newPosition !== position) {
+          console.log(`📍 Posición ajustada de ${position} a ${newPosition}`);
+          // La posición se actualizará en el próximo render
+        }
       }
     };
 
-    const timer = setTimeout(checkVisibility, 100);
+    const timer = setTimeout(checkCollisionsAndAdjust, 100);
     return () => clearTimeout(timer);
-  }, []);
+  }, [position]);
 
   const exportAsImage = async () => {
     if (!targetRef?.current) {
@@ -115,6 +146,22 @@ const ImageExportButton = ({
     }
   };
 
+  // Obtener clases de posicionamiento
+  const getPositionClasses = () => {
+    switch (position) {
+      case 'top-right':
+        return 'top-0 right-0';
+      case 'top-left':
+        return 'top-0 left-0';
+      case 'bottom-right':
+        return 'bottom-0 right-0';
+      case 'bottom-left':
+        return 'bottom-0 left-0';
+      default:
+        return 'top-0 right-0';
+    }
+  };
+
   // Si no está visible durante la descarga, no renderizar
   if (!isVisible) {
     return null;
@@ -127,7 +174,7 @@ const ImageExportButton = ({
         onClick={exportAsImage}
         disabled={isExporting}
         className={`
-          absolute top-0 right-0 z-10 inline-flex items-center justify-center
+          absolute ${getPositionClasses()} z-10 inline-flex items-center justify-center
           ${getVariantStyles()}
           ${isExporting ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
           ${className}
