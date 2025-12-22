@@ -13,6 +13,7 @@
     "framer-motion": "^12.23.26",
     "google-auth-library": "^9.4.0",
     "googleapis": "^128.0.0",
+    "html2canvas": "^1.4.1",
     "lucide-react": "^0.294.0",
     "postcss": "^8.4.32",
     "pptxgenjs": "^3.12.0",
