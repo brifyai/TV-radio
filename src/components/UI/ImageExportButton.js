@@ -3,7 +3,7 @@ import html2canvas from 'html2canvas';
 import { Download, Loader2 } from 'lucide-react';
 
 /**
- * Componente de botón para exportar imágenes con posicionamiento simple y estable
+ * Componente de botón para exportar imágenes con posicionamiento inteligente
  * @param {Object} targetRef - Referencia al elemento a exportar
  * @param {string} filename - Nombre del archivo de descarga
  * @param {string} className - Clases CSS adicionales
@@ -14,36 +14,85 @@ const ImageExportButton = ({
   targetRef,
   filename = 'analisis-spot',
   className = '',
-  variant = 'default', // 'default', 'minimal', 'floating'
+  variant = 'floating', // 'default', 'minimal', 'floating'
   position = 'top-right' // 'top-right', 'top-left', 'bottom-right', 'bottom-left'
 }) => {
   const [isExporting, setIsExporting] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
+  const [finalPosition, setFinalPosition] = useState(position);
   const buttonRef = useRef(null);
 
-  // Lógica simple: solo verificar que el botón esté visible en el viewport
+  // Detectar colisiones y reposicionar automáticamente
   useEffect(() => {
-    const checkVisibility = () => {
-      if (!buttonRef.current) return;
-      
+    const detectAndResolveCollisions = () => {
+      if (!buttonRef.current || !targetRef?.current) return;
+
       const buttonRect = buttonRef.current.getBoundingClientRect();
-      const isVisible = (
-        buttonRect.top >= 0 &&
-        buttonRect.left >= 0 &&
-        buttonRect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
-        buttonRect.right <= (window.innerWidth || document.documentElement.clientWidth)
-      );
+      const targetRect = targetRef.current.getBoundingClientRect();
       
-      // Si no está visible, no hacer nada - el usuario puede hacer scroll
-      if (!isVisible) {
-        console.log('Botón no visible en viewport');
+      // Verificar si el botón está tapando contenido del elemento target
+      const isColliding = (
+        buttonRect.left < targetRect.right &&
+        buttonRect.right > targetRect.left &&
+        buttonRect.top < targetRect.bottom &&
+        buttonRect.bottom > targetRect.top
+      );
+
+      if (isColliding) {
+        console.log('🔄 Detectada colisión, reposicionando botón...');
+        
+        // Intentar posiciones alternativas en orden de prioridad
+        const alternativePositions = [
+          'top-left',
+          'bottom-right', 
+          'bottom-left'
+        ];
+        
+        let newPosition = position;
+        
+        // Si la posición inicial es top-right, probar top-left primero
+        if (position === 'top-right') {
+          newPosition = 'top-left';
+        }
+        
+        // Aplicar la nueva posición
+        setFinalPosition(newPosition);
+        
+        // Verificar si la nueva posición también colisiona
+        setTimeout(() => {
+          if (buttonRef.current) {
+            const newButtonRect = buttonRef.current.getBoundingClientRect();
+            const stillColliding = (
+              newButtonRect.left < targetRect.right &&
+              newButtonRect.right > targetRect.left &&
+              newButtonRect.top < targetRect.bottom &&
+              newButtonRect.bottom > targetRect.top
+            );
+            
+            if (stillColliding) {
+              console.log('🔄 Siguiente posición alternativa...');
+              setFinalPosition('bottom-right');
+            }
+          }
+        }, 50);
       }
     };
 
-    // Verificar solo una vez al montar
-    const timer = setTimeout(checkVisibility, 100);
-    return () => clearTimeout(timer);
-  }, []);
+    // Verificar después de que el DOM esté listo
+    const timer = setTimeout(detectAndResolveCollisions, 200);
+    
+    // También verificar en resize de ventana
+    const handleResize = () => {
+      setTimeout(detectAndResolveCollisions, 100);
+    };
+    
+    window.addEventListener('resize', handleResize);
+    
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [position, targetRef]);
 
   const exportAsImage = async () => {
     if (!targetRef?.current) {
@@ -119,9 +168,9 @@ const ImageExportButton = ({
     }
   };
 
-  // Obtener clases de posicionamiento
+  // Obtener clases de posicionamiento dinámico
   const getPositionClasses = () => {
-    switch (position) {
+    switch (finalPosition) {
       case 'top-left':
         return 'top-4 left-4';
       case 'top-right':
@@ -135,6 +184,7 @@ const ImageExportButton = ({
     }
   };
 
+  // Si no está visible durante la descarga, no renderizar
   if (!isVisible) {
     return null;
   }
