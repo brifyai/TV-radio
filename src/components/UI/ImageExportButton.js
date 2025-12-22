@@ -60,18 +60,31 @@ const ImageExportButton = ({
     setIsExporting(true);
     
     try {
-      // Configuración para alta calidad
-      const canvas = await html2canvas(targetRef.current, {
+      // Obtener dimensiones reales del elemento como se renderiza
+      const element = targetRef.current;
+      const rect = element.getBoundingClientRect();
+      
+      // Asegurar que el elemento esté completamente visible
+      element.scrollIntoView({ behavior: 'instant', block: 'start' });
+      
+      // Esperar un momento para que se complete el scroll
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      // Configuración para alta calidad con dimensiones correctas
+      const canvas = await html2canvas(element, {
         scale: 2, // Duplicar la resolución para alta calidad
         useCORS: true,
         allowTaint: true,
         backgroundColor: '#ffffff',
-        width: targetRef.current.scrollWidth,
-        height: targetRef.current.scrollHeight,
+        // Usar dimensiones reales del elemento renderizado
+        width: rect.width,
+        height: rect.height,
+        x: rect.left,
+        y: rect.top,
         scrollX: 0,
         scrollY: 0,
-        windowWidth: targetRef.current.scrollWidth,
-        windowHeight: targetRef.current.scrollHeight,
+        windowWidth: window.innerWidth,
+        windowHeight: window.innerHeight,
         // Configuraciones adicionales para mejor calidad
         logging: false,
         imageTimeout: 15000,
@@ -82,6 +95,8 @@ const ImageExportButton = ({
           if (clonedElement) {
             clonedElement.style.transform = 'none';
             clonedElement.style.animation = 'none';
+            clonedElement.style.width = `${rect.width}px`;
+            clonedElement.style.height = `${rect.height}px`;
           }
         }
       });
