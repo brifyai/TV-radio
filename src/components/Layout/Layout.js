@@ -314,7 +314,7 @@ const Layout = () => {
       <div className={`flex flex-col flex-1 ${!fullscreenMode ? 'md:pl-72' : ''}`}>
         {/* Header - siempre visible */}
         <header className="bg-white shadow">
-          <div className="px-4 sm:px-6 lg:px-8">
+          <div className="w-full px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between h-16">
               <div className="flex items-center">
                 {/* Botón de menú móvil */}
@@ -438,8 +438,8 @@ const Layout = () => {
         </header>
 
         {/* Main content area */}
-        <main className="flex-1">
-          <div className="py-6">
+        <main className="flex-1 w-full">
+          <div className="w-full py-6">
             {/* Google Analytics Error Alert */}
             {gaError && (
               <div className="mb-6 mx-4 sm:mx-6 lg:mx-8 bg-danger-50 border border-danger-200 rounded-md p-4">
@@ -457,13 +457,15 @@ const Layout = () => {
               </div>
             )}
 
-            <Outlet />
+            <div className="w-full">
+              <Outlet />
+            </div>
           </div>
         </main>
 
         {/* Footer */}
         <footer className="bg-white border-t border-gray-200 py-6">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="px-4 sm:px-6 lg:px-8">
             <div className="flex flex-col md:flex-row items-center justify-between">
               <div className="flex items-center space-x-3 mb-4 md:mb-0">
                 <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
