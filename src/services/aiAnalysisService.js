@@ -106,7 +106,14 @@ Responde ÚNICAMENTE con un objeto JSON válido con esta estructura:
     });
 
     if (!response.ok) {
-      const errorText = await response.text();
+      let errorText = '';
+      try {
+        errorText = await response.text();
+      } catch (textError) {
+        console.warn('⚠️ No se pudo leer el texto del error:', textError);
+        errorText = 'Error desconocido';
+      }
+      
       console.error(`❌ Error en la API de ${provider}:`, {
         status: response.status,
         statusText: response.statusText,
@@ -114,28 +121,43 @@ Responde ÚNICAMENTE con un objeto JSON válido con esta estructura:
         url: apiUrl
       });
       
-      // Si es error de red, intentar con el otro proveedor
-      if (response.status === 0 || errorText.includes('Failed to load') || errorText.includes('ERR_FAILED')) {
-        console.warn(`🔄 Error de red con ${provider}, intentando fallback...`);
+      // Si es error de red, CORS, o timeout, usar fallback inmediatamente
+      if (response.status === 0 ||
+          response.status === 503 ||
+          response.status === 502 ||
+          errorText.includes('Failed to fetch') ||
+          errorText.includes('ERR_FAILED') ||
+          errorText.includes('CORS') ||
+          errorText.includes('Network Error')) {
+        console.warn(`🔄 Error de red/CORS con ${provider}, usando análisis fallback...`);
         return await generateAIAnalysisFallback(spotData);
       }
       
-      // Para otros errores, también usar fallback
-      console.warn(`🔄 Error ${response.status} con ${provider}, usando análisis fallback...`);
-      return await generateAIAnalysisFallback(spotData);
+      // Para otros errores HTTP, también usar fallback para evitar crashes
+      if (response.status >= 400) {
+        console.warn(`🔄 Error HTTP ${response.status} con ${provider}, usando análisis fallback...`);
+        return await generateAIAnalysisFallback(spotData);
+      }
     }
 
-    const data = await response.json();
+    let data;
+    try {
+      data = await response.json();
+    } catch (jsonError) {
+      console.error('❌ Error parseando respuesta JSON de la API:', jsonError);
+      return await generateAIAnalysisFallback(spotData);
+    }
     
     console.log(`✅ Respuesta exitosa de ${provider}:`, data);
     
-// Parsear la respuesta JSON con manejo mejorado de errores
+    // Parsear la respuesta JSON con manejo mejorado de errores
     let analysis;
     try {
       // Intentar parsear el contenido directo
       const content = data.choices?.[0]?.message?.content;
       if (!content) {
-        throw new Error('No se recibió contenido en la respuesta de la API');
+        console.warn('⚠️ No se recibió contenido en la respuesta de la API');
+        return await generateAIAnalysisFallback(spotData);
       }
       
       console.log('🔍 Contenido raw recibido:', content);
@@ -154,16 +176,19 @@ Responde ÚNICAMENTE con un objeto JSON válido con esta estructura:
           try {
             analysis = JSON.parse(jsonMatch[0]);
           } catch (manualError) {
-            throw new Error('No se pudo extraer JSON válido del contenido');
+            console.warn('⚠️ No se pudo extraer JSON válido del contenido');
+            return await generateAIAnalysisFallback(spotData);
           }
         } else {
-          throw new Error('No se encontró estructura JSON en la respuesta');
+          console.warn('⚠️ No se encontró estructura JSON en la respuesta');
+          return await generateAIAnalysisFallback(spotData);
         }
       }
       
       // Validar que la estructura sea correcta
       if (!analysis || typeof analysis !== 'object') {
-        throw new Error('La respuesta no es un objeto válido');
+        console.warn('⚠️ La respuesta no es un objeto válido');
+        return await generateAIAnalysisFallback(spotData);
       }
       
       // Validar campos requeridos con valores por defecto
@@ -187,7 +212,7 @@ Responde ÚNICAMENTE con un objeto JSON válido con esta estructura:
       console.error('🔍 Contenido recibido:', data.choices?.[0]?.message?.content);
       
       // Si falla el parseo, crear respuesta por defecto basada en datos reales
-      return generateAIAnalysisFallback(spotData);
+      return await generateAIAnalysisFallback(spotData);
     }
 
     // Asegurar que siempre tengamos los campos requeridos
