@@ -457,9 +457,16 @@ const Layout = () => {
               </div>
             )}
 
-            <div className="w-full">
-              <Outlet />
-            </div>
+            {/* SPECIAL HANDLING FOR SPOT ANALYSIS - BREAK OUT OF CONTAINER */}
+            {location.pathname === '/spot-analysis' ? (
+              <div className="w-screen relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw]">
+                <Outlet />
+              </div>
+            ) : (
+              <div className="w-full">
+                <Outlet />
+              </div>
+            )}
           </div>
         </main>
 
