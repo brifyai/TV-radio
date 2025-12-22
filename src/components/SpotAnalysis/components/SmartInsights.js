@@ -179,7 +179,7 @@ const SmartInsights = ({ analysisResults, batchAIAnalysis, videoAnalysis }) => {
       initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.6 }}
-      className="bg-white rounded-xl shadow-lg p-6 border border-gray-100 h-full flex flex-col"
+      className="bg-white rounded-xl shadow-lg p-6 border border-gray-100 h-80 overflow-y-auto"
     >
       <div className="flex items-center justify-between mb-4 flex-shrink-0">
         <div className="flex items-center space-x-2">

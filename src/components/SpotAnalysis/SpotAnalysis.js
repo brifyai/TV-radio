@@ -1171,7 +1171,7 @@ const SpotAnalysis = () => {
           )}
 
           {/* Primera fila: Componentes principales en grid 2x2 */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div className="relative h-full" data-export-id="impact-timeline">
               <ImpactTimeline spotData={spotsData} analysisResults={analysisResults} />
             </div>
