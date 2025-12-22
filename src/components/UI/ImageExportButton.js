@@ -21,9 +21,9 @@ const ImageExportButton = ({
   const [isVisible, setIsVisible] = useState(true);
   const buttonRef = useRef(null);
 
-  // Verificar colisiones y ajustar posición si es necesario
+  // Verificar colisiones solo una vez al montar el componente
   useEffect(() => {
-    const checkCollisionsAndAdjust = () => {
+    const checkCollisionsOnce = () => {
       if (!buttonRef.current) return;
       
       const buttonRect = buttonRef.current.getBoundingClientRect();
@@ -39,38 +39,15 @@ const ImageExportButton = ({
       );
       
       if (hasCollision) {
-        console.log('🔄 Detectada colisión o botón fuera del viewport, ajustando posición...');
-        
-        // Lógica de reposicionamiento automático
-        let newPosition = position;
-        
-        // Si está en top-right y hay colisión, mover a top-left
-        if (position === 'top-right' && (buttonRect.right > viewportWidth || buttonRect.top < 0)) {
-          newPosition = 'top-left';
-        }
-        // Si está en top-left y hay colisión, mover a bottom-left
-        else if (position === 'top-left' && (buttonRect.left < 0 || buttonRect.top < 0)) {
-          newPosition = 'bottom-left';
-        }
-        // Si está en bottom-left y hay colisión, mover a bottom-right
-        else if (position === 'bottom-left' && (buttonRect.left < 0 || buttonRect.bottom > viewportHeight)) {
-          newPosition = 'bottom-right';
-        }
-        // Si está en bottom-right y hay colisión, mover a top-right
-        else if (position === 'bottom-right' && (buttonRect.right > viewportWidth || buttonRect.bottom > viewportHeight)) {
-          newPosition = 'top-right';
-        }
-        
-        if (newPosition !== position) {
-          console.log(`📍 Posición ajustada de ${position} a ${newPosition}`);
-          // La posición se actualizará en el próximo render
-        }
+        console.log('🔄 Detectada colisión inicial, el botón puede necesitar reposicionamiento manual');
+        // Nota: El reposicionamiento automático se puede implementar con state management si es necesario
       }
     };
 
-    const timer = setTimeout(checkCollisionsAndAdjust, 100);
+    // Ejecutar solo una vez después del mount
+    const timer = setTimeout(checkCollisionsOnce, 100);
     return () => clearTimeout(timer);
-  }, [position]);
+  }, []); // Array vacío para ejecutar solo una vez
 
   const exportAsImage = async () => {
     if (!targetRef?.current) {
