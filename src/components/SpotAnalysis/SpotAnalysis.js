@@ -1157,71 +1157,40 @@ const SpotAnalysis = () => {
       {/* Grid de Componentes Modernos */}
       {analysisResults && (
         <div className="space-y-6">
-          {/* Botones de exportación */}
-          <div className="flex justify-end space-x-3">
-            <button
-              onClick={exportResults}
-              disabled={!analysisResults}
-              className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
-            >
-              <Download className="h-4 w-4 mr-2" />
-              Exportar CSV
-            </button>
-            <PPTXExportButton
-              analysisResults={analysisResults}
-              videoAnalysis={null}
-              spotData={spotsData}
-              batchAIAnalysis={batchAIAnalysis}
-              temporalAnalysis={temporalAnalysis}
-              predictiveAnalysis={predictiveAnalysis}
-              aiAnalysis={aiAnalysis}
-              variant="primary"
-            />
-          </div>
+          {/* CONSOLIDACIÓN: Solo un botón de exportación general por vista */}
+          {viewMode === 'modern' && (
+            <div className="flex justify-end space-x-3">
+              <PPTXExportButton
+                analysisResults={analysisResults}
+                videoAnalysis={null}
+                spotData={spotsData}
+                batchAIAnalysis={batchAIAnalysis}
+                temporalAnalysis={temporalAnalysis}
+                predictiveAnalysis={predictiveAnalysis}
+                aiAnalysis={aiAnalysis}
+                variant="primary"
+              />
+            </div>
+          )}
 
           {/* Primera fila: Componentes principales en grid 2x2 */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div className="relative" data-export-id="impact-timeline">
-              <ImageExportButton
-                targetRef={{ current: document.querySelector('[data-export-id="impact-timeline"]') }}
-                filename="timeline-impacto"
-                className="opacity-90 hover:opacity-100"
-              />
               <ImpactTimeline spotData={spotsData} analysisResults={analysisResults} />
             </div>
             <div className="relative" data-export-id="confidence-meter">
-              <ImageExportButton
-                targetRef={{ current: document.querySelector('[data-export-id="confidence-meter"]') }}
-                filename="medidor-confianza"
-                className="opacity-90 hover:opacity-100"
-              />
               <ConfidenceMeter analysisData={analysisResults} />
             </div>
             <div className="relative" data-export-id="smart-insights">
-              <ImageExportButton
-                targetRef={{ current: document.querySelector('[data-export-id="smart-insights"]') }}
-                filename="insights-inteligentes"
-                className="opacity-90 hover:opacity-100"
-              />
               <SmartInsights analysisResults={analysisResults} batchAIAnalysis={batchAIAnalysis} />
             </div>
             <div className="relative" data-export-id="traffic-heatmap">
-              <ImageExportButton
-                targetRef={{ current: document.querySelector('[data-export-id="traffic-heatmap"]') }}
-                filename="mapa-calor-trafico"
-                className="opacity-90 hover:opacity-100"
-              />
               <TrafficHeatmap analysisResults={analysisResults} />
             </div>
           </div>
           
           {/* Segunda fila: Análisis de Video en ancho completo */}
           <div className="w-full relative" data-export-id="video-analysis">
-            <ImageExportButton
-              targetRef={{ current: document.querySelector('[data-export-id="video-analysis"]') }}
-              filename="analisis-video-completo"
-              className="opacity-90 hover:opacity-100"
-            />
             <VideoAnalysisDashboard
               analysisResults={analysisResults}
               videoFile={videoFile}
@@ -1232,11 +1201,6 @@ const SpotAnalysis = () => {
           
           {/* Tercera fila: Gráfico de tráfico por hora en ancho completo */}
           <div className="w-full relative" data-export-id="traffic-chart">
-            <ImageExportButton
-              targetRef={{ current: document.querySelector('[data-export-id="traffic-chart"]') }}
-              filename="grafico-trafico-horas"
-              className="opacity-90 hover:opacity-100"
-            />
             <TrafficChart analysisResults={analysisResults} />
           </div>
           
@@ -1283,11 +1247,6 @@ const SpotAnalysis = () => {
                         >
                           {/* Botón de exportar imagen - esquina superior derecha */}
                           <div className="relative">
-                            <ImageExportButton
-                              targetRef={{ current: document.querySelector(`[data-export-id="spot-direct-${startIndex + index}"]`) }}
-                              filename={`spot-vinculacion-directa-${startIndex + index + 1}`}
-                              className="opacity-90 hover:opacity-100"
-                            />
                           </div>
 
                           {/* Header del spot */}
@@ -1759,11 +1718,6 @@ const SpotAnalysis = () => {
       {/* Dashboard de Análisis Temporal (FASE 2) */}
       {temporalAnalysis && temporalReference && (
         <div className="relative" data-export-id="temporal-analysis">
-          <ImageExportButton
-            targetRef={{ current: document.querySelector('[data-export-id="temporal-analysis"]') }}
-            filename="analisis-temporal-completo"
-            className="opacity-90 hover:opacity-100"
-          />
           <TemporalAnalysisDashboard
             temporalImpact={temporalAnalysis}
             referencia={temporalReference}
@@ -1775,11 +1729,6 @@ const SpotAnalysis = () => {
       {/* Dashboard de Análisis Predictivo con IA (FASE 4) */}
       {predictiveAnalysis && (
         <div className="relative" data-export-id="predictive-analysis">
-          <ImageExportButton
-            targetRef={{ current: document.querySelector('[data-export-id="predictive-analysis"]') }}
-            filename="analisis-predictivo-ia"
-            className="opacity-90 hover:opacity-100"
-          />
           <PredictiveAnalyticsDashboard
             predictiveAnalysis={predictiveAnalysis}
           />
@@ -2017,11 +1966,6 @@ const SpotAnalysis = () => {
               >
                 {/* Botón de exportar imagen - esquina superior derecha */}
                 <div className="relative">
-                  <ImageExportButton
-                    targetRef={{ current: document.querySelector(`[data-export-id="spot-classic-${index}"]`) }}
-                    filename={`spot-analisis-${index + 1}`}
-                    className="opacity-80 hover:opacity-100"
-                  />
                 </div>
 
                 <div className="flex items-center justify-between mb-3">
