@@ -1,53 +1,21 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import html2canvas from 'html2canvas';
 import { Download, Loader2 } from 'lucide-react';
 
 /**
- * Componente de botón para exportar imágenes con posicionamiento inteligente
+ * Componente de botón para exportar imágenes con posicionamiento fijo
  * @param {Object} targetRef - Referencia al elemento a exportar
  * @param {string} filename - Nombre del archivo de descarga
  * @param {string} className - Clases CSS adicionales
  * @param {string} variant - Variante del botón ('default', 'minimal', 'floating')
- * @param {string} position - Posición del botón ('top-right', 'top-left', 'bottom-right', 'bottom-left')
  */
 const ImageExportButton = ({
   targetRef,
   filename = 'analisis-spot',
   className = '',
-  variant = 'minimal', // 'default', 'minimal', 'floating'
-  position = 'top-right' // 'top-right', 'top-left', 'bottom-right', 'bottom-left'
+  variant = 'floating'
 }) => {
   const [isExporting, setIsExporting] = useState(false);
-  const [isVisible, setIsVisible] = useState(true);
-  const buttonRef = useRef(null);
-
-  // Verificar colisiones solo una vez al montar el componente
-  useEffect(() => {
-    const checkCollisionsOnce = () => {
-      if (!buttonRef.current) return;
-      
-      const buttonRect = buttonRef.current.getBoundingClientRect();
-      const viewportWidth = window.innerWidth || document.documentElement.clientWidth;
-      const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
-      
-      // Detectar si hay colisión con otros elementos o está fuera del viewport
-      const hasCollision = (
-        buttonRect.top < 0 ||
-        buttonRect.left < 0 ||
-        buttonRect.bottom > viewportHeight ||
-        buttonRect.right > viewportWidth
-      );
-      
-      if (hasCollision) {
-        console.log('🔄 Detectada colisión inicial, el botón puede necesitar reposicionamiento manual');
-        // Nota: El reposicionamiento automático se puede implementar con state management si es necesario
-      }
-    };
-
-    // Ejecutar solo una vez después del mount
-    const timer = setTimeout(checkCollisionsOnce, 100);
-    return () => clearTimeout(timer);
-  }, []); // Array vacío para ejecutar solo una vez
 
   const exportAsImage = async () => {
     if (!targetRef?.current) {
@@ -55,8 +23,6 @@ const ImageExportButton = ({
       return;
     }
 
-    // Ocultar botón durante la descarga
-    setIsVisible(false);
     setIsExporting(true);
     
     try {
@@ -156,10 +122,6 @@ const ImageExportButton = ({
       alert('Error al exportar la imagen. Por favor, inténtalo nuevamente.');
     } finally {
       setIsExporting(false);
-      // Mostrar botón nuevamente después de un breve delay
-      setTimeout(() => {
-        setIsVisible(true);
-      }, 1000);
     }
   };
 
@@ -175,52 +137,24 @@ const ImageExportButton = ({
     }
   };
 
-  // Obtener clases de posicionamiento
-  const getPositionClasses = () => {
-    switch (position) {
-      case 'top-right':
-        return 'top-0 right-0';
-      case 'top-left':
-        return 'top-0 left-0';
-      case 'bottom-right':
-        return 'bottom-0 right-0';
-      case 'bottom-left':
-        return 'bottom-0 left-0';
-      default:
-        return 'top-0 right-0';
-    }
-  };
-
-  // Si no está visible durante la descarga, no renderizar
-  if (!isVisible) {
-    return null;
-  }
-
   return (
-    <div className="relative">
-      <button
-        ref={buttonRef}
-        onClick={exportAsImage}
-        disabled={isExporting}
-        className={`
-          absolute ${getPositionClasses()} z-10 inline-flex items-center justify-center
-          ${getVariantStyles()}
-          ${isExporting ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
-          ${className}
-        `}
-        title="Exportar como imagen en alta calidad"
-      >
-        {isExporting ? (
-          <Loader2 className="h-3 w-3 animate-spin" />
-        ) : (
-          <Download className="h-3 w-3" />
-        )}
-        
-        {variant === 'default' && !isExporting && (
-          <span className="ml-1 text-xs font-medium">Exportar</span>
-        )}
-      </button>
-    </div>
+    <button
+      onClick={exportAsImage}
+      disabled={isExporting}
+      className={`
+        absolute top-2 right-2 z-20 inline-flex items-center justify-center
+        ${getVariantStyles()}
+        ${isExporting ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
+        ${className}
+      `}
+      title="Exportar como imagen en alta calidad"
+    >
+      {isExporting ? (
+        <Loader2 className="h-3 w-3 animate-spin" />
+      ) : (
+        <Download className="h-3 w-3" />
+      )}
+    </button>
   );
 };
 
