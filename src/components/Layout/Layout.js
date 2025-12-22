@@ -440,26 +440,24 @@ const Layout = () => {
         {/* Main content area */}
         <main className="flex-1">
           <div className="py-6">
-            <div className="px-4 sm:px-6 lg:px-8">
-              {/* Google Analytics Error Alert */}
-              {gaError && (
-                <div className="mb-6 bg-danger-50 border border-danger-200 rounded-md p-4">
-                  <div className="flex">
-                    <AlertCircle className="h-5 w-5 text-danger-400" />
-                    <div className="ml-3">
-                      <h3 className="text-sm font-medium text-danger-800">
-                        Error de Google Analytics
-                      </h3>
-                      <div className="mt-2 text-sm text-danger-700">
-                        <p>{gaError}</p>
-                      </div>
+            {/* Google Analytics Error Alert */}
+            {gaError && (
+              <div className="mb-6 mx-4 sm:mx-6 lg:mx-8 bg-danger-50 border border-danger-200 rounded-md p-4">
+                <div className="flex">
+                  <AlertCircle className="h-5 w-5 text-danger-400" />
+                  <div className="ml-3">
+                    <h3 className="text-sm font-medium text-danger-800">
+                      Error de Google Analytics
+                    </h3>
+                    <div className="mt-2 text-sm text-danger-700">
+                      <p>{gaError}</p>
                     </div>
                   </div>
                 </div>
-              )}
+              </div>
+            )}
 
-              <Outlet />
-            </div>
+            <Outlet />
           </div>
         </main>
 
