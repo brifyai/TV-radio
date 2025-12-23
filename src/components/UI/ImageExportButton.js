@@ -83,7 +83,7 @@ const ImageExportButton = ({
       onClick={exportAsImage}
       disabled={isExporting}
       className={`
-        inline-flex items-center justify-center
+        inline-flex items-center justify-center z-50
         ${getVariantStyles()}
         ${isExporting ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
         ${className}

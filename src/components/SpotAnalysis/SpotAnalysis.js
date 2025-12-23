@@ -1186,7 +1186,7 @@ const SpotAnalysis = () => {
                 targetRef={{ current: document.querySelector('[data-export-id="impact-timeline"]') }}
                 filename="timeline-impacto"
                 variant="floating"
-                className="absolute top-4 right-4 z-10 opacity-90 hover:opacity-100"
+                className="absolute top-4 right-4 z-50 opacity-90 hover:opacity-100"
               />
               <ImpactTimeline spotData={spotsData} analysisResults={analysisResults} />
             </div>
@@ -1195,7 +1195,7 @@ const SpotAnalysis = () => {
                 targetRef={{ current: document.querySelector('[data-export-id="confidence-meter"]') }}
                 filename="medidor-confianza"
                 variant="floating"
-                className="absolute top-4 right-4 z-10 opacity-90 hover:opacity-100"
+                className="absolute top-4 right-4 z-50 opacity-90 hover:opacity-100"
               />
               <ConfidenceMeter analysisData={analysisResults} />
             </div>
@@ -1213,7 +1213,7 @@ const SpotAnalysis = () => {
                 targetRef={{ current: document.querySelector('[data-export-id="traffic-heatmap"]') }}
                 filename="mapa-calor-trafico"
                 variant="floating"
-                className="absolute top-4 right-4 z-10 opacity-90 hover:opacity-100"
+                className="absolute top-4 right-4 z-50 opacity-90 hover:opacity-100"
               />
               <TrafficHeatmap analysisResults={analysisResults} />
             </div>
@@ -1225,7 +1225,7 @@ const SpotAnalysis = () => {
               targetRef={{ current: document.querySelector('[data-export-id="video-analysis"]') }}
               filename="analisis-video-completo"
               variant="floating"
-              className="absolute top-4 right-4 z-10 opacity-90 hover:opacity-100"
+              className="absolute top-4 right-4 z-50 opacity-90 hover:opacity-100"
             />
             <VideoAnalysisDashboard
               analysisResults={analysisResults}
@@ -1241,7 +1241,7 @@ const SpotAnalysis = () => {
               targetRef={{ current: document.querySelector('[data-export-id="traffic-chart"]') }}
               filename="grafico-trafico-horas"
               variant="floating"
-              className="absolute top-4 right-4 z-10 opacity-90 hover:opacity-100"
+              className="absolute top-4 right-4 z-50 opacity-90 hover:opacity-100"
             />
             <TrafficChart analysisResults={analysisResults} />
           </div>
@@ -1770,7 +1770,7 @@ const SpotAnalysis = () => {
             targetRef={{ current: document.querySelector('[data-export-id="temporal-analysis"]') }}
             filename="analisis-temporal-completo"
             variant="floating"
-            className="absolute top-4 right-4 z-10 opacity-90 hover:opacity-100"
+            className="absolute top-4 right-4 z-50 opacity-90 hover:opacity-100"
           />
           <TemporalAnalysisDashboard
             temporalImpact={temporalAnalysis}
@@ -1787,7 +1787,7 @@ const SpotAnalysis = () => {
             targetRef={{ current: document.querySelector('[data-export-id="predictive-analysis"]') }}
             filename="analisis-predictivo-ia"
             variant="floating"
-            className="absolute top-4 right-4 z-10 opacity-90 hover:opacity-100"
+            className="absolute top-4 right-4 z-50 opacity-90 hover:opacity-100"
           />
           <PredictiveAnalyticsDashboard
             predictiveAnalysis={predictiveAnalysis}
