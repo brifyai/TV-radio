@@ -1,10 +1,10 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import html2canvas from 'html2canvas';
 import { Download, Loader2 } from 'lucide-react';
 
 /**
- * Componente de botón para exportar imágenes - VERSIÓN MEJORADA
- * Soluciona problemas de parpadeo y posicionamiento
+ * Componente de botón para exportar imágenes - VERSIÓN DEFINITIVA
+ * Soluciona completamente problemas de parpadeo, bucles infinitos y posicionamiento
  * @param {Object} targetRef - Referencia al elemento a exportar
  * @param {string} filename - Nombre del archivo de descarga
  * @param {string} className - Clases CSS adicionales
@@ -16,50 +16,75 @@ const ImageExportButton = ({
 }) => {
   const [isExporting, setIsExporting] = useState(false);
   const buttonRef = useRef();
+  const isProcessingRef = useRef(false); // Prevenir doble clic y bucles
 
-  const exportAsImage = async () => {
-    if (!targetRef?.current) {
-      alert('No se puede capturar la imagen. Inténtalo nuevamente.');
+  const exportAsImage = useCallback(async () => {
+    // Prevención de bucles infinitos - múltiples capas de protección
+    if (!targetRef?.current || isProcessingRef.current || isExporting) {
+      console.log('⚠️ Exportación bloqueada - ya en proceso o sin referencia válida');
       return;
     }
 
+    isProcessingRef.current = true;
     setIsExporting(true);
     
+    let element = null;
+    let button = null;
+    let originalElementStyle = {};
+    let originalButtonStyle = {};
+    let originalChildStyles = new Map(); // Para almacenar estilos originales de hijos
+
     try {
-      const element = targetRef.current;
-      const button = buttonRef.current;
+      element = targetRef.current;
+      button = buttonRef.current;
       
-      // Guardar estado original para restaurar después
-      const originalElementStyle = {
-        position: element.style.position,
-        width: element.style.width,
-        height: element.style.height,
-        transform: element.style.transform,
-        animation: element.style.animation,
-        transition: element.style.transition,
-        overflow: element.style.overflow
+      console.log('🚀 Iniciando exportación de imagen...');
+      
+      // GUARDAR ESTADO ORIGINAL CON VALORES PREDETERMINADOS SEGUROS
+      originalElementStyle = {
+        position: element.style.position || '',
+        width: element.style.width || '',
+        height: element.style.height || '',
+        transform: element.style.transform || '',
+        animation: element.style.animation || '',
+        transition: element.style.transition || '',
+        overflow: element.style.overflow || ''
       };
       
-      // Guardar estado del botón
-      const originalButtonStyle = {
-        display: button.style.display
+      // Guardar estilo original del botón con valor predeterminado
+      originalButtonStyle = {
+        display: button.style.display || 'inline-flex' // Valor por defecto para botones
       };
       
-      // Ocultar el botón durante la exportación
-      button.style.display = 'none';
+      // OCULTAR BOTÓN DE FORMA SEGURA - usar visibility en lugar de display
+      button.style.visibility = 'hidden';
+      button.style.opacity = '0';
+      button.style.pointerEvents = 'none'; // Prevenir interacciones
       
-      // Forzar layout fijo para exportación
+      // Forzar layout fijo para exportación con valores seguros
       element.style.position = 'relative';
       element.style.width = '100%';
-      element.style.height = `${element.scrollHeight}px`; // Usar altura real del contenido
+      element.style.height = `${Math.max(element.scrollHeight, 300)}px`; // Altura mínima segura
       element.style.transform = 'none';
       element.style.animation = 'none';
       element.style.transition = 'none';
       element.style.overflow = 'visible';
       
-      // Resetear estilos en todos los elementos hijos
+      // Resetear estilos en elementos hijos de forma segura
       const allElements = element.querySelectorAll('*');
       allElements.forEach(el => {
+        // Guardar estilos originales solo si no se han guardado antes
+        if (!originalChildStyles.has(el)) {
+          originalChildStyles.set(el, {
+            transform: el.style.transform || '',
+            animation: el.style.animation || '',
+            transition: el.style.transition || '',
+            opacity: el.style.opacity || '',
+            visibility: el.style.visibility || ''
+          });
+        }
+        
+        // Aplicar estilos seguros
         el.style.transform = 'none';
         el.style.animation = 'none';
         el.style.transition = 'none';
@@ -67,10 +92,12 @@ const ImageExportButton = ({
         el.style.visibility = 'visible';
       });
       
-      // Esperar renderizado completo (más tiempo para componentes complejos)
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // Esperar renderizado completo con tiempo mínimo
+      await new Promise(resolve => setTimeout(resolve, 300));
       
-      // Configuración mejorada para exportación
+      console.log('📸 Capturando imagen con html2canvas...');
+      
+      // CONFIGURACIÓN MEJORADA PARA EXPORTACIÓN
       const canvas = await html2canvas(element, {
         scale: 2,
         useCORS: true,
@@ -78,53 +105,141 @@ const ImageExportButton = ({
         width: element.scrollWidth,
         height: element.scrollHeight,
         logging: false,
-        imageTimeout: 15000, // Tiempo optimizado
+        imageTimeout: 10000, // Reducido para evitar timeouts
         ignoreElements: (el) => {
-          // Ignorar elementos con clase 'no-export'
-          return el.classList.contains('no-export');
+          // Ignorar este botón de exportación y elementos con clase 'no-export'
+          return el === button || el.classList.contains('no-export');
+        },
+        onclone: (clonedDoc) => {
+          // Asegurar que el botón clonado también esté oculto
+          const clonedButton = clonedDoc.querySelector(`[data-export-button="${filename}"]`);
+          if (clonedButton) {
+            clonedButton.style.display = 'none';
+            clonedButton.style.visibility = 'hidden';
+          }
         }
       });
       
-      // Restaurar estilo original del elemento
-      Object.assign(element.style, originalElementStyle);
+      console.log('✅ Imagen capturada exitosamente');
       
-      // Restaurar estilo del botón
-      Object.assign(button.style, originalButtonStyle);
-
-      // Crear enlace de descarga
+      // CREAR ENLACE DE DESCARGA DE FORMA SEGURA
       const link = document.createElement('a');
       link.download = `${filename}_${new Date().toISOString().split('T')[0]}.png`;
       link.href = canvas.toDataURL('image/png', 1.0);
       
-      // Simular clic en el enlace
+      // Forzar descarga con método seguro
+      link.style.display = 'none';
       document.body.appendChild(link);
+      
+      // Pequeña pausa antes del clic
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
       link.click();
-      document.body.removeChild(link);
-
-      console.log('✅ Imagen exportada exitosamente');
+      
+      // Remover enlace después de un tiempo seguro
+      setTimeout(() => {
+        if (link.parentNode) {
+          document.body.removeChild(link);
+        }
+      }, 1000);
+      
+      console.log('✅ Descarga iniciada exitosamente');
       
     } catch (error) {
       console.error('❌ Error al exportar imagen:', error);
-      alert('Error al exportar la imagen. Por favor, inténtalo nuevamente.');
+      
+      // Mostrar error solo si no es un error de cancelación
+      if (!error.message?.includes('cancelled') && !error.message?.includes('aborted')) {
+        alert('Error al exportar la imagen. Por favor, inténtalo nuevamente.');
+      }
+      
     } finally {
+      // RESTAURACIÓN SEGURA DE ESTILOS - SIEMPRE se ejecuta
+      console.log('🔄 Restaurando estilos originales...');
+      
+      try {
+        // Restaurar estilo original del elemento principal
+        if (element) {
+          Object.keys(originalElementStyle).forEach(key => {
+            if (originalElementStyle[key] === '') {
+              element.style.removeProperty(key);
+            } else {
+              element.style[key] = originalElementStyle[key];
+            }
+          });
+        }
+        
+        // Restaurar estilos de hijos
+        originalChildStyles.forEach((styles, el) => {
+          if (el && el.style) {
+            Object.keys(styles).forEach(key => {
+              if (styles[key] === '') {
+                el.style.removeProperty(key);
+              } else {
+                el.style[key] = styles[key];
+              }
+            });
+          }
+        });
+        
+        // Restaurar botón de forma segura
+        if (button) {
+          // Remover estilos de ocultación
+          button.style.removeProperty('visibility');
+          button.style.removeProperty('opacity');
+          button.style.removeProperty('pointer-events');
+          
+          // Restaurar display original
+          if (originalButtonStyle.display === '') {
+            button.style.removeProperty('display');
+          } else {
+            button.style.display = originalButtonStyle.display;
+          }
+        }
+        
+        console.log('✅ Estilos restaurados exitosamente');
+        
+      } catch (restoreError) {
+        console.error('❌ Error al restaurar estilos:', restoreError);
+        // En caso de error crítico, forzar restauración manual
+        if (button) {
+          button.style.display = 'inline-flex';
+          button.style.visibility = 'visible';
+          button.style.opacity = '1';
+        }
+      }
+      
+      // Liberar referencias y resetear estado
+      isProcessingRef.current = false;
       setIsExporting(false);
+      
+      // Limpiar referencias
+      element = null;
+      button = null;
+      originalChildStyles.clear();
     }
-  };
+  }, [targetRef, filename, isExporting]);
 
   return (
     <button
       ref={buttonRef}
       onClick={exportAsImage}
-      disabled={isExporting}
+      disabled={isExporting || isProcessingRef.current}
       className={`
-        inline-flex items-center justify-center z-50
-        relative inline-flex items-center justify-center
+        inline-flex items-center justify-center
         px-3 py-1.5 bg-blue-600 text-white rounded-md
         hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500
-        ${isExporting ? 'opacity-70 cursor-not-allowed' : 'cursor-pointer'}
+        disabled:opacity-70 disabled:cursor-not-allowed
+        transition-all duration-200 ease-in-out
+        ${isExporting ? 'animate-pulse' : ''}
         ${className}
       `}
-      title="Exportar como imagen en alta calidad"
+      title={isExporting ? "Exportando imagen..." : "Exportar como imagen en alta calidad"}
+      data-export-button={filename} // Identificador único para el botón
+      style={{
+        willChange: 'transform', // Optimización de rendimiento
+        contain: 'layout style' // Contención de layout para mejor rendimiento
+      }}
     >
       {isExporting ? (
         <>
