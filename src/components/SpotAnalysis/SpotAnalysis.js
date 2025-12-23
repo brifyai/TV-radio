@@ -1,11 +1,11 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 
-// Importar nuevos componentes
+// Importar componentes
 import ImpactAnalysisCard from './components/ImpactAnalysisCard';
 import ConfidenceLevelCard from './components/ConfidenceLevelCard';
 import SmartInsightsCard from './components/SmartInsightsCard';
-import TrafficHeatmapCard from './components/TrafficHeatmapCard';
+import TrafficHeatmap from './components/TrafficHeatmap'; // Componente actualizado
 
 const SpotAnalysis = () => {
   return (
@@ -14,7 +14,7 @@ const SpotAnalysis = () => {
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl shadow-lg p-6 text-white mb-6"
+        className="bg-gradient-to-r from-blue-700 to-blue-500 rounded-xl shadow-xl p-6 text-white mb-6"
       >
         <div className="flex items-center justify-between">
           <div>
@@ -34,16 +34,18 @@ const SpotAnalysis = () => {
           <ImpactAnalysisCard />
         </div>
         
-        <div data-export-id="confidence-level-card">
-          <ConfidenceLevelCard />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div data-export-id="confidence-level-card">
+            <ConfidenceLevelCard />
+          </div>
+          
+          <div data-export-id="smart-insights-card">
+            <SmartInsightsCard />
+          </div>
         </div>
         
-        <div data-export-id="smart-insights-card">
-          <SmartInsightsCard />
-        </div>
-        
-        <div data-export-id="traffic-heatmap-card">
-          <TrafficHeatmapCard />
+        <div data-export-id="traffic-heatmap">
+          <TrafficHeatmap />
         </div>
       </div>
     </div>
