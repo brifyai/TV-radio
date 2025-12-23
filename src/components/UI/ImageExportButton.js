@@ -3,8 +3,8 @@ import html2canvas from 'html2canvas';
 import { Download, Loader2 } from 'lucide-react';
 
 /**
- * Componente de botón para exportar imágenes - VERSIÓN ULTRA-SIMPLIFICADA
- * Elimina TODO el sistema complejo que causaba problemas de posicionamiento
+ * Componente de botón para exportar imágenes - VERSIÓN ULTRA-MÍNIMA
+ * Elimina TODOS los posibles causantes de problemas de posicionamiento
  * @param {Object} targetRef - Referencia al elemento a exportar
  * @param {string} filename - Nombre del archivo de descarga
  * @param {string} className - Clases CSS adicionales
@@ -16,76 +16,65 @@ const ImageExportButton = ({
 }) => {
   const [isExporting, setIsExporting] = useState(false);
   const buttonRef = useRef();
-  const isProcessingRef = useRef(false); // Prevenir doble clic y bucles
 
   const exportAsImage = useCallback(async () => {
-    // Prevención de bucles infinitos
-    if (!targetRef?.current || isProcessingRef.current || isExporting) {
-      console.log('⚠️ Exportación bloqueada - ya en proceso o sin referencia válida');
+    if (!targetRef?.current) {
+      alert('No se puede capturar la imagen. Inténtalo nuevamente.');
       return;
     }
 
-    isProcessingRef.current = true;
     setIsExporting(true);
     
-    let element = null;
-    let button = null;
-
     try {
-      element = targetRef.current;
-      button = buttonRef.current;
+      const element = targetRef.current;
+      const button = buttonRef.current;
       
-      console.log('🚀 Iniciando exportación de imagen...');
+      console.log('🚀 Iniciando exportación ultra-simple...');
       
-      // OCULTAR BOTÓN - MÉTODO MÁS SIMPLE Y SEGURO
+      // MÉTODO MÍNIMO: Solo ocultar el botón durante la captura
       if (button) {
         button.style.visibility = 'hidden';
       }
       
-      // Pequeña pausa para el renderizado
-      await new Promise(resolve => setTimeout(resolve, 100));
+      // Pausa MÍNIMA para el renderizado
+      await new Promise(resolve => setTimeout(resolve, 50));
       
-      console.log('📸 Capturando imagen con html2canvas...');
+      console.log('📸 Capturando con configuración ultra-básica...');
       
-      // CONFIGURACIÓN BÁSICA - sin manipulación de estilos compleja
+      // CONFIGURACIÓN MÍNIMA: Sin opciones que puedan causar problemas
       const canvas = await html2canvas(element, {
-        scale: 2,
+        scale: 1, // Reducido para evitar problemas de memoria
         useCORS: true,
         backgroundColor: '#ffffff',
         logging: false,
-        imageTimeout: 10000,
         ignoreElements: (el) => {
-          // Ignorar solo este botón de exportación
+          // Ignorar solo este botón
           return el === button;
         }
       });
       
-      console.log('✅ Imagen capturada exitosamente');
+      console.log('✅ Imagen capturada');
       
-      // CREAR ENLACE DE DESCARGA
+      // Crear y descargar el archivo
       const link = document.createElement('a');
       link.download = `${filename}_${new Date().toISOString().split('T')[0]}.png`;
-      link.href = canvas.toDataURL('image/png', 1.0);
+      link.href = canvas.toDataURL('image/png', 0.9); // Calidad reducida para estabilidad
       
-      // Forzar descarga
-      link.style.display = 'none';
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       
-      console.log('✅ Descarga iniciada exitosamente');
+      console.log('✅ Descarga completada');
       
     } catch (error) {
-      console.error('❌ Error al exportar imagen:', error);
+      console.error('❌ Error:', error);
       alert('Error al exportar la imagen. Por favor, inténtalo nuevamente.');
     } finally {
-      // RESTAURACIÓN ULTRA-SIMPLE - solo restaurar visibility
+      // Restauración ULTRA-SIMPLE
+      const button = buttonRef.current;
       if (button) {
         button.style.visibility = 'visible';
       }
-      
-      // Liberar estado
-      isProcessingRef.current = false;
       setIsExporting(false);
     }
   }, [targetRef, filename]);
@@ -94,7 +83,7 @@ const ImageExportButton = ({
     <button
       ref={buttonRef}
       onClick={exportAsImage}
-      disabled={isExporting || isProcessingRef.current}
+      disabled={isExporting}
       className={`
         inline-flex items-center justify-center
         px-3 py-1.5 bg-blue-600 text-white rounded-md
@@ -103,7 +92,7 @@ const ImageExportButton = ({
         ${isExporting ? 'opacity-70' : ''}
         ${className}
       `}
-      title={isExporting ? "Exportando imagen..." : "Exportar como imagen en alta calidad"}
+      title={isExporting ? "Exportando imagen..." : "Exportar como imagen"}
     >
       {isExporting ? (
         <>
