@@ -249,7 +249,9 @@ const PrivacyPolicy = () => {
                   </div>
                   <div className="bg-white/5 rounded-lg p-4 border border-white/10">
                     <h4 className="text-white font-semibold mb-2 flex items-center">
-                      <Download className="h-4 w-4 mr-2 text-green-400" />
+                      <span className="inline-flex items-center justify-center w-4 h-4 mr-2">
+                        <Download className="w-4 h-4 text-green-400" style={{ minWidth: '16px', minHeight: '16px' }} />
+                      </span>
                       Portabilidad
                     </h4>
                     <p className="text-sm">Recibir tus datos en formato estructurado</p>
