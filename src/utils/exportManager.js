@@ -16,10 +16,19 @@ export const exportElementAsImage = async (elementId, filename = 'export') => {
   try {
     console.log(`🚀 Iniciando exportación de ${elementId}...`);
     
+    // NOTIFICAR INICIO DE EXPORTACIÓN
+    window.dispatchEvent(new CustomEvent('export-start', {
+      detail: { elementId, filename }
+    }));
+    
     // Buscar el elemento por ID
     const element = document.getElementById(elementId);
     if (!element) {
       console.error(`❌ Elemento con ID ${elementId} no encontrado`);
+      // NOTIFICAR FIN DE EXPORTACIÓN EN CASO DE ERROR
+      window.dispatchEvent(new CustomEvent('export-end', {
+        detail: { elementId, filename, success: false }
+      }));
       return false;
     }
     
@@ -119,11 +128,22 @@ export const exportElementAsImage = async (elementId, filename = 'export') => {
       }
     }, 1000);
     
+    // NOTIFICAR FIN DE EXPORTACIÓN EXITOSA
+    window.dispatchEvent(new CustomEvent('export-end', {
+      detail: { elementId, filename, success: true }
+    }));
+    
     return true;
     
   } catch (error) {
     console.error('❌ Error en exportación:', error);
     alert('Error al exportar la imagen. Por favor, inténtalo nuevamente.');
+    
+    // NOTIFICAR FIN DE EXPORTACIÓN EN CASO DE ERROR
+    window.dispatchEvent(new CustomEvent('export-end', {
+      detail: { elementId, filename, success: false, error: error.message }
+    }));
+    
     return false;
   }
 };

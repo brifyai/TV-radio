@@ -15,13 +15,6 @@ const SpotAnalysis = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   
-  // Sistema de exportación sin referencias compartidas
-  const [exportStatus, setExportStatus] = useState({
-    impact: false,
-    confidence: false,
-    insights: false,
-    traffic: false
-  });
 
   useEffect(() => {
     const fetchAnalysisData = async () => {

@@ -1,7 +1,10 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 
 const ImpactAnalysisCard = () => {
+  // Estado para detectar si se está exportando
+  const [isExporting, setIsExporting] = useState(false);
+  
   // Datos de ejemplo
   const totalSpots = 70;
   const avgImpact = -8.7;
@@ -16,6 +19,20 @@ const ImpactAnalysisCard = () => {
     program: 'QUE DICE CHILE',
     date: '01/12/2025 18:56:40'
   };
+
+  // Detectar cuando se está exportando
+  useEffect(() => {
+    const handleExportStart = () => setIsExporting(true);
+    const handleExportEnd = () => setIsExporting(false);
+    
+    window.addEventListener('export-start', handleExportStart);
+    window.addEventListener('export-end', handleExportEnd);
+    
+    return () => {
+      window.removeEventListener('export-start', handleExportStart);
+      window.removeEventListener('export-end', handleExportEnd);
+    };
+  }, []);
 
   return (
     <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
@@ -55,33 +72,63 @@ const ImpactAnalysisCard = () => {
         
         {/* Columna derecha: Spots destacados */}
         <div className="space-y-4">
-          <motion.div
-            whileHover={{ scale: 1.02 }}
-            className="border border-green-200 rounded-lg p-4 bg-green-50"
-          >
-            <div className="flex items-center mb-2">
-              <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
-              <h3 className="text-lg font-semibold text-green-800">Spot Más Exitoso</h3>
+          {isExporting ? (
+            // Durante la exportación: usar div normal sin animaciones
+            <div className="border border-green-200 rounded-lg p-4 bg-green-50">
+              <div className="flex items-center mb-2">
+                <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
+                <h3 className="text-lg font-semibold text-green-800">Spot Más Exitoso</h3>
+              </div>
+              <p className="text-sm text-gray-600">Impacto: <span className="font-semibold text-green-600">+{bestSpot.impact}%</span></p>
+              <p className="text-sm text-gray-600">Programa: {bestSpot.program}</p>
+              <p className="text-sm text-gray-600">Fecha: {bestSpot.date}</p>
+              <p className="text-sm text-gray-600 mt-2">Este spot generó el mayor incremento en usuarios activos</p>
             </div>
-            <p className="text-sm text-gray-600">Impacto: <span className="font-semibold text-green-600">+{bestSpot.impact}%</span></p>
-            <p className="text-sm text-gray-600">Programa: {bestSpot.program}</p>
-            <p className="text-sm text-gray-600">Fecha: {bestSpot.date}</p>
-            <p className="text-sm text-gray-600 mt-2">Este spot generó el mayor incremento en usuarios activos</p>
-          </motion.div>
+          ) : (
+            // Normal: usar motion.div con animaciones
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              className="border border-green-200 rounded-lg p-4 bg-green-50"
+            >
+              <div className="flex items-center mb-2">
+                <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
+                <h3 className="text-lg font-semibold text-green-800">Spot Más Exitoso</h3>
+              </div>
+              <p className="text-sm text-gray-600">Impacto: <span className="font-semibold text-green-600">+{bestSpot.impact}%</span></p>
+              <p className="text-sm text-gray-600">Programa: {bestSpot.program}</p>
+              <p className="text-sm text-gray-600">Fecha: {bestSpot.date}</p>
+              <p className="text-sm text-gray-600 mt-2">Este spot generó el mayor incremento en usuarios activos</p>
+            </motion.div>
+          )}
           
-          <motion.div
-            whileHover={{ scale: 1.02 }}
-            className="border border-red-200 rounded-lg p-4 bg-red-50"
-          >
-            <div className="flex items-center mb-2">
-              <div className="w-3 h-3 bg-red-500 rounded-full mr-2"></div>
-              <h3 className="text-lg font-semibold text-red-800">Spot con Menor Impacto</h3>
+          {isExporting ? (
+            // Durante la exportación: usar div normal sin animaciones
+            <div className="border border-red-200 rounded-lg p-4 bg-red-50">
+              <div className="flex items-center mb-2">
+                <div className="w-3 h-3 bg-red-500 rounded-full mr-2"></div>
+                <h3 className="text-lg font-semibold text-red-800">Spot con Menor Impacto</h3>
+              </div>
+              <p className="text-sm text-gray-600">Impacto: <span className="font-semibold text-red-600">{worstSpot.impact}%</span></p>
+              <p className="text-sm text-gray-600">Programa: {worstSpot.program}</p>
+              <p className="text-sm text-gray-600">Fecha: {worstSpot.date}</p>
+              <p className="text-sm text-gray-600 mt-2">Este spot tuvo el menor impacto en usuarios activos</p>
             </div>
-            <p className="text-sm text-gray-600">Impacto: <span className="font-semibold text-red-600">{worstSpot.impact}%</span></p>
-            <p className="text-sm text-gray-600">Programa: {worstSpot.program}</p>
-            <p className="text-sm text-gray-600">Fecha: {worstSpot.date}</p>
-            <p className="text-sm text-gray-600 mt-2">Este spot tuvo el menor impacto en usuarios activos</p>
-          </motion.div>
+          ) : (
+            // Normal: usar motion.div con animaciones
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              className="border border-red-200 rounded-lg p-4 bg-red-50"
+            >
+              <div className="flex items-center mb-2">
+                <div className="w-3 h-3 bg-red-500 rounded-full mr-2"></div>
+                <h3 className="text-lg font-semibold text-red-800">Spot con Menor Impacto</h3>
+              </div>
+              <p className="text-sm text-gray-600">Impacto: <span className="font-semibold text-red-600">{worstSpot.impact}%</span></p>
+              <p className="text-sm text-gray-600">Programa: {worstSpot.program}</p>
+              <p className="text-sm text-gray-600">Fecha: {worstSpot.date}</p>
+              <p className="text-sm text-gray-600 mt-2">Este spot tuvo el menor impacto en usuarios activos</p>
+            </motion.div>
+          )}
         </div>
       </div>
     </div>
