@@ -18,6 +18,160 @@ const ImageExportButton = ({
   const buttonRef = useRef();
   const isProcessingRef = useRef(false); // Prevenir doble clic y bucles
 
+  /**
+   * SOLUCIÓN COMPLETA: Pausa TODAS las animaciones que causan bucles infinitos
+   * Incluye framer-motion, CSS animations, y transiciones
+   */
+  const pauseAllAnimations = (element) => {
+    if (!element) return;
+    
+    try {
+      console.log('🎬 Pausando todas las animaciones...');
+      
+      // 1. PAUSAR ANIMACIONES CSS INFINITAS (como las de Landing.js)
+      const infiniteAnimatedElements = element.querySelectorAll('[style*="animation"], [class*="animate-"], [style*="infinite"]');
+      infiniteAnimatedElements.forEach(el => {
+        if (!el.dataset.originalAnimationCss) {
+          el.dataset.originalAnimationCss = el.style.animation || '';
+          el.dataset.originalTransitionCss = el.style.transition || '';
+          el.dataset.originalTransformCss = el.style.transform || '';
+        }
+        el.style.animation = 'none !important';
+        el.style.transition = 'none !important';
+        el.style.transform = 'none !important';
+      });
+      
+      // 2. PAUSAR ANIMACIONES DE FRAMER-MOTION
+      const motionElements = element.querySelectorAll('[style*="transform"], .motion-div, [data-framer-motion]');
+      motionElements.forEach(el => {
+        if (!el.dataset.originalMotion) {
+          el.dataset.originalMotion = el.style.transform || '';
+          el.dataset.originalMotionAnimation = el.style.animation || '';
+          el.dataset.originalMotionTransition = el.style.transition || '';
+        }
+        el.style.transform = 'none !important';
+        el.style.animation = 'none !important';
+        el.style.transition = 'none !important';
+      });
+      
+      // 3. PAUSAR ANIMACIONES POR CLASES CSS (animate-pulse, animate-spin, etc.)
+      const cssAnimatedElements = element.querySelectorAll('.animate-pulse, .animate-spin, .animate-bounce, .animate-blob');
+      cssAnimatedElements.forEach(el => {
+        if (!el.dataset.originalCssAnimation) {
+          el.dataset.originalCssAnimation = el.style.animation || '';
+        }
+        el.style.animation = 'none !important';
+      });
+      
+      // 4. PAUSAR TRANSICIONES EN BOTONES ESPECÍFICAMENTE
+      const buttons = element.querySelectorAll('button, .btn, [role="button"]');
+      buttons.forEach(btn => {
+        if (!btn.dataset.originalButtonTransition) {
+          btn.dataset.originalButtonTransition = btn.style.transition || '';
+        }
+        btn.style.transition = 'none !important';
+      });
+      
+      // 5. PAUSAR ANIMACIONES DE LUCIDE ICONS (si las hay)
+      const icons = element.querySelectorAll('.lucide, svg[class*="animate"]');
+      icons.forEach(icon => {
+        if (!icon.dataset.originalIconAnimation) {
+          icon.dataset.originalIconAnimation = icon.style.animation || '';
+        }
+        icon.style.animation = 'none !important';
+      });
+      
+      // 6. FORZAR ESTADO ESTABLE EN ELEMENTOS PROBLEMATICOS
+      const problematicSelectors = [
+        '[style*="repeat: Infinity"]',
+        '[style*="repeat: infinite"]',
+        '[animate*="repeat"]',
+        '[transition*="repeat"]'
+      ];
+      
+      problematicSelectors.forEach(selector => {
+        const elements = element.querySelectorAll(selector);
+        elements.forEach(el => {
+          el.style.animation = 'none !important';
+          el.style.transition = 'none !important';
+          el.style.transform = 'none !important';
+        });
+      });
+      
+      console.log('✅ Todas las animaciones pausadas exitosamente');
+    } catch (error) {
+      console.warn('⚠️ Error al pausar animaciones:', error);
+    }
+  };
+
+  /**
+   * Restaura TODAS las animaciones pausadas
+   */
+  const restoreAllAnimations = (element) => {
+    if (!element) return;
+    
+    try {
+      console.log('🎬 Restaurando todas las animaciones...');
+      
+      // 1. RESTAURAR ANIMACIONES CSS
+      const cssAnimatedElements = element.querySelectorAll('[data-original-animation-css]');
+      cssAnimatedElements.forEach(el => {
+        if (el.dataset.originalAnimationCss) {
+          el.style.animation = el.dataset.originalAnimationCss || '';
+          el.style.transition = el.dataset.originalTransitionCss || '';
+          el.style.transform = el.dataset.originalTransformCss || '';
+          delete el.dataset.originalAnimationCss;
+          delete el.dataset.originalTransitionCss;
+          delete el.dataset.originalTransformCss;
+        }
+      });
+      
+      // 2. RESTAURAR ANIMACIONES DE FRAMER-MOTION
+      const motionElements = element.querySelectorAll('[data-original-motion]');
+      motionElements.forEach(el => {
+        if (el.dataset.originalMotion) {
+          el.style.transform = el.dataset.originalMotion || '';
+          el.style.animation = el.dataset.originalMotionAnimation || '';
+          el.style.transition = el.dataset.originalMotionTransition || '';
+          delete el.dataset.originalMotion;
+          delete el.dataset.originalMotionAnimation;
+          delete el.dataset.originalMotionTransition;
+        }
+      });
+      
+      // 3. RESTAURAR ANIMACIONES CSS POR CLASES
+      const cssClassAnimatedElements = element.querySelectorAll('[data-original-css-animation]');
+      cssClassAnimatedElements.forEach(el => {
+        if (el.dataset.originalCssAnimation) {
+          el.style.animation = el.dataset.originalCssAnimation || '';
+          delete el.dataset.originalCssAnimation;
+        }
+      });
+      
+      // 4. RESTAURAR TRANSICIONES DE BOTONES
+      const buttons = element.querySelectorAll('[data-original-button-transition]');
+      buttons.forEach(btn => {
+        if (btn.dataset.originalButtonTransition) {
+          btn.style.transition = btn.dataset.originalButtonTransition || '';
+          delete btn.dataset.originalButtonTransition;
+        }
+      });
+      
+      // 5. RESTAURAR ANIMACIONES DE ICONOS
+      const icons = element.querySelectorAll('[data-original-icon-animation]');
+      icons.forEach(icon => {
+        if (icon.dataset.originalIconAnimation) {
+          icon.style.animation = icon.dataset.originalIconAnimation || '';
+          delete icon.dataset.originalIconAnimation;
+        }
+      });
+      
+      console.log('✅ Todas las animaciones restauradas exitosamente');
+    } catch (error) {
+      console.warn('⚠️ Error al restaurar animaciones:', error);
+    }
+  };
+
   const exportAsImage = useCallback(async () => {
     // Prevención de bucles infinitos - múltiples capas de protección
     if (!targetRef?.current || isProcessingRef.current || isExporting) {
@@ -60,6 +214,9 @@ const ImageExportButton = ({
       button.style.visibility = 'hidden';
       button.style.opacity = '0';
       button.style.pointerEvents = 'none'; // Prevenir interacciones
+      
+      // PAUSAR TODAS LAS ANIMACIONES - CRÍTICO PARA EVITAR BUCLES INFINITOS
+      pauseAllAnimations(element);
       
       // Forzar layout fijo para exportación con valores seguros
       element.style.position = 'relative';
@@ -158,6 +315,9 @@ const ImageExportButton = ({
       console.log('🔄 Restaurando estilos originales...');
       
       try {
+        // RESTAURAR TODAS LAS ANIMACIONES PRIMERO
+        restoreAllAnimations(element);
+        
         // Restaurar estilo original del elemento principal
         if (element) {
           Object.keys(originalElementStyle).forEach(key => {
