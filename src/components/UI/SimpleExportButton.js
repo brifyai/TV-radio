@@ -79,7 +79,10 @@ const SimpleExportButton = ({
         </>
       ) : (
         <>
-          <Download className="h-4 w-4 mr-2" />
+          {/* SOLUCIÓN ULTRA-ESPECÍFICA: Prevenir problema del ícono Download */}
+          <span className="inline-flex items-center justify-center w-4 h-4 mr-2">
+            <Download className="w-4 h-4" style={{ minWidth: '16px', minHeight: '16px' }} />
+          </span>
           Descargar
         </>
       )}
