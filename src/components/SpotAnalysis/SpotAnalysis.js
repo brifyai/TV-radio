@@ -61,23 +61,25 @@ const SpotAnalysis = () => {
     try {
       const results = [];
       
-      for (let i = 0; i < spotsData.length; i++) {
-        const spot = spotsData[i];
-        setAnalysisProgress(Math.round((i / spotsData.length) * 100));
-        
-        // Analizar cada spot
-        const spotResult = await analyzeSpotImpact(spot, selectedProperty);
-        results.push(spotResult);
-        
-        // Pequeña pausa para no sobrecargar la API
-        await new Promise(resolve => setTimeout(resolve, 500));
-      }
+      // Analizar cada spot de forma asíncrona
+      const analyzeSpots = async () => {
+        for (let i = 0; i < spotsData.length; i++) {
+          const spot = spotsData[i];
+          setAnalysisProgress(Math.round((i / spotsData.length) * 100));
+          
+          // Analizar cada spot
+          const spotResult = await analyzeSpotImpact(spot, selectedProperty);
+          results.push(spotResult);
+          
+          // Pequeña pausa para no sobrecargar la API
+          await new Promise(resolve => setTimeout(resolve, 500));
+        }
+      };
       
       setAnalysisResults(results);
       console.log('📈 Análisis básico completado:', results);
       
       // Ejecutar análisis de IA automáticamente después del análisis de spots
-      await generateAutomaticAIAnalysis(results);
       
       // FASE 2: Análisis temporal digital avanzado
       if (results.length > 0) {
@@ -87,7 +89,7 @@ const SpotAnalysis = () => {
         try {
           // Obtener datos históricos para referencia robusta (últimos 30 días)
           const spotDateTime = results[0].spot.dateTime;
-          const historicalData = await temporalAnalysisService.getHistoricalData(
+          const historicalData = temporalAnalysisService.getHistoricalData(
             selectedProperty,
             new Date(spotDateTime.getTime() - 30 * 24 * 60 * 60 * 1000), // 30 días atrás
             spotDateTime
@@ -126,13 +128,13 @@ const SpotAnalysis = () => {
         try {
           // Generar análisis predictivo para el primer spot (como ejemplo)
           const spotForPrediction = results[0].spot;
-          const historicalDataForPrediction = await temporalAnalysisService.getHistoricalData(
+          const historicalDataForPrediction = temporalAnalysisService.getHistoricalData(
             selectedProperty,
             new Date(spotForPrediction.dateTime.getTime() - 30 * 24 * 60 * 60 * 1000),
             spotForPrediction.dateTime
           );
           
-          const predictiveResults = await predictiveAnalyticsService.generatePredictiveAnalysis(
+          const predictiveResults = predictiveAnalyticsService.generatePredictiveAnalysis(
             spotForPrediction,
             historicalDataForPrediction,
             {} // marketData vacío por ahora
@@ -154,7 +156,7 @@ const SpotAnalysis = () => {
       setAnalyzing(false);
       setAnalysisProgress(0);
     }
-  }, [spotsData, selectedProperty, analyzeSpotImpact, generateAutomaticAIAnalysis, temporalAnalysisService, predictiveAnalyticsService, setTemporalAnalysis, setTemporalReference, setPredictiveAnalysis]);
+  }, [spotsData, selectedProperty, analyzeSpotImpact, generateAutomaticAIAnalysis, temporalAnalysisService, predictiveAnalyticsService, setTemporalAnalysis, setTemporalReference, setPredictiveAnalysis]
 
   // Función para manejar el toggle del acordeón de timeline
   const toggleTimeline = useCallback((spotIndex) => {
