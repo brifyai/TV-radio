@@ -136,9 +136,7 @@ const PPTXExportButton = ({
 
   return (
     <div className="relative">
-      <motion.button
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.98 }}
+      <button
         onClick={handleExport}
         disabled={isExporting || !analysisResults || analysisResults.length === 0}
         className={`${getButtonStyles()} ${className} ${
@@ -146,7 +144,7 @@ const PPTXExportButton = ({
         }`}
       >
         {getButtonContent()}
-      </motion.button>
+      </button>
 
       {/* Status message */}
       {exportStatus && (

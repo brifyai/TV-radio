@@ -1,14 +1,21 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import html2canvas from 'html2canvas';
-import { Camera, Download, Loader2 } from 'lucide-react';
+import { Download, Loader2 } from 'lucide-react';
 
-const ImageExportButton = ({ 
-  targetRef, 
+/**
+ * Componente de botón para exportar imágenes - VERSIÓN MEJORADA
+ * Soluciona problemas de parpadeo y posicionamiento
+ * @param {Object} targetRef - Referencia al elemento a exportar
+ * @param {string} filename - Nombre del archivo de descarga
+ * @param {string} className - Clases CSS adicionales
+ */
+const ImageExportButton = ({
+  targetRef,
   filename = 'analisis-spot',
-  className = '',
-  variant = 'default' // 'default', 'minimal', 'floating'
+  className = ''
 }) => {
   const [isExporting, setIsExporting] = useState(false);
+  const buttonRef = useRef();
 
   const exportAsImage = async () => {
     if (!targetRef?.current) {
@@ -19,43 +26,81 @@ const ImageExportButton = ({
     setIsExporting(true);
     
     try {
-      // Configuración para alta calidad
-      const canvas = await html2canvas(targetRef.current, {
-        scale: 2, // Duplicar la resolución para alta calidad
+      const element = targetRef.current;
+      const button = buttonRef.current;
+      
+      // Guardar estado original para restaurar después
+      const originalElementStyle = {
+        position: element.style.position,
+        width: element.style.width,
+        height: element.style.height,
+        transform: element.style.transform,
+        animation: element.style.animation,
+        transition: element.style.transition,
+        overflow: element.style.overflow
+      };
+      
+      // Guardar estado del botón
+      const originalButtonStyle = {
+        display: button.style.display
+      };
+      
+      // Ocultar el botón durante la exportación
+      button.style.display = 'none';
+      
+      // Forzar layout fijo para exportación
+      element.style.position = 'relative';
+      element.style.width = '100%';
+      element.style.height = `${element.scrollHeight}px`; // Usar altura real del contenido
+      element.style.transform = 'none';
+      element.style.animation = 'none';
+      element.style.transition = 'none';
+      element.style.overflow = 'visible';
+      
+      // Resetear estilos en todos los elementos hijos
+      const allElements = element.querySelectorAll('*');
+      allElements.forEach(el => {
+        el.style.transform = 'none';
+        el.style.animation = 'none';
+        el.style.transition = 'none';
+        el.style.opacity = '1';
+        el.style.visibility = 'visible';
+      });
+      
+      // Esperar renderizado completo (más tiempo para componentes complejos)
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Configuración mejorada para exportación
+      const canvas = await html2canvas(element, {
+        scale: 2,
         useCORS: true,
-        allowTaint: true,
         backgroundColor: '#ffffff',
-        width: targetRef.current.scrollWidth,
-        height: targetRef.current.scrollHeight,
-        scrollX: 0,
-        scrollY: 0,
-        windowWidth: targetRef.current.scrollWidth,
-        windowHeight: targetRef.current.scrollHeight,
-        // Configuraciones adicionales para mejor calidad
+        width: element.scrollWidth,
+        height: element.scrollHeight,
         logging: false,
-        imageTimeout: 15000,
-        removeContainer: true,
-        onclone: (clonedDoc) => {
-          // Asegurar que los estilos se preserven en el clone
-          const clonedElement = clonedDoc.querySelector('[data-export-id]');
-          if (clonedElement) {
-            clonedElement.style.transform = 'none';
-            clonedElement.style.animation = 'none';
-          }
+        imageTimeout: 15000, // Tiempo optimizado
+        ignoreElements: (el) => {
+          // Ignorar elementos con clase 'no-export'
+          return el.classList.contains('no-export');
         }
       });
+      
+      // Restaurar estilo original del elemento
+      Object.assign(element.style, originalElementStyle);
+      
+      // Restaurar estilo del botón
+      Object.assign(button.style, originalButtonStyle);
 
       // Crear enlace de descarga
       const link = document.createElement('a');
       link.download = `${filename}_${new Date().toISOString().split('T')[0]}.png`;
-      link.href = canvas.toDataURL('image/png', 1.0); // Máxima calidad
+      link.href = canvas.toDataURL('image/png', 1.0);
       
       // Simular clic en el enlace
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
 
-      // Mostrar mensaje de éxito
       console.log('✅ Imagen exportada exitosamente');
       
     } catch (error) {
@@ -66,42 +111,35 @@ const ImageExportButton = ({
     }
   };
 
-  // Estilos según la variante
-  const getVariantStyles = () => {
-    switch (variant) {
-      case 'minimal':
-        return 'p-1.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100';
-      case 'floating':
-        return 'p-2 bg-white border border-gray-200 rounded-lg shadow-lg text-gray-600 hover:text-gray-800 hover:shadow-xl';
-      default:
-        return 'p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-all';
-    }
-  };
-
   return (
     <button
+      ref={buttonRef}
       onClick={exportAsImage}
       disabled={isExporting}
       className={`
         inline-flex items-center justify-center z-50
         ${getVariantStyles()}
         ${isExporting ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
+=======
+        relative inline-flex items-center justify-center
+        px-3 py-1.5 bg-blue-600 text-white rounded-md
+        hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500
+        ${isExporting ? 'opacity-70 cursor-not-allowed' : ''}
+>>>>>>> 54197a0e319a963f9a67fd0c50918d8afe522a70
         ${className}
       `}
       title="Exportar como imagen en alta calidad"
     >
       {isExporting ? (
-        <Loader2 className="h-4 w-4 animate-spin" />
+        <>
+          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+          Exportando...
+        </>
       ) : (
-        <Camera className="h-4 w-4" />
-      )}
-      
-      {variant === 'default' && !isExporting && (
-        <span className="ml-2 text-sm font-medium">Exportar</span>
-      )}
-      
-      {variant === 'floating' && !isExporting && (
-        <span className="ml-2 text-sm font-medium">IMG</span>
+        <>
+          <Download className="h-4 w-4 mr-2" />
+          Descargar
+        </>
       )}
     </button>
   );

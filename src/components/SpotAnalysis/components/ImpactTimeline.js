@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { TrendingUp, TrendingDown, Target, Clock, Users, BarChart3 } from 'lucide-react';
+import { TrendingUp, TrendingDown, Target, Users, BarChart3 } from 'lucide-react';
 
 const ImpactTimeline = ({ spotData, analysisResults }) => {
   if (!analysisResults || analysisResults.length === 0) {
@@ -59,8 +59,8 @@ const ImpactTimeline = ({ spotData, analysisResults }) => {
         </div>
       </div>
 
-      {/* Métricas Principales */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+      {/* Métricas Principales - Ocupando todo el ancho */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 flex-shrink-0 w-full">
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -70,7 +70,8 @@ const ImpactTimeline = ({ spotData, analysisResults }) => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-blue-800">Total Spots</p>
-              <p className="text-2xl font-bold text-blue-900">{totalSpots}</p>
+              <p className="text-xl font-bold text-blue-900">{totalSpots}</p>
+              <p className="text-xs text-blue-700 mt-1">Análisis completados</p>
             </div>
             <Target className="h-8 w-8 text-blue-600" />
           </div>
@@ -91,8 +92,11 @@ const ImpactTimeline = ({ spotData, analysisResults }) => {
               <p className={`text-sm font-medium ${avgImpact >= 0 ? 'text-green-800' : 'text-red-800'}`}>
                 Impacto Promedio
               </p>
-              <p className={`text-2xl font-bold ${avgImpact >= 0 ? 'text-green-900' : 'text-red-900'}`}>
+              <p className={`text-xl font-bold ${avgImpact >= 0 ? 'text-green-900' : 'text-red-900'}`}>
                 {avgImpact >= 0 ? '+' : ''}{avgImpact.toFixed(1)}%
+              </p>
+              <p className={`text-xs mt-1 ${avgImpact >= 0 ? 'text-green-700' : 'text-red-700'}`}>
+                {avgImpact >= 0 ? 'Incremento' : 'Decremento'} promedio
               </p>
             </div>
             {avgImpact >= 0 ? (
@@ -112,8 +116,11 @@ const ImpactTimeline = ({ spotData, analysisResults }) => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-purple-800">Spots Exitosos</p>
-              <p className="text-2xl font-bold text-purple-900">
-                {positiveImpacts} <span className="text-sm">({Math.round((positiveImpacts/totalSpots)*100)}%)</span>
+              <p className="text-xl font-bold text-purple-900">
+                {positiveImpacts}
+              </p>
+              <p className="text-xs text-purple-700 mt-1">
+                {((positiveImpacts / totalSpots) * 100).toFixed(0)}% del total
               </p>
             </div>
             <Users className="h-8 w-8 text-purple-600" />
@@ -129,41 +136,54 @@ const ImpactTimeline = ({ spotData, analysisResults }) => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-orange-800">Mejor Resultado</p>
-              <p className="text-2xl font-bold text-orange-900">+{maxImpact.toFixed(1)}%</p>
+              <p className="text-xl font-bold text-orange-900">+{maxImpact.toFixed(1)}%</p>
+              <p className="text-xs text-orange-700 mt-1">Máximo impacto</p>
             </div>
             <TrendingUp className="h-8 w-8 text-orange-600" />
           </div>
         </motion.div>
       </div>
 
-      {/* Análisis Detallado */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {/* Análisis Detallado - Ocupando todo el ancho */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6 flex-1 w-full">
         {/* Mejor Spot */}
         <motion.div
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.5 }}
-          className="p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border border-green-200"
+          className="p-5 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border border-green-200"
         >
           <div className="flex items-center mb-3">
             <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center mr-3">
               <TrendingUp className="h-4 w-4 text-white" />
             </div>
-            <h4 className="font-semibold text-green-900">Spot Más Exitoso</h4>
+            <h4 className="text-lg font-semibold text-green-900">Más Exitoso</h4>
           </div>
           <div className="space-y-2">
-            <p className="text-sm text-green-800">
-              <span className="font-medium">Impacto:</span> +{bestSpot.impact?.activeUsers?.percentageChange?.toFixed(1) || 0}%
-            </p>
-            <p className="text-sm text-green-700">
-              <span className="font-medium">Programa:</span> {bestSpot.spot?.titulo_programa || bestSpot.spot?.nombre || 'N/A'}
-            </p>
-            <p className="text-sm text-green-700">
-              <span className="font-medium">Fecha:</span> {bestSpot.spot?.fecha || 'N/A'} {bestSpot.spot?.hora || ''}
-            </p>
-            <p className="text-xs text-green-600 italic">
-              Este spot generó el mayor incremento en usuarios activos
-            </p>
+            <div className="bg-white p-3 rounded-lg border border-green-300">
+              <p className="text-sm text-green-800">
+                <span className="font-semibold">Impacto:</span> +{bestSpot.impact?.activeUsers?.percentageChange?.toFixed(1) || 0}%
+              </p>
+              <p className="text-xs text-green-700 mt-1">
+                Usuarios activos durante el spot
+              </p>
+            </div>
+            <div className="bg-white p-3 rounded-lg border border-green-300">
+              <p className="text-sm font-medium text-green-900 mb-1">Programa:</p>
+              <p className="text-sm text-green-800">
+                {bestSpot.spot?.titulo_programa || bestSpot.spot?.nombre || 'N/A'}
+              </p>
+              {bestSpot.spot?.canal && (
+                <p className="text-xs text-green-700 mt-1">
+                  Canal: {bestSpot.spot.canal}
+                </p>
+              )}
+              {bestSpot.spot?.fecha && bestSpot.spot?.hora && (
+                <p className="text-xs text-green-700">
+                  {bestSpot.spot.fecha} - {bestSpot.spot.hora}
+                </p>
+              )}
+            </div>
           </div>
         </motion.div>
 
@@ -172,37 +192,49 @@ const ImpactTimeline = ({ spotData, analysisResults }) => {
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.6 }}
-          className="p-4 bg-gradient-to-r from-red-50 to-pink-50 rounded-lg border border-red-200"
+          className="p-5 bg-gradient-to-r from-red-50 to-pink-50 rounded-lg border border-red-200"
         >
           <div className="flex items-center mb-3">
             <div className="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center mr-3">
               <TrendingDown className="h-4 w-4 text-white" />
             </div>
-            <h4 className="font-semibold text-red-900">Spot con Menor Impacto</h4>
+            <h4 className="text-lg font-semibold text-red-900">Menor Impacto</h4>
           </div>
           <div className="space-y-2">
-            <p className="text-sm text-red-800">
-              <span className="font-medium">Impacto:</span> {minImpact.toFixed(1)}%
-            </p>
-            <p className="text-sm text-red-700">
-              <span className="font-medium">Programa:</span> {worstSpot.spot?.titulo_programa || worstSpot.spot?.nombre || 'N/A'}
-            </p>
-            <p className="text-sm text-red-700">
-              <span className="font-medium">Fecha:</span> {worstSpot.spot?.fecha || 'N/A'} {worstSpot.spot?.hora || ''}
-            </p>
-            <p className="text-xs text-red-600 italic">
-              Este spot tuvo el menor impacto en usuarios activos
-            </p>
+            <div className="bg-white p-3 rounded-lg border border-red-300">
+              <p className="text-sm text-red-800">
+                <span className="font-semibold">Impacto:</span> {minImpact.toFixed(1)}%
+              </p>
+              <p className="text-xs text-red-700 mt-1">
+                Usuarios activos durante el spot
+              </p>
+            </div>
+            <div className="bg-white p-3 rounded-lg border border-red-300">
+              <p className="text-sm font-medium text-red-900 mb-1">Programa:</p>
+              <p className="text-sm text-red-800">
+                {worstSpot.spot?.titulo_programa || worstSpot.spot?.nombre || 'N/A'}
+              </p>
+              {worstSpot.spot?.canal && (
+                <p className="text-xs text-red-700 mt-1">
+                  Canal: {worstSpot.spot.canal}
+                </p>
+              )}
+              {worstSpot.spot?.fecha && worstSpot.spot?.hora && (
+                <p className="text-xs text-red-700">
+                  {worstSpot.spot.fecha} - {worstSpot.spot.hora}
+                </p>
+              )}
+            </div>
           </div>
         </motion.div>
       </div>
 
-      {/* Conclusión */}
+      {/* Conclusión - Expandible */}
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.7 }}
-        className="mt-6 p-4 bg-gradient-to-r from-gray-50 to-slate-50 rounded-lg border border-gray-200"
+        className="p-5 bg-gradient-to-r from-gray-50 to-slate-50 rounded-lg border border-gray-200 flex-shrink-0"
       >
         <div className="flex items-start space-x-3">
           <div className="flex-shrink-0">
@@ -210,20 +242,32 @@ const ImpactTimeline = ({ spotData, analysisResults }) => {
               <BarChart3 className="w-4 h-4 text-white" />
             </div>
           </div>
-          <div className="flex-1">
+          <div className="flex-1 min-w-0">
             <h4 className="text-sm font-semibold text-gray-900 mb-2">Conclusión del Análisis</h4>
-            <p className="text-sm text-gray-700">
-              {avgImpact > 10
-                ? "Los resultados muestran un impacto significativo y positivo en el tráfico. Los spots están funcionando bien para generar visitas al sitio web."
-                : avgImpact > 0
-                ? "Se observa un impacto moderado pero consistente. Hay oportunidades de mejora para aumentar la efectividad de los spots."
-                : "El impacto general es negativo. Es recomendable revisar la estrategia de contenido, timing y call-to-actions de los spots."
-              }
-            </p>
-            <p className="text-xs text-gray-600 mt-2">
-              <span className="font-medium">{positiveImpacts}</span> de <span className="font-medium">{totalSpots}</span> spots
-              ({Math.round((positiveImpacts/totalSpots)*100)}%) generaron impacto positivo.
-            </p>
+            <div className="space-y-2">
+              <p className="text-sm text-gray-700">
+                {avgImpact > 10
+                  ? "🎯 Impacto significativo y positivo: Los spots han generado un aumento considerable en el tráfico web, superando las expectativas iniciales."
+                  : avgImpact > 0
+                  ? "📈 Impacto moderado pero consistente: Los spots han generado un incremento positivo en el tráfico, aunque con resultados más conservadores."
+                  : "⚠️ Impacto negativo detectado: Los resultados sugieren revisar la estrategia de spots o el timing de transmisión."}
+              </p>
+              <div className="bg-white p-3 rounded-lg border border-gray-300">
+                <p className="text-sm text-gray-800">
+                  <span className="font-semibold">Estadísticas clave:</span>
+                </p>
+                <ul className="text-xs text-gray-700 mt-1 space-y-1">
+                  <li>• {positiveImpacts} de {totalSpots} spots con impacto positivo ({(positiveImpacts/totalSpots*100).toFixed(0)}%)</li>
+                  <li>• Impacto promedio: {avgImpact >= 0 ? '+' : ''}{avgImpact.toFixed(1)}%</li>
+                  <li>• Mejor resultado: +{maxImpact.toFixed(1)}% | Peor resultado: {minImpact.toFixed(1)}%</li>
+                </ul>
+              </div>
+              {avgImpact > 0 && (
+                <p className="text-xs text-green-700 bg-green-50 p-2 rounded border border-green-200">
+                  💡 <strong>Recomendación:</strong> Continuar con la estrategia actual, considerando optimizar los spots con menor rendimiento.
+                </p>
+              )}
+            </div>
           </div>
         </div>
       </motion.div>

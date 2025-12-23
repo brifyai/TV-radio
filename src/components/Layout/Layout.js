@@ -311,10 +311,10 @@ const Layout = () => {
       )}
 
       {/* Main content */}
-      <div className={`flex flex-col flex-1 ${!fullscreenMode ? 'md:pl-72' : ''}`}>
+      <div className={`flex flex-col flex-1 ${!fullscreenMode ? 'md:pl-72' : ''} ${location.pathname === '/spot-analysis' ? 'overflow-visible' : 'overflow-hidden'}`}>
         {/* Header - siempre visible */}
         <header className="bg-white shadow">
-          <div className="px-4 sm:px-6 lg:px-8">
+          <div className="w-full px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between h-16">
               <div className="flex items-center">
                 {/* Botón de menú móvil */}
@@ -438,34 +438,41 @@ const Layout = () => {
         </header>
 
         {/* Main content area */}
-        <main className="flex-1">
-          <div className="py-6">
-            <div className="px-4 sm:px-6 lg:px-8">
-              {/* Google Analytics Error Alert */}
-              {gaError && (
-                <div className="mb-6 bg-danger-50 border border-danger-200 rounded-md p-4">
-                  <div className="flex">
-                    <AlertCircle className="h-5 w-5 text-danger-400" />
-                    <div className="ml-3">
-                      <h3 className="text-sm font-medium text-danger-800">
-                        Error de Google Analytics
-                      </h3>
-                      <div className="mt-2 text-sm text-danger-700">
-                        <p>{gaError}</p>
-                      </div>
+        <main className="flex-1 w-full">
+          <div className="w-full py-6">
+            {/* Google Analytics Error Alert */}
+            {gaError && (
+              <div className="mb-6 mx-4 sm:mx-6 lg:mx-8 bg-danger-50 border border-danger-200 rounded-md p-4">
+                <div className="flex">
+                  <AlertCircle className="h-5 w-5 text-danger-400" />
+                  <div className="ml-3">
+                    <h3 className="text-sm font-medium text-danger-800">
+                      Error de Google Analytics
+                    </h3>
+                    <div className="mt-2 text-sm text-danger-700">
+                      <p>{gaError}</p>
                     </div>
                   </div>
                 </div>
-              )}
+              </div>
+            )}
 
-              <Outlet />
-            </div>
+            {/* SPECIAL HANDLING FOR SPOT ANALYSIS - BREAK OUT OF CONTAINER */}
+            {location.pathname === '/spot-analysis' ? (
+              <div className="w-screen relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw]">
+                <Outlet />
+              </div>
+            ) : (
+              <div className="w-full">
+                <Outlet />
+              </div>
+            )}
           </div>
         </main>
 
         {/* Footer */}
         <footer className="bg-white border-t border-gray-200 py-6">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="px-4 sm:px-6 lg:px-8">
             <div className="flex flex-col md:flex-row items-center justify-between">
               <div className="flex items-center space-x-3 mb-4 md:mb-0">
                 <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">

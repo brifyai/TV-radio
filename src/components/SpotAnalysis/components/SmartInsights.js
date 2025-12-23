@@ -181,62 +181,57 @@ const SmartInsights = ({ analysisResults, batchAIAnalysis, videoAnalysis }) => {
       transition={{ duration: 0.6 }}
       className="bg-white rounded-xl shadow-lg p-6 border border-gray-100"
     >
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center space-x-3">
-          <motion.div
-            animate={{ rotate: [0, 360] }}
-            transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-          >
-            <Brain className="h-6 w-6 text-purple-600" />
-          </motion.div>
+      <div className="flex items-center justify-between mb-4 flex-shrink-0">
+        <div className="flex items-center space-x-2">
+          <Brain className="h-5 w-5 text-purple-600" />
           <div>
-            <h3 className="text-xl font-bold text-gray-900">Smart Insights</h3>
-            <p className="text-sm text-gray-600">Análisis inteligente automático</p>
+            <h3 className="text-lg font-bold text-gray-900">Smart Insights</h3>
+            <p className="text-xs text-gray-600">Análisis inteligente</p>
           </div>
         </div>
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-1">
           <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-          <span className="text-sm text-gray-600">IA Activa</span>
+          <span className="text-xs text-gray-600">IA</span>
         </div>
       </div>
 
-      {/* Insights principales */}
-      <div className="space-y-4">
+      {/* Insights principales - Ocupando todo el ancho */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 flex-1 overflow-y-auto w-full">
         {smartInsights.map((insight, index) => {
           const IconComponent = insight.icon;
           return (
             <motion.div
               key={index}
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1, duration: 0.5 }}
+              transition={{ delay: index * 0.1, duration: 0.3 }}
               className={`p-4 rounded-lg border ${getColorClasses(insight.color)}`}
             >
               <div className="flex items-start space-x-3">
-                <div className={`p-2 rounded-lg bg-white ${getIconColor(insight.color)}`}>
+                <div className={`p-2 rounded bg-white ${getIconColor(insight.color)} flex-shrink-0`}>
                   <IconComponent className="h-5 w-5" />
                 </div>
-                <div className="flex-1">
+                <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between mb-2">
-                    <h4 className="font-semibold text-gray-900">{insight.title}</h4>
-                    <div className="flex items-center space-x-2">
-                      <div className="w-16 bg-gray-200 rounded-full h-2">
+                    <h4 className="text-sm font-semibold text-gray-900">{insight.title}</h4>
+                    <div className="flex items-center space-x-2 ml-3">
+                      <div className="w-12 bg-gray-200 rounded-full h-2">
                         <motion.div
                           initial={{ width: 0 }}
                           animate={{ width: `${insight.confidence}%` }}
-                          transition={{ delay: index * 0.1 + 0.5, duration: 0.8 }}
+                          transition={{ delay: index * 0.1 + 0.3, duration: 0.5 }}
                           className={`h-2 rounded-full ${
                             insight.confidence >= 80 ? 'bg-green-500' :
                             insight.confidence >= 60 ? 'bg-blue-500' : 'bg-yellow-500'
                           }`}
                         />
                       </div>
-                      <span className="text-xs font-medium text-gray-600">
+                      <span className="text-xs font-medium text-gray-600 whitespace-nowrap">
                         {insight.confidence}%
                       </span>
                     </div>
                   </div>
-                  <p className="text-sm leading-relaxed">{insight.message}</p>
+                  <p className="text-sm leading-relaxed text-gray-700">{insight.message}</p>
                 </div>
               </div>
             </motion.div>
@@ -244,17 +239,17 @@ const SmartInsights = ({ analysisResults, batchAIAnalysis, videoAnalysis }) => {
         })}
       </div>
 
-      {/* Racional Video-Analytics */}
+      {/* Racional Video-Analytics - Expandible */}
       {videoAnalysis && (
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.8 }}
-          className="mt-6 p-4 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg border border-indigo-200"
+          transition={{ delay: 0.5 }}
+          className="mt-4 p-4 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg border border-indigo-200 flex-shrink-0"
         >
           <div className="flex items-center space-x-2 mb-3">
             <Link className="h-5 w-5 text-indigo-600" />
-            <h4 className="font-semibold text-indigo-900">Racional Video-Analytics</h4>
+            <h4 className="text-sm font-semibold text-indigo-900">Video-Analytics</h4>
           </div>
           
           {(() => {
@@ -262,110 +257,67 @@ const SmartInsights = ({ analysisResults, batchAIAnalysis, videoAnalysis }) => {
             if (!videoAnalyticsRational) return null;
             
             return (
-              <div className="space-y-3">
+              <div className="space-y-2">
                 <p className="text-sm text-indigo-800 font-medium">{videoAnalyticsRational.correlation}</p>
-                
-                <div className="space-y-2">
-                  <h5 className="text-xs font-medium text-indigo-700">Análisis de Correlación:</h5>
-                  <ul className="text-xs text-indigo-700 space-y-1">
-                    {videoAnalyticsRational.insights.map((insight, i) => (
-                      <li key={i} className="flex items-start space-x-2">
-                        <Video className="h-3 w-3 text-indigo-500 mt-0.5 flex-shrink-0" />
-                        <span>{insight}</span>
-                      </li>
+                <p className="text-sm text-indigo-700">
+                  {videoAnalyticsRational.insights?.[0] || 'Análisis de correlación video-analytics completado'}
+                </p>
+                {videoAnalyticsRational.insights?.length > 1 && (
+                  <div className="mt-2 space-y-1">
+                    {videoAnalyticsRational.insights.slice(1).map((insight, idx) => (
+                      <p key={idx} className="text-xs text-indigo-600">• {insight}</p>
                     ))}
-                  </ul>
-                </div>
-                
-                <div className="space-y-2">
-                  <h5 className="text-xs font-medium text-indigo-700">Recomendaciones Integradas:</h5>
-                  <ul className="text-xs text-indigo-700 space-y-1">
-                    {videoAnalyticsRational.recommendations.map((rec, i) => (
-                      <li key={i} className="flex items-start space-x-2">
-                        <span className="text-indigo-500 mt-1">•</span>
-                        <span>{rec}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
+                  </div>
+                )}
               </div>
             );
           })()}
         </motion.div>
       )}
 
-      {/* Resumen de IA */}
+      {/* Resumen de IA - Expandible */}
       {batchAIAnalysis && (
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 1 }}
-          className="mt-6 p-4 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border border-purple-200"
+          transition={{ delay: 0.7 }}
+          className="mt-4 p-4 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border border-purple-200 flex-shrink-0"
         >
           <div className="flex items-center space-x-2 mb-3">
             <Brain className="h-5 w-5 text-purple-600" />
-            <h4 className="font-semibold text-purple-900">Resumen Ejecutivo IA</h4>
+            <h4 className="text-sm font-semibold text-purple-900">Resumen IA</h4>
           </div>
-          <p className="text-sm text-purple-800 mb-3">{batchAIAnalysis.summary}</p>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <h5 className="text-xs font-medium text-purple-700 mb-2">Insights Clave:</h5>
-              <ul className="text-xs text-purple-700 space-y-1">
-                {batchAIAnalysis.insights?.slice(0, 2).map((insight, i) => (
-                  <li key={i} className="flex items-start space-x-2">
-                    <span className="text-purple-500 mt-1">•</span>
-                    <span>
-                      {typeof insight === 'string'
-                        ? insight
-                        : insight?.descripcion || JSON.stringify(insight)}
-                    </span>
-                  </li>
-                ))}
-              </ul>
+          <p className="text-sm text-purple-800 leading-relaxed">{batchAIAnalysis.summary}</p>
+          {batchAIAnalysis.insights && batchAIAnalysis.insights.length > 0 && (
+            <div className="mt-3 space-y-1">
+              <h5 className="text-xs font-semibold text-purple-900">Insights Clave:</h5>
+              {batchAIAnalysis.insights.slice(0, 3).map((insight, idx) => (
+                <p key={idx} className="text-xs text-purple-700">• {insight}</p>
+              ))}
             </div>
-            <div>
-              <h5 className="text-xs font-medium text-purple-700 mb-2">Recomendaciones:</h5>
-              <ul className="text-xs text-purple-700 space-y-1">
-                {batchAIAnalysis.recommendations?.slice(0, 2).map((rec, i) => (
-                  <li key={i} className="flex items-start space-x-2">
-                    <span className="text-purple-500 mt-1">•</span>
-                    <span>
-                      {typeof rec === 'string'
-                        ? rec
-                        : rec?.descripcion || JSON.stringify(rec)}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
+          )}
         </motion.div>
       )}
 
-      {/* Indicador de confianza general */}
+      {/* Indicador de confianza general - Expandible */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 1.2 }}
-        className="mt-6 flex items-center justify-center space-x-4 p-3 bg-gray-50 rounded-lg"
+        transition={{ delay: 0.9 }}
+        className="mt-4 flex items-center justify-center space-x-4 p-3 bg-gray-50 rounded-lg flex-shrink-0"
       >
         <div className="flex items-center space-x-2">
           <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-          <span className="text-sm text-gray-700">Análisis completado</span>
-        </div>
-        <div className="flex items-center space-x-2">
-          <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-          <span className="text-sm text-gray-700">IA procesando</span>
+          <span className="text-sm text-gray-700">Análisis Completado</span>
         </div>
         <div className="flex items-center space-x-2">
           <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
-          <span className="text-sm text-gray-700">Insights generados</span>
+          <span className="text-sm text-gray-700">IA Activa</span>
         </div>
         {videoAnalysis && (
           <div className="flex items-center space-x-2">
             <div className="w-3 h-3 bg-indigo-500 rounded-full"></div>
-            <span className="text-sm text-gray-700">Video analizado</span>
+            <span className="text-sm text-gray-700">Análisis Video</span>
           </div>
         )}
       </motion.div>

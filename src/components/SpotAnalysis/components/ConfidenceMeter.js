@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
+import { BarChart3 } from 'lucide-react';
 
 const ConfidenceMeter = ({ confidenceScore = 85, analysisData }) => {
   // Calcular score de confianza basado en múltiples factores reales
@@ -56,7 +57,7 @@ const ConfidenceMeter = ({ confidenceScore = 85, analysisData }) => {
       transition={{ duration: 0.5 }}
       className="bg-white rounded-xl shadow-lg p-6 border border-gray-100"
     >
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-6 flex-shrink-0">
         <div>
           <h3 className="text-xl font-bold text-gray-900">Nivel de Confianza</h3>
           <p className="text-sm text-gray-600">Certeza del análisis estadístico</p>
@@ -66,7 +67,7 @@ const ConfidenceMeter = ({ confidenceScore = 85, analysisData }) => {
         </div>
       </div>
 
-      <div className="flex items-center justify-center">
+      <div className="flex items-center justify-center mb-6 flex-shrink-0">
         <div className="relative w-48 h-48">
           {/* Gráfico circular */}
           <ResponsiveContainer width="100%" height="100%">
@@ -119,7 +120,7 @@ const ConfidenceMeter = ({ confidenceScore = 85, analysisData }) => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.7 }}
-        className="mt-6 p-4 rounded-lg bg-gray-50"
+        className="p-4 rounded-lg bg-gray-50 mb-4 flex-shrink-0"
       >
         <p className="text-sm text-gray-700 text-center mb-2">
           {getConfidenceDescription(confidence)}
@@ -133,12 +134,12 @@ const ConfidenceMeter = ({ confidenceScore = 85, analysisData }) => {
         </div>
       </motion.div>
 
-      {/* Factores de confianza */}
+      {/* Factores de confianza - Ocupando todo el ancho */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.9 }}
-        className="mt-6 grid grid-cols-2 gap-4"
+        className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4 flex-shrink-0 w-full"
       >
         <div className="text-center">
           <div className="w-3 h-3 bg-green-500 rounded-full mx-auto mb-2"></div>
@@ -161,7 +162,7 @@ const ConfidenceMeter = ({ confidenceScore = 85, analysisData }) => {
         initial={{ width: 0 }}
         animate={{ width: '100%' }}
         transition={{ delay: 1.1, duration: 1 }}
-        className="mt-6"
+        className="mb-4 flex-shrink-0"
       >
         <div className="flex justify-between text-xs text-gray-600 mb-2">
           <span>Baja Confianza</span>
@@ -183,7 +184,7 @@ const ConfidenceMeter = ({ confidenceScore = 85, analysisData }) => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 1.5 }}
-        className="mt-6 flex items-center justify-center space-x-4"
+        className="flex items-center justify-center space-x-4 mt-auto"
       >
         <div className="flex items-center space-x-2">
           <div className="w-2 h-2 bg-green-500 rounded-full"></div>
@@ -196,6 +197,38 @@ const ConfidenceMeter = ({ confidenceScore = 85, analysisData }) => {
         <div className="flex items-center space-x-2">
           <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
           <span className="text-xs text-gray-600">Validación cruzada</span>
+        </div>
+      </motion.div>
+
+      {/* Sección adicional para igualar altura con ImpactTimeline */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 1.7 }}
+        className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border border-blue-200 flex-1"
+      >
+        <div className="flex items-center space-x-2 mb-3">
+          <BarChart3 className="h-5 w-5 text-blue-600" />
+          <h4 className="text-sm font-semibold text-blue-900">Análisis Detallado</h4>
+        </div>
+        <div className="space-y-3">
+          <div className="bg-white p-3 rounded-lg border border-blue-300">
+            <p className="text-sm text-blue-800">
+              <span className="font-semibold">Confianza del Análisis:</span> {confidence}%
+            </p>
+            <p className="text-xs text-blue-700 mt-1">
+              Basado en {analysisData?.length || 0} spots analizados
+            </p>
+          </div>
+          <div className="bg-white p-3 rounded-lg border border-blue-300">
+            <p className="text-sm font-medium text-blue-900 mb-1">Metodología:</p>
+            <p className="text-sm text-blue-800">
+              Análisis estadístico con validación cruzada y referencia robusta
+            </p>
+            <p className="text-xs text-blue-700 mt-1">
+              Intervalo de confianza del 95%
+            </p>
+          </div>
         </div>
       </motion.div>
     </motion.div>

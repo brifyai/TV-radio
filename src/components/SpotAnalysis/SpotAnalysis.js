@@ -1,869 +1,52 @@
-import React, { useState, useCallback } from 'react';
-import { useGoogleAnalytics } from '../../contexts/GoogleAnalyticsContext';
-import { generateAIAnalysis, generateBatchAIAnalysis } from '../../services/aiAnalysisService';
-import { TemporalAnalysisService } from '../../services/temporalAnalysisService';
-import { CausalInferenceService } from '../../services/causalInferenceService';
-import conversionAnalysisService from '../../services/conversionAnalysisService';
-import { predictiveAnalyticsService } from '../../services/predictiveAnalyticsService';
-import ChutesVideoAnalysisService from '../../services/chutesVideoAnalysisService';
-import * as XLSX from 'xlsx';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-import {
-  Upload,
-  Video,
-  BarChart3,
-  TrendingUp,
-  Eye,
-  Users,
-  MousePointer,
-  AlertCircle,
-  Download,
-  RefreshCw,
-  Brain,
-  Zap,
-  Target,
-  Clock,
-  TrendingDown,
-  ChevronDown,
-  ChevronRight,
-  ChevronLeft,
-  Play,
-  FileVideo
-} from 'lucide-react';
-
-// Importar componente de exportación PPTX
-import PPTXExportButton from '../UI/PPTXExportButton';
-
-// Importar componente de exportación de imagen
+import { useAuth } from '../../contexts/AuthContext';
+import { getSpotAnalysisData } from '../../services/spotAnalysisService';
+import ImpactAnalysisCard from './components/ImpactAnalysisCard';
+import ConfidenceLevelCard from './components/ConfidenceLevelCard';
+import SmartInsightsCard from './components/SmartInsightsCard';
+import TrafficHeatmap from './components/TrafficHeatmap';
+import LoadingSpinner from '../UI/LoadingSpinner';
 import ImageExportButton from '../UI/ImageExportButton';
 
-// Importar componentes modernos
-import ImpactTimeline from './components/ImpactTimeline';
-import ConfidenceMeter from './components/ConfidenceMeter';
-import SmartInsights from './components/SmartInsights';
-import TrafficHeatmap from './components/TrafficHeatmap';
-import TrafficChart from './components/TrafficChart';
-import TemporalAnalysisDashboard from './components/TemporalAnalysisDashboard';
-import ConversionAnalysisDashboard from './components/ConversionAnalysisDashboard';
-import PredictiveAnalyticsDashboard from './components/PredictiveAnalyticsDashboard';
-import VideoAnalysisDashboard from './components/VideoAnalysisDashboard';
-
-// Importar hook de validación de integridad de datos
-import { useDataIntegrity, useAnalyticsDataIntegrity, useVideoAnalysisIntegrity } from '../../hooks/useDataIntegrity';
-import DataIntegrityWarning from '../UI/DataIntegrityWarning';
-
 const SpotAnalysis = () => {
-  const { accounts, properties, getAnalyticsData, isConnected } = useGoogleAnalytics();
+  const { currentUser } = useAuth();
+  const [analysisData, setAnalysisData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   
-  // Función para formatear valores de moneda
-  const formatCurrency = (value) => {
-    if (!value || value === '0' || value === 0) return '$0';
-    
-    // Convertir a número si es string
-    const numValue = typeof value === 'string' ? parseFloat(value.replace(/[^\d.-]/g, '')) : value;
-    
-    if (isNaN(numValue) || numValue === 0) return '$0';
-    
-    // Formatear con separador de miles (punto) y sin decimales
-    const roundedValue = Math.round(numValue);
-    const formattedValue = roundedValue.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-    return `$${formattedValue}`;
-  };
-  
-  // Estados para el análisis de spots
-  const [spotsFile, setSpotsFile] = useState(null);
-  const [spotsData, setSpotsData] = useState([]);
-  const [videoFile, setVideoFile] = useState(null);
-  const [analysisResults, setAnalysisResults] = useState(null);
-  const [analyzing, setAnalyzing] = useState(false);
-  const [selectedAccount, setSelectedAccount] = useState('');
-  const [selectedProperty, setSelectedProperty] = useState('');
-  const [analysisProgress, setAnalysisProgress] = useState(0);
-  const [aiAnalysis, setAiAnalysis] = useState({});
-  const [batchAIAnalysis, setBatchAIAnalysis] = useState(null);
-  const [viewMode, setViewMode] = useState('modern'); // 'modern' o 'classic'
-  const [temporalAnalysis, setTemporalAnalysis] = useState(null);
-  const [temporalReference, setTemporalReference] = useState(null);
-  const [conversionAnalysis, setConversionAnalysis] = useState(null);
-  const [controlGroupAnalysis, setControlGroupAnalysis] = useState(null);
-  const [predictiveAnalysis, setPredictiveAnalysis] = useState(null);
-  const [expandedTimeline, setExpandedTimeline] = useState({});
-  const [expandedAIAnalysis, setExpandedAIAnalysis] = useState({});
-  const [currentPage, setCurrentPage] = useState(1);
-  const spotsPerPage = 10;
-  const [showReloadPrompt, setShowReloadPrompt] = useState(false);
+  // Referencias para exportar imágenes
+  const impactRef = useRef();
+  const confidenceRef = useRef();
+  const insightsRef = useRef();
+  const trafficRef = useRef();
 
-  // HOOKS DE VALIDACIÓN DE INTEGRIDAD DE DATOS
-  // Validar datos de análisis de spots
-  const {
-    data: validatedAnalysisResults,
-    validationResult: analysisValidationResult,
-    showWarning: showAnalysisWarning,
-    dismissWarning: dismissAnalysisWarning
-  } = useAnalyticsDataIntegrity(analysisResults, 'spot_analysis');
-
-  // Validar datos de análisis de IA
-  const {
-    data: validatedAiAnalysis,
-    validationResult: aiValidationResult,
-    showWarning: showAiWarning,
-    dismissWarning: dismissAiWarning
-  } = useDataIntegrity(aiAnalysis, 'ai_analysis');
-
-  // Validar datos de análisis predictivo
-  const {
-    data: validatedPredictiveAnalysis,
-    validationResult: predictiveValidationResult,
-    showWarning: showPredictiveWarning,
-    dismissWarning: dismissPredictiveWarning
-  } = useDataIntegrity(predictiveAnalysis, 'predictive_analysis');
-
-  // Filtrar y ordenar propiedades basadas en la cuenta seleccionada
-  const filteredProperties = selectedAccount
-    ? properties
-        .filter(prop => prop.accountId === selectedAccount)
-        .sort((a, b) => (a.displayName || a.property_name || a.name).localeCompare(b.displayName || b.property_name || b.name))
-    : [];
-
-  // Ordenar cuentas alfabéticamente
-  const sortedAccounts = [...accounts].sort((a, b) =>
-    (a.displayName || a.account_name || a.name).localeCompare(b.displayName || b.account_name || b.name)
-  );
-
-  // Instancia del servicio de análisis temporal
-  const temporalAnalysisService = new TemporalAnalysisService();
-
-  // Parsear CSV mejorado - LEE fecha, hora inicio, Canal, Titulo Programa, inversion
-  const parseCSV = useCallback((content) => {
-    const lines = content.split('\n').filter(line => line.trim());
-    if (lines.length === 0) return [];
-    
-    // Validar máximo 100 líneas (encabezado + 100 datos = 101 total)
-    if (lines.length > 101) {
-      throw new Error('El archivo excede el límite máximo de 100 líneas de datos');
-    }
-    
-    // Detectar delimitador (coma o punto y coma)
-    const delimiter = lines[0].includes(';') ? ';' : ',';
-    
-    // Extraer headers y encontrar índices de las columnas que necesitamos
-    const headers = lines[0].split(delimiter).map(h => h.trim());
-    
-    // Búsqueda simplificada de columnas
-    const findColumnIndex = (headers, possibleNames) => {
-      // PASO 1: Buscar coincidencia EXACTA (case-insensitive)
-      for (const name of possibleNames) {
-        for (let i = 0; i < headers.length; i++) {
-          const header = headers[i];
-          const matches = header.toLowerCase() === name.toLowerCase();
-          if (matches) {
-            return i;
-          }
-        }
-      }
-      
-      // PASO 2: Buscar coincidencia PARCIAL
-      for (const name of possibleNames) {
-        for (let i = 0; i < headers.length; i++) {
-          const header = headers[i];
-          const matches = header.toLowerCase().includes(name.toLowerCase());
-          if (matches) {
-            return i;
-          }
-        }
-      }
-      
-      return -1;
-    };
-
-    const fechaIndex = findColumnIndex(headers, ['fecha']);
-    const horaIndex = findColumnIndex(headers, ['hora inicio', 'hora_inicio', 'hora']);
-    const canalIndex = findColumnIndex(headers, ['canal']);
-    
-    // Buscar específicamente 'título programa' primero - MEJORADO
-    let tituloIndex = -1;
-    
-    // PASO 1: Buscar coincidencia EXACTA para 'título programa' (con acento)
-    for (let i = 0; i < headers.length; i++) {
-      const header = headers[i];
-      const isExactMatch = header.toLowerCase() === 'título programa';
-      if (isExactMatch) {
-        tituloIndex = i;
-        console.log(`✅ Columna título programa encontrada en índice ${i}: "${header}"`);
-        break;
-      }
-    }
-    
-    // PASO 2: Si no se encuentra, buscar otras variantes
-    if (tituloIndex === -1) {
-      tituloIndex = findColumnIndex(headers, [
-        'título programa', 'titulo programa', 'Titulo Programa', 'TITULO PROGRAMA',
-        'título_programa', 'titulo_programa', 'Titulo_Programa', 'TITULO_PROGRAMA',
-        'programa', 'titulo', 'show', 'program', 'nombre programa', 'nombre_programa',
-        'programa nombre', 'programa_nombre', 'programa tv', 'programa_tv'
-      ]);
-      if (tituloIndex !== -1) {
-        console.log(`✅ Columna título programa encontrada (variante) en índice ${tituloIndex}: "${headers[tituloIndex]}"`);
-      }
-    }
-    
-    // PASO 3: Debug - mostrar todas las columnas encontradas
-    console.log('🔍 DEBUG - Columnas encontradas:', headers.map((h, i) => `${i}: "${h}"`).join(', '));
-    console.log(`🔍 DEBUG - Índice título programa: ${tituloIndex}`);
-    const versionIndex = findColumnIndex(headers, [
-      'version', 'versión', 'Version', 'VERSIÓN', 'version_', 'Version_', 'VERSIÓN_',
-      'ver', 'v', 'numero version', 'numero_version', 'número versión', 'número_version'
-    ]);
-    const duracionIndex = findColumnIndex(headers, [
-      'duracion', 'duración', 'Duracion', 'DURACIÓN', 'duracion_', 'duración_',
-      'tiempo', 'length', 'minutos', 'segundos'
-    ]);
-    const tipoComercialIndex = findColumnIndex(headers, [
-      'tipo comercial', 'tipo_comercial', 'Tipo Comercial', 'TIPO_COMERCIAL',
-      'tipo', 'categoria', 'categoría', 'class', 'clase'
-    ]);
-    const inversionIndex = findColumnIndex(headers, [
-      'inversion', 'inversión', 'Inversion', 'INVERSIÓN', 'inversion_', 'inversión_',
-      'costo', 'coste', 'precio', 'amount', 'monto', 'presupuesto', 'budget'
-    ]);
-    
-    if (fechaIndex === -1 || horaIndex === -1) {
-      throw new Error('El archivo debe contener las columnas "fecha" y "hora inicio"');
-    }
-    
-    return lines.slice(1).map((line, index) => {
-      const values = line.split(delimiter).map(v => v.trim());
-      
-      // Extraer todas las columnas necesarias
-      return {
-        fecha: values[fechaIndex] || '',
-        hora_inicio: values[horaIndex] || '',
-        canal: values[canalIndex] || '',
-        titulo_programa: values[tituloIndex] || '',
-        tipo_comercial: values[tipoComercialIndex] || '',
-        version: values[versionIndex] || '',
-        duracion: values[duracionIndex] || '',
-        inversion: values[inversionIndex] || ''
-      };
-    }).filter(spot => spot.fecha || spot.hora_inicio); // Filtrar filas vacías
-  }, []);
-
-  // Parsear datos de Excel - LEE fecha, hora inicio, Canal, Titulo Programa, inversion
-  const parseExcelData = useCallback((jsonData) => {
-    if (jsonData.length === 0) return [];
-    
-    // Validar máximo 100 líneas de datos (encabezado + 100 datos)
-    if (jsonData.length > 101) {
-      throw new Error('El archivo excede el límite máximo de 100 líneas de datos');
-    }
-    
-    // Primera fila como headers
-    const headers = jsonData[0].map(h => (h || '').toString().trim());
-    
-    // Búsqueda simplificada de columnas para Excel
-    const findColumnIndex = (headers, possibleNames) => {
-      // PASO 1: Buscar coincidencia EXACTA (case-insensitive)
-      for (const name of possibleNames) {
-        for (let i = 0; i < headers.length; i++) {
-          const header = headers[i];
-          const matches = header.toLowerCase() === name.toLowerCase();
-          if (matches) {
-            return i;
-          }
-        }
-      }
-      
-      // PASO 2: Buscar coincidencia PARCIAL
-      for (const name of possibleNames) {
-        for (let i = 0; i < headers.length; i++) {
-          const header = headers[i];
-          const matches = header.toLowerCase().includes(name.toLowerCase());
-          if (matches) {
-            return i;
-          }
-        }
-      }
-      
-      return -1;
-    };
-
-    const fechaIndex = findColumnIndex(headers, ['fecha']);
-    const horaIndex = findColumnIndex(headers, ['hora inicio', 'hora_inicio', 'hora']);
-    const canalIndex = findColumnIndex(headers, ['canal']);
-    
-    // Buscar específicamente 'título programa' primero - MEJORADO
-    let tituloIndex = -1;
-    
-    // PASO 1: Buscar coincidencia EXACTA para 'título programa' (con acento)
-    for (let i = 0; i < headers.length; i++) {
-      const header = headers[i];
-      const isExactMatch = header.toLowerCase() === 'título programa';
-      if (isExactMatch) {
-        tituloIndex = i;
-        console.log(`✅ Columna título programa encontrada en índice ${i}: "${header}"`);
-        break;
-      }
-    }
-    
-    // PASO 2: Si no se encuentra, buscar otras variantes
-    if (tituloIndex === -1) {
-      tituloIndex = findColumnIndex(headers, [
-        'título programa', 'titulo programa', 'Titulo Programa', 'TITULO PROGRAMA',
-        'título_programa', 'titulo_programa', 'Titulo_Programa', 'TITULO_PROGRAMA',
-        'programa', 'titulo', 'show', 'program', 'nombre programa', 'nombre_programa',
-        'programa nombre', 'programa_nombre', 'programa tv', 'programa_tv'
-      ]);
-      if (tituloIndex !== -1) {
-        console.log(`✅ Columna título programa encontrada (variante) en índice ${tituloIndex}: "${headers[tituloIndex]}"`);
-      }
-    }
-    
-    // PASO 3: Debug - mostrar todas las columnas encontradas
-    console.log('🔍 DEBUG - Columnas encontradas:', headers.map((h, i) => `${i}: "${h}"`).join(', '));
-    console.log(`🔍 DEBUG - Índice título programa: ${tituloIndex}`);
-    const versionIndex = findColumnIndex(headers, [
-      'version', 'versión', 'Version', 'VERSIÓN', 'version_', 'Version_', 'VERSIÓN_',
-      'ver', 'v', 'numero version', 'numero_version', 'número versión', 'número_version'
-    ]);
-    const duracionIndex = findColumnIndex(headers, [
-      'duracion', 'duración', 'Duracion', 'DURACIÓN', 'duracion_', 'duración_',
-      'tiempo', 'length', 'minutos', 'segundos'
-    ]);
-    const tipoComercialIndex = findColumnIndex(headers, [
-      'tipo comercial', 'tipo_comercial', 'Tipo Comercial', 'TIPO_COMERCIAL',
-      'tipo', 'categoria', 'categoría', 'class', 'clase'
-    ]);
-    const inversionIndex = findColumnIndex(headers, [
-      'inversion', 'inversión', 'Inversion', 'INVERSIÓN', 'inversion_', 'inversión_',
-      'costo', 'coste', 'precio', 'amount', 'monto', 'presupuesto', 'budget'
-    ]);
-    
-    if (fechaIndex === -1 || horaIndex === -1) {
-      throw new Error('El archivo debe contener las columnas "fecha" y "hora inicio"');
-    }
-    
-    return jsonData.slice(1).map((row, index) => {
-      // Extraer todas las columnas necesarias
-      return {
-        fecha: row[fechaIndex] || '',
-        hora_inicio: row[horaIndex] || '',
-        canal: row[canalIndex] || '',
-        titulo_programa: row[tituloIndex] || '',
-        tipo_comercial: row[tipoComercialIndex] || '',
-        version: row[versionIndex] || '',
-        duracion: row[duracionIndex] || '',
-        inversion: row[inversionIndex] || ''
-      };
-    }).filter(spot => spot.fecha || spot.hora_inicio); // Filtrar filas vacías
-  }, []);
-
-  // Parsear fecha y hora con múltiples formatos - SOPORTA FECHAS SERIAL DE EXCEL
-  const parseDateTimeFlexible = useCallback((fecha, hora) => {
-    if (!fecha || !hora) return new Date(NaN);
-    
-    let dateObj;
-    
-    // CASO 1: Si fecha es un número (serial de Excel)
-    if (!isNaN(fecha) && fecha.toString().match(/^\d+(\.\d+)?$/)) {
-      const excelSerial = parseFloat(fecha);
-      
-      // Excel serial: días desde 1900-01-01 (pero Excel tiene un bug para 1900)
-      // JavaScript: milisegundos desde 1970-01-01
-      const excelEpoch = new Date(1900, 0, 1);
-      
-      // Convertir serial de Excel a fecha JavaScript
-      dateObj = new Date(excelEpoch.getTime() + (excelSerial - 1) * 24 * 60 * 60 * 1000);
-      
-      // Si la hora también es un número serial, sumarlo
-      if (!isNaN(hora) && hora.toString().match(/^\d+(\.\d+)?$/)) {
-        const horaSerial = parseFloat(hora);
-        const horas = Math.floor(horaSerial * 24);
-        const minutos = Math.floor((horaSerial * 24 - horas) * 60);
-        const segundos = Math.floor(((horaSerial * 24 - horas) * 60 - minutos) * 60);
-        
-        dateObj.setHours(horas, minutos, segundos);
-      }
-      
-      return dateObj;
-    }
-    
-    // CASO 2: Si es texto, intentar parsear
-    fecha = fecha.toString().trim();
-    hora = hora.toString().trim();
-    
-    // Intentar diferentes formatos de fecha
-    const dateFormats = [
-      // Formatos latinoamericanos DD/MM/YYYY
-      /^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{4})$/,
-      // Formatos ISO YYYY-MM-DD
-      /^(\d{4})[\/\-.](\d{1,2})[\/\-.](\d{1,2})$/,
-      // Formatos americanos MM/DD/YYYY
-      /^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{4})$/
-    ];
-    
-    let day, month, year;
-    
-    // Intentar parsear fecha
-    for (const format of dateFormats) {
-      const match = fecha.match(format);
-      if (match) {
-        // Para formato latinoamericano (DD/MM/YYYY)
-        if (parseInt(match[1]) <= 31 && parseInt(match[2]) <= 12) {
-          day = parseInt(match[1]);
-          month = parseInt(match[2]) - 1; // Meses en JS son 0-based
-          year = parseInt(match[3]);
-        } else if (parseInt(match[2]) <= 31 && parseInt(match[1]) <= 12) {
-          // Para formato americano (MM/DD/YYYY)
-          day = parseInt(match[2]);
-          month = parseInt(match[1]) - 1;
-          year = parseInt(match[3]);
-        } else {
-          // Para formato ISO (YYYY/MM/DD)
-          day = parseInt(match[3]);
-          month = parseInt(match[2]) - 1;
-          year = parseInt(match[1]);
-        }
-        break;
-      }
-    }
-    
-    // Si encontramos una fecha válida
-    if (day !== undefined && month !== undefined && year !== undefined) {
-      // Parsear hora
-      const timeMatch = hora.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/);
-      if (!timeMatch) {
-        return new Date(NaN);
-      }
-      
-      const hours = parseInt(timeMatch[1]);
-      const minutes = parseInt(timeMatch[2]);
-      const seconds = parseInt(timeMatch[3] || 0);
-      
-      return new Date(year, month, day, hours, minutes, seconds, 0);
-    }
-    
-    // CASO 3: Si no se pudo parsear, intentar como fecha directa de JavaScript
-    const directDate = new Date(fecha + ' ' + hora);
-    if (!isNaN(directDate.getTime())) {
-      return directDate;
-    }
-    
-    // CASO 4: Si todo falla, intentar solo con la fecha
-    const dateOnly = new Date(fecha);
-    if (!isNaN(dateOnly.getTime())) {
-      return dateOnly;
-    }
-    
-    return new Date(NaN);
-  }, []);
-
-  // Parsear archivo de spots (Excel/CSV) - CONVERTIDO A useCallback
-  const parseSpotsFile = useCallback(async (file) => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      
-      reader.onload = (e) => {
-        try {
-          let spots = [];
-          
-          if (file.type === 'text/csv' || file.name.endsWith('.csv')) {
-            const content = e.target.result;
-            spots = parseCSV(content);
-          } else if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
-            // Parsear Excel con XLSX
-            const workbook = XLSX.read(e.target.result, { type: 'binary' });
-            const sheetName = workbook.SheetNames[0];
-            const worksheet = workbook.Sheets[sheetName];
-            const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-            spots = parseExcelData(jsonData);
-          } else {
-            reject(new Error('Formato de archivo no soportado'));
-            return;
-          }
-          
-          // Validar y formatear datos - USAR fecha, hora inicio, Canal, Titulo Programa, inversion
-          const formattedSpots = spots.map((spot, index) => {
-            // Parsear fecha y hora con múltiples formatos
-            const dateTime = parseDateTimeFlexible(spot.fecha, spot.hora_inicio);
-           
-            return {
-              id: index + 1,
-              fecha: spot.fecha,
-              hora: spot.hora_inicio,
-              // MEJORADO: Generar nombre más descriptivo cuando no hay título programa
-              nombre: (spot.titulo_programa && spot.titulo_programa.trim())
-                ? spot.titulo_programa.toString().replace(/\s*0\s*$/, '').trim()
-                : `Spot ${spot.fecha || 'Sin fecha'} ${spot.hora_inicio || 'Sin hora'}`,
-              titulo_programa: spot.titulo_programa ? spot.titulo_programa.toString().replace(/\s*0\s*$/, '').trim() : '',
-              debug_titulo: spot.titulo_programa, // Para debugging
-              raw_titulo: spot.raw_titulo || '', // Para debugging
-              // DEBUGGING MEJORADO
-              debug_info: {
-                titulo_original: spot.titulo_programa,
-                titulo_vacio: !spot.titulo_programa || spot.titulo_programa.trim() === '',
-                index_spot: index + 1,
-                nombre_final: (spot.titulo_programa && spot.titulo_programa.trim())
-                  ? spot.titulo_programa
-                  : `Spot ${spot.fecha || 'Sin fecha'} ${spot.hora_inicio || 'Sin hora'}`
-              },
-              tipo_comercial: spot.tipo_comercial || '',
-              version: spot.version || '',
-              duracion: spot.duracion ? parseInt(spot.duracion) : 30, // Parsear duración o usar default
-              canal: spot.canal || 'TV',
-              inversion: spot.inversion || '',
-              dateTime: dateTime, // Objeto Date para análisis
-              valid: !isNaN(dateTime.getTime())
-            };
-          }).filter(spot => spot.valid && spot.fecha && spot.hora); // Filtrar spots válidos
-          
-          // Datos parseados exitosamente
-          
-          resolve(formattedSpots);
-        } catch (error) {
-          console.error('❌ Error parseando archivo:', error);
-          reject(error);
-        }
-      };
-      
-      reader.onerror = () => reject(new Error('Error al leer el archivo'));
-      
-      if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
-        reader.readAsBinaryString(file);
-      } else {
-        reader.readAsText(file);
-      }
-    });
-  }, [parseDateTimeFlexible, parseCSV, parseExcelData]);
-
-  // Manejar subida de archivo de spots
-  const handleSpotsFileUpload = useCallback(async (event) => {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    // Validar tipo de archivo
-    const validTypes = ['application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'text/csv'];
-    if (!validTypes.includes(file.type)) {
-      alert('Por favor, sube un archivo Excel (.xlsx, .xls) o CSV');
-      return;
-    }
-
-    // Validar tamaño máximo (5MB)
-    const MAX_SIZE = 5 * 1024 * 1024; // 5MB en bytes
-    if (file.size > MAX_SIZE) {
-      alert('El archivo excede el tamaño máximo permitido de 5MB');
-      return;
-    }
-
-    setSpotsFile(file);
-    
-    try {
-      const data = await parseSpotsFile(file);
-      setSpotsData(data);
-      // Datos de spots cargados exitosamente
-      console.log('📊 Datos de spots cargados:', data);
-      
-      // Verificar si hay títulos válidos para forzar recarga si es necesario
-      if (data && data.length > 0) {
-        const hasValidTitles = data.some(spot => spot.titulo_programa && spot.titulo_programa.trim() !== '');
-        if (!hasValidTitles) {
-          setShowReloadPrompt(true);
-        }
-      }
-    } catch (error) {
-      console.error('❌ Error al procesar archivo de spots:', error);
-      alert(`Error al procesar el archivo: ${error.message}. Por favor, verifica el formato.`);
-    }
-  }, [parseSpotsFile]);
-
-  // Manejar subida de video
-  const handleVideoUpload = useCallback((event) => {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    // Validar tipo de archivo
-    if (!file.type.startsWith('video/')) {
-      alert('Por favor, sube un archivo de video válido');
-      return;
-    }
-
-    setVideoFile(file);
-    console.log('🎥 Video cargado:', file.name);
-  }, []);
-
-  // Parsear fecha y hora (mantener para compatibilidad) - CONVERTIDO A useCallback
-  const parseDateTime = useCallback((fecha, hora) => {
-    return parseDateTimeFlexible(fecha, hora);
-  }, [parseDateTimeFlexible]);
-
-  // Formatear fecha para Google Analytics - CONVERTIDO A useCallback
-  const formatGADate = useCallback((date) => {
-    return date.toISOString().split('T')[0];
-  }, []);
-
-  // Procesar datos de Analytics - CONVERTIDO A useCallback
-  const processAnalyticsData = useCallback((data) => {
-    if (!data || !data.rows || data.rows.length === 0) {
-      return { activeUsers: 0, sessions: 0, pageviews: 0 };
-    }
-
-    // Crear mapeo de métricas basado en los nombres, no en la posición
-    const metricMap = {};
-    if (data.metricHeaders) {
-      data.metricHeaders.forEach((header, index) => {
-        metricMap[header.name] = index;
-      });
-    }
-
-    const totals = data.rows.reduce((acc, row) => {
-      const result = { ...acc };
-      
-      // Mapear cada métrica por nombre en lugar de posición
-      if (metricMap.activeUsers !== undefined) {
-        result.activeUsers += parseFloat(row.metricValues?.[metricMap.activeUsers]?.value) || 0;
-      }
-      if (metricMap.sessions !== undefined) {
-        result.sessions += parseFloat(row.metricValues?.[metricMap.sessions]?.value) || 0;
-      }
-      if (metricMap.pageviews !== undefined) {
-        result.pageviews += parseFloat(row.metricValues?.[metricMap.pageviews]?.value) || 0;
-      }
-
-      return result;
-    }, { activeUsers: 0, sessions: 0, pageviews: 0 });
-
-    return totals;
-  }, []);
-
-  // Calcular impacto con vinculación directa - CONVERTIDO A useCallback
-  const calculateImpact = useCallback((spot, previousDay, previousWeek) => {
-    const impact = {};
-    
-    ['activeUsers', 'sessions', 'pageviews'].forEach(metric => {
-      const spotValue = spot[metric] || 0;
-      const prevDayValue = previousDay[metric] || 0;
-      const prevWeekValue = previousWeek[metric] || 0;
-      
-      const avgReference = (prevDayValue + prevWeekValue) / 2;
-      const increase = spotValue - avgReference;
-      const percentageChange = avgReference > 0 ? (increase / avgReference) * 100 : 0;
-
-      // Vinculación directa: requiere aumento significativo Y correlación temporal
-      const hasDirectCorrelation = percentageChange > 15 && spotValue > avgReference * 1.15;
-      
-      impact[metric] = {
-        value: spotValue,
-        reference: avgReference,
-        increase: increase,
-        percentageChange: percentageChange,
-        significant: Math.abs(percentageChange) > 10, // Para compatibilidad con métricas generales
-        directCorrelation: hasDirectCorrelation // Nueva métrica para vinculación directa
-      };
-      
-      // DEBUG: Mostrar valores para cada métrica
-      console.log(`🔍 DEBUG ${metric}:`, {
-        spotValue,
-        prevDayValue,
-        prevWeekValue,
-        avgReference,
-        increase,
-        percentageChange
-      });
-    });
-    
-    return impact;
-  }, []);
-
-  // Analizar impacto de un spot específico - MOVIDO ANTES Y CONVERTIDO A useCallback
-  const analyzeSpotImpact = useCallback(async (spot, propertyId) => {
-    // Parsear fecha y hora del spot
-    const spotDateTime = parseDateTime(spot.fecha, spot.hora);
-    
-    // Obtener datos de Analytics para diferentes períodos
-    const periods = {
-      spot: {
-        start: new Date(spotDateTime),
-        end: new Date(spotDateTime.getTime() + (spot.duracion || 30) * 1000)
-      },
-      previousDay: {
-        start: new Date(spotDateTime.getTime() - 24 * 60 * 60 * 1000),
-        end: new Date(spotDateTime.getTime() - 24 * 60 * 60 * 1000 + (spot.duracion || 30) * 1000)
-      },
-      previousWeek: {
-        start: new Date(spotDateTime.getTime() - 7 * 24 * 60 * 60 * 1000),
-        end: new Date(spotDateTime.getTime() - 7 * 24 * 60 * 60 * 1000 + (spot.duracion || 30) * 1000)
-      }
-    };
-
-    // Obtener métricas para cada período
-    const metrics = ['activeUsers', 'sessions', 'pageviews'];
-    const dimensions = ['minute'];
-    
-    const results = {};
-    
-    for (const [periodName, period] of Object.entries(periods)) {
+  useEffect(() => {
+    const fetchAnalysisData = async () => {
       try {
-        const data = await getAnalyticsData(
-          propertyId,
-          metrics,
-          dimensions,
-          {
-            startDate: formatGADate(period.start),
-            endDate: formatGADate(period.end)
-          }
-        );
-        
-        results[periodName] = processAnalyticsData(data);
-      } catch (error) {
-        console.warn(`⚠️ Error obteniendo datos para ${periodName}:`, error);
-        results[periodName] = { activeUsers: 0, sessions: 0, pageviews: 0 };
+        setLoading(true);
+        const data = await getSpotAnalysisData(currentUser.uid);
+        setAnalysisData(data);
+      } catch (err) {
+        console.error('Error fetching spot analysis data:', err);
+        setError('Error al cargar datos de análisis');
+      } finally {
+        setLoading(false);
       }
-    }
-
-    // Calcular impacto
-    const impact = calculateImpact(results.spot, results.previousDay, results.previousWeek);
-    
-    return {
-      spot: {
-        ...spot,
-        dateTime: spotDateTime
-      },
-      metrics: results,
-      impact
     };
-  }, [getAnalyticsData, formatGADate, processAnalyticsData, calculateImpact, parseDateTime]);
 
-  // Generar análisis de IA automáticamente - OPTIMIZADO CON MANEJO ROBUSTO DE ERRORES
-  const generateAutomaticAIAnalysis = useCallback(async (results) => {
-    console.log('🤖 Iniciando análisis automático de IA...');
-    
-    // Validar que tenemos resultados válidos
-    if (!results || !Array.isArray(results) || results.length === 0) {
-      console.warn('⚠️ No hay resultados válidos para análisis de IA');
-      return;
+    if (currentUser) {
+      fetchAnalysisData();
     }
-    
-    try {
-      // Generar análisis batch general primero con timeout
-      try {
-        console.log('🔄 Iniciando análisis batch...');
-        const batchAnalysisPromise = generateBatchAIAnalysis(results);
-        const timeoutPromise = new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('Timeout en análisis batch')), 10000)
-        );
-        
-        const batchAnalysis = await Promise.race([batchAnalysisPromise, timeoutPromise]);
-        setBatchAIAnalysis(batchAnalysis);
-        console.log('✅ Análisis IA general completado');
-      } catch (batchError) {
-        console.warn('⚠️ Error en análisis batch:', batchError.message);
-        setBatchAIAnalysis({
-          insights: ['Análisis batch no disponible - usando datos reales'],
-          recommendations: ['Verificar configuración de API para análisis completo'],
-          summary: 'Análisis basado en métricas reales de Google Analytics'
-        });
-      }
-      
-      // Generar análisis individual para cada spot con límite de concurrencia
-      const aiResults = {};
-      const maxConcurrent = 1; // Reducir a 1 para evitar sobrecarga
-      const delayBetweenBatches = 3000; // Aumentar delay a 3 segundos
-      
-      for (let i = 0; i < results.length; i += maxConcurrent) {
-        const batch = results.slice(i, i + maxConcurrent);
-        const batchPromises = batch.map(async (spotResult, batchIndex) => {
-          const spotIndex = i + batchIndex;
-          
-          try {
-            console.log(`🔄 Iniciando análisis IA para spot ${spotIndex + 1}...`);
-            
-            // Agregar timeout para cada análisis individual
-            const analysisPromise = generateAIAnalysis(spotResult);
-            const timeoutPromise = new Promise((_, reject) =>
-              setTimeout(() => reject(new Error(`Timeout en spot ${spotIndex + 1}`)), 15000)
-            );
-            
-            const spotAnalysis = await Promise.race([analysisPromise, timeoutPromise]);
-            aiResults[spotIndex] = spotAnalysis;
-            console.log(`✅ Análisis IA para spot ${spotIndex + 1} completado`);
-            return spotIndex;
-            
-          } catch (error) {
-            console.warn(`⚠️ Error en análisis IA para spot ${spotIndex + 1}:`, error.message);
-            
-            // Generar fallback robusto para este spot específico
-            aiResults[spotIndex] = {
-              insights: [
-                `Spot ${spotIndex + 1}: ${spotResult?.spot?.nombre || 'Sin nombre'}`,
-                'Análisis de IA temporalmente no disponible',
-                'Los datos de impacto mostrados son precisos y basados en Google Analytics'
-              ],
-              recommendations: [
-                'Verificar configuración de API keys para análisis de IA completo',
-                'Los datos de análisis de impacto siguen siendo válidos y precisos'
-              ],
-              summary: `Análisis de spot ${spotIndex + 1} basado en datos reales - IA temporalmente no disponible`
-            };
-            return spotIndex;
-          }
-        });
-        
-        // Esperar a que termine el lote actual con timeout global
-        try {
-          await Promise.allSettled(batchPromises);
-        } catch (batchError) {
-          console.warn('⚠️ Error en lote de análisis:', batchError);
-          // Continuar con el siguiente lote
-        }
-        
-        // Pausa entre lotes para no sobrecargar la API
-        if (i + maxConcurrent < results.length) {
-          console.log(`⏳ Pausa de ${delayBetweenBatches}ms antes del siguiente lote...`);
-          await new Promise(resolve => setTimeout(resolve, delayBetweenBatches));
-        }
-      }
-      
-      setAiAnalysis(aiResults);
-      console.log('🎉 Análisis automático de IA completado con fallbacks');
-      
-    } catch (error) {
-      console.error('❌ Error crítico en análisis automático de IA:', error);
-      
-      // Fallback completo si todo falla - NUNCA dejar la app sin datos
-      const fallbackResults = {};
-      results.forEach((_, index) => {
-        fallbackResults[index] = {
-          insights: [
-            `Spot ${index + 1}: ${results[index]?.spot?.nombre || 'Sin nombre'}`,
-            'Análisis de IA no disponible - usando datos reales de Google Analytics',
-            'Los datos de impacto mostrados son precisos y basados en métricas reales'
-          ],
-          recommendations: [
-            'Verificar configuración de API keys para análisis de IA completo',
-            'Los datos de análisis de impacto siguen siendo válidos y precisos',
-            'El sistema de análisis funciona correctamente con datos reales'
-          ],
-          summary: `Análisis de spot ${index + 1} completado con datos reales - IA temporalmente no disponible`
-        };
-      });
-      
-      setAiAnalysis(fallbackResults);
-      setBatchAIAnalysis({
-        insights: ['Análisis basado en datos reales de Google Analytics'],
-        recommendations: [
-          'Verificar configuración de API keys para análisis de IA completo',
-          'Los datos mostrados son precisos y basados en métricas reales'
-        ],
-        summary: 'Análisis completado exitosamente con datos reales - IA temporalmente no disponible'
-      });
-    }
-  }, []);
+  }, [currentUser]);
 
-  // Realizar análisis de impacto
-  const performAnalysis = useCallback(async () => {
-    if (!selectedProperty || spotsData.length === 0) {
-      alert('Por favor, selecciona una propiedad y carga los datos de spots');
-      return;
-    }
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <LoadingSpinner size="lg" />
+      </div>
+    );
+  }
 
     setAnalyzing(true);
     setAnalysisProgress(0);
@@ -2137,14 +1320,24 @@ const SpotAnalysis = () => {
       )}
     </div>
   );
+=======
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded max-w-md">
+          <p>{error}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header Principal - SIEMPRE VISIBLE */}
+      {/* Header Principal */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl shadow-lg p-6 text-white mb-6"
+        className="bg-gradient-to-r from-blue-700 to-blue-500 rounded-xl shadow-xl p-6 text-white mb-6"
       >
         <div className="flex items-center justify-between">
           <div>
@@ -2155,297 +1348,52 @@ const SpotAnalysis = () => {
               Plataforma inteligente de análisis con IA
             </p>
           </div>
-          <div className="flex items-center space-x-4">
-          </div>
         </div>
       </motion.div>
 
-      {/* Configuración (siempre visible) */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="bg-white shadow-xl rounded-2xl p-8 mb-6 border border-gray-100"
-      >
-        {/* Header de configuración */}
-        <div className="flex items-center mb-8">
-          <div className="p-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl mr-4">
-            <BarChart3 className="h-6 w-6 text-white" />
-          </div>
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900">Configuración del Análisis</h2>
-            <p className="text-gray-600 mt-1">Configura los parámetros para analizar el impacto de tus spots TV</p>
-          </div>
+      {/* Componentes principales con altura uniforme */}
+      <div className="p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Contenedor de Análisis de Impacto - misma altura que Nivel de Confianza */}
+        <div ref={impactRef} className="lg:col-span-2 relative">
+          <ImageExportButton
+            targetRef={impactRef}
+            filename="impact-analysis"
+            className="absolute top-4 right-4 z-10"
+          />
+          <ImpactAnalysisCard data={analysisData?.impactAnalysis} />
         </div>
-
-        {/* Grid principal de configuración */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-          {/* Card: Cuenta de Analytics */}
-          <motion.div
-            whileHover={{ y: -2 }}
-            className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-100"
-          >
-            <div className="flex items-center mb-4">
-              <div className="p-2 bg-blue-500 rounded-lg mr-3">
-                <Users className="h-5 w-5 text-white" />
-              </div>
-              <h3 className="font-semibold text-gray-900">Cuenta de Analytics</h3>
-            </div>
-            <select
-              value={selectedAccount}
-              onChange={(e) => {
-                setSelectedAccount(e.target.value);
-                setSelectedProperty('');
-              }}
-              className="w-full px-4 py-3 bg-white border border-blue-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-              disabled={!isConnected}
-            >
-              <option value="">Selecciona una cuenta...</option>
-              {sortedAccounts.map(account => (
-                <option key={account.id} value={account.id}>
-                  {account.displayName || account.account_name || account.name}
-                </option>
-              ))}
-            </select>
-            {selectedAccount && (
-              <div className="mt-3 flex items-center text-sm text-green-600">
-                <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-                Cuenta seleccionada
-              </div>
-            )}
-          </motion.div>
-
-          {/* Card: Propiedad de Analytics */}
-          <motion.div
-            whileHover={{ y: -2 }}
-            className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-6 border border-purple-100"
-          >
-            <div className="flex items-center mb-4">
-              <div className="p-2 bg-purple-500 rounded-lg mr-3">
-                <Target className="h-5 w-5 text-white" />
-              </div>
-              <h3 className="font-semibold text-gray-900">Propiedad de Analytics</h3>
-            </div>
-            <select
-              value={selectedProperty}
-              onChange={(e) => setSelectedProperty(e.target.value)}
-              className="w-full px-4 py-3 bg-white border border-purple-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
-              disabled={!isConnected || !selectedAccount}
-            >
-              <option value="">
-                {selectedAccount ? 'Selecciona una propiedad...' : 'Primero selecciona una cuenta'}
-              </option>
-              {filteredProperties.map(property => (
-                <option key={property.id} value={property.id}>
-                  {property.displayName || property.property_name || property.name}
-                </option>
-              ))}
-            </select>
-            {selectedProperty && (
-              <div className="mt-3 flex items-center text-sm text-green-600">
-                <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-                Propiedad seleccionada
-              </div>
-            )}
-          </motion.div>
-
-          {/* Card: Archivo de Spots */}
-          <motion.div
-            whileHover={{ y: -2 }}
-            className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-6 border border-green-100"
-          >
-            <div className="flex items-center mb-4">
-              <div className="p-2 bg-green-500 rounded-lg mr-3">
-                <Upload className="h-5 w-5 text-white" />
-              </div>
-              <h3 className="font-semibold text-gray-900">Archivo de Spots</h3>
-            </div>
-            <div className="relative">
-              <input
-                type="file"
-                accept=".xlsx,.xls,.csv"
-                onChange={handleSpotsFileUpload}
-                className="hidden"
-                id="spots-file-upload"
-              />
-              <label
-                htmlFor="spots-file-upload"
-                className="flex flex-col items-center justify-center w-full px-6 py-8 border-2 border-dashed border-green-300 rounded-lg cursor-pointer hover:border-green-400 hover:bg-green-50 transition-all bg-white"
-              >
-                <Upload className="h-8 w-8 text-green-500 mb-2" />
-                <span className="text-sm text-gray-600 text-center">
-                  {spotsFile ? (
-                    <span className="text-green-600 font-medium">{spotsFile.name}</span>
-                  ) : (
-                    'Selecciona archivo Excel o CSV'
-                  )}
-                </span>
-              </label>
-            </div>
-            {spotsData.length > 0 && (
-              <div className="mt-3 flex items-center text-sm text-green-600">
-                <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-                {spotsData.length} spots cargados exitosamente
-              </div>
-            )}
-          </motion.div>
-        </div>
-
-        {/* Sección opcional: Video */}
-        <motion.div
-          whileHover={{ y: -1 }}
-          className="bg-gradient-to-r from-gray-50 to-slate-50 rounded-xl p-6 mb-8 border border-gray-200"
-        >
-          <div className="flex items-center mb-4">
-            <div className="p-2 bg-gray-500 rounded-lg mr-3">
-              <Video className="h-5 w-5 text-white" />
-            </div>
-            <div>
-              <h3 className="font-semibold text-gray-900">Video del Spot (Opcional)</h3>
-              <p className="text-sm text-gray-600">Sube el video para análisis visual adicional</p>
-            </div>
-          </div>
-          <div className="relative">
-            <input
-              type="file"
-              accept="video/*"
-              onChange={handleVideoUpload}
-              className="hidden"
-              id="video-upload"
+        
+        {/* Columna derecha: Nivel de Confianza y Smart Insights */}
+        <div className="flex flex-col gap-6">
+          <div ref={confidenceRef} className="relative flex-1">
+            <ImageExportButton
+              targetRef={confidenceRef}
+              filename="confidence-level"
+              className="absolute top-4 right-4 z-10"
             />
-            <label
-              htmlFor="video-upload"
-              className="flex items-center justify-center w-full px-6 py-4 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-gray-400 hover:bg-gray-50 transition-all bg-white"
-            >
-              <Video className="h-6 w-6 text-gray-400 mr-3" />
-              <span className="text-sm text-gray-600">
-                {videoFile ? (
-                  <span className="text-blue-600 font-medium">{videoFile.name}</span>
-                ) : (
-                  'Selecciona video del spot'
-                )}
-              </span>
-            </label>
+            <ConfidenceLevelCard confidence={analysisData?.confidenceLevel} />
           </div>
-        </motion.div>
-
-        {/* Botón de análisis principal */}
-        <div className="flex justify-center mb-8">
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            onClick={performAnalysis}
-            disabled={analyzing || !selectedProperty || spotsData.length === 0}
-            className="inline-flex items-center px-12 py-4 text-lg font-semibold rounded-xl text-white bg-gradient-to-r from-blue-600 via-purple-600 to-blue-700 hover:from-blue-700 hover:via-purple-700 hover:to-blue-800 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transition-all duration-300"
-          >
-            {analyzing ? (
-              <>
-                <RefreshCw className="h-6 w-6 mr-3 animate-spin" />
-                Analizando Impacto...
-              </>
-            ) : (
-              <>
-                <BarChart3 className="h-6 w-6 mr-3" />
-                Analizar Impacto de Spots
-              </>
-            )}
-          </motion.button>
-        </div>
-
-        {/* Progreso del análisis mejorado */}
-        {analyzing && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-6 mb-6 border border-blue-200"
-          >
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center">
-                <div className="p-2 bg-blue-500 rounded-lg mr-3">
-                  <RefreshCw className="h-5 w-5 text-white animate-spin" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900">Analizando Impacto</h3>
-                  <p className="text-sm text-gray-600">Procesando datos de Google Analytics</p>
-                </div>
-              </div>
-              <div className="text-right">
-                <div className="text-2xl font-bold text-blue-600">{analysisProgress}%</div>
-                <div className="text-sm text-gray-600">Completado</div>
-              </div>
-            </div>
-            <div className="w-full bg-gray-200 rounded-full h-4 mb-3">
-              <motion.div
-                className="bg-gradient-to-r from-blue-500 to-purple-600 h-4 rounded-full"
-                initial={{ width: 0 }}
-                animate={{ width: `${analysisProgress}%` }}
-                transition={{ duration: 0.5 }}
-              />
-            </div>
-            <p className="text-sm text-gray-600 text-center">
-              Analizando spot {Math.ceil((analysisProgress / 100) * spotsData.length)} de {spotsData.length}...
-            </p>
-          </motion.div>
-        )}
-
-        {/* Conexión a Analytics mejorada */}
-        {!isConnected && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-xl p-6"
-          >
-            <div className="flex items-start">
-              <div className="p-2 bg-yellow-500 rounded-lg mr-4">
-                <AlertCircle className="h-6 w-6 text-white" />
-              </div>
-              <div className="flex-1">
-                <h3 className="text-lg font-semibold text-yellow-800 mb-2">
-                  Conexión a Google Analytics Requerida
-                </h3>
-                <p className="text-yellow-700 mb-4">
-                  Para analizar el impacto de tus spots, necesitas conectar tu cuenta de Google Analytics.
-                  Esto nos permitirá acceder a los datos de tráfico y medir el efecto de tus campañas.
-                </p>
-                <div className="flex items-center text-sm text-yellow-600">
-                  <div className="w-2 h-2 bg-yellow-500 rounded-full mr-2"></div>
-                  Los datos se procesan de forma segura y privada
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </motion.div>
-
-      {/* Renderizar vista según el modo */}
-      {viewMode === 'modern' ? renderModernView() : renderClassicView()}
-      
-      {/* Modal de recarga forzada */}
-      {showReloadPrompt && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md mx-4">
-            <h3 className="text-lg font-bold mb-4">🔄 Código Actualizado Detectado</h3>
-            <p className="text-gray-600 mb-6">
-              El sistema ha sido actualizado para detectar correctamente los títulos de programas.
-              <br /><br />
-              ¿Deseas recargar la página para aplicar los cambios?
-            </p>
-            <div className="flex space-x-4">
-              <button
-                onClick={() => window.location.reload(true)}
-                className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700"
-              >
-                Recargar Página
-              </button>
-              <button
-                onClick={() => setShowReloadPrompt(false)}
-                className="flex-1 bg-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-400"
-              >
-                Cancelar
-              </button>
-            </div>
+          
+          <div ref={insightsRef} className="relative flex-1">
+            <ImageExportButton
+              targetRef={insightsRef}
+              filename="smart-insights"
+              className="absolute top-4 right-4 z-10"
+            />
+            <SmartInsightsCard insights={analysisData?.smartInsights} />
           </div>
         </div>
-      )}
+        
+        {/* Mapa de Calor - ancho completo debajo */}
+        <div ref={trafficRef} className="lg:col-span-3 relative">
+          <ImageExportButton
+            targetRef={trafficRef}
+            filename="traffic-heatmap"
+            className="absolute top-4 right-4 z-10"
+          />
+          <TrafficHeatmap data={analysisData?.trafficData} />
+        </div>
+      </div>
     </div>
   );
 };
