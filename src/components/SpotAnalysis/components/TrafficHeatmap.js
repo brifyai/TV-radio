@@ -1,10 +1,6 @@
-import React, { useRef } from 'react';
-import ImageExportButton from '../../UI/ImageExportButton';
+import React from 'react';
 
 const TrafficHeatmap = () => {
-  // Referencia para exportar imagen
-  const exportRef = useRef();
-
   // Datos de ejemplo para el mapa de calor
   const days = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
   const hours = ['0', '3', '6', '9', '12', '15', '18', '21'];
@@ -28,14 +24,7 @@ const TrafficHeatmap = () => {
   };
 
   return (
-    <div ref={exportRef} className="bg-white rounded-xl shadow-lg p-6 border border-gray-100 relative">
-      {/* Botón de exportar */}
-      <ImageExportButton
-        targetRef={exportRef}
-        filename="traffic-heatmap"
-        className="absolute top-4 right-4 z-10"
-      />
-
+    <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
       <div className="flex justify-between items-center mb-4">
         <div>
           <h2 className="text-xl font-bold text-gray-900">Mapa de Calor de Tráfico</h2>
