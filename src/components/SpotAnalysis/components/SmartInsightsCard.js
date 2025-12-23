@@ -1,49 +1,28 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import PropTypes from 'prop-types';
 
-const SmartInsightsCard = () => {
-  const insights = [
-    {
-      category: 'Timing del Spot',
-      value: 39,
-      icon: '⏰',
-      text: 'Timing alternativo: Considera spots en horarios de mayor actividad web para maximizar impacto.',
-      color: 'bg-blue-100',
-      border: 'border-blue-300'
-    },
-    {
-      category: 'Análisis de Impacto',
-      value: 95,
-      icon: '📊',
-      text: 'Impacto moderado: -52.2% de aumento. Considera optimizar el contenido o timing del spot.',
-      color: 'bg-green-100',
-      border: 'border-green-300'
-    },
-    {
-      category: 'Sostenibilidad del Efecto',
-      value: 64,
-      icon: '⚡',
-      text: 'Efecto sostenido: El tráfico se mantuvo elevado durante la transmisión del spot.',
-      color: 'bg-yellow-100',
-      border: 'border-yellow-300'
-    },
-    {
-      category: 'Tasa de Conversión Real',
-      value: 70,
-      icon: '📊',
-      text: 'Tasa real medida: 0% (0 páginas vistas / 11 sesiones). Considera optimizar la experiencia del usuario.',
-      color: 'bg-purple-100',
-      border: 'border-purple-300'
-    },
-    {
-      category: 'Benchmarking',
-      value: 95,
-      icon: '📊',
-      text: 'Por debajo del promedio: Tu spot generó 93.5% menos impacto. Hay oportunidad de mejora.',
-      color: 'bg-red-100',
-      border: 'border-red-300'
-    }
-  ];
+const SmartInsightsCard = ({ insights = [] }) => {
+  // Si no hay insights, mostrar mensaje
+  if (!insights || insights.length === 0) {
+    return (
+      <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 className="text-xl font-bold text-gray-900">Smart Insights</h2>
+            <p className="text-gray-600">Análisis inteligente automático</p>
+          </div>
+          <div className="flex items-center bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm font-medium">
+            <div className="w-2 h-2 bg-yellow-500 rounded-full mr-2"></div>
+            Cargando datos...
+          </div>
+        </div>
+        <div className="text-center py-8 text-gray-500">
+          No hay datos de análisis disponibles
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
@@ -88,6 +67,19 @@ const SmartInsightsCard = () => {
       </div>
     </div>
   );
+};
+
+SmartInsightsCard.propTypes = {
+  insights: PropTypes.arrayOf(
+    PropTypes.shape({
+      category: PropTypes.string.isRequired,
+      value: PropTypes.number.isRequired,
+      icon: PropTypes.string.isRequired,
+      text: PropTypes.string.isRequired,
+      color: PropTypes.string.isRequired,
+      border: PropTypes.string.isRequired
+    })
+  )
 };
 
 export default SmartInsightsCard;
