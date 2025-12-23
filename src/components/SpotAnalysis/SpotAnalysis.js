@@ -80,44 +80,52 @@ const SpotAnalysis = () => {
 
       {/* Componentes principales con altura uniforme */}
       <div className="p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Contenedor de Análisis de Impacto - misma altura que Nivel de Confianza */}
-        <div ref={impactRef} className="lg:col-span-2 relative">
-          <ImageExportButton
-            targetRef={impactRef}
-            filename="impact-analysis"
-            className="absolute top-4 right-4 z-10"
-          />
+        {/* Contenedor de Análisis de Impacto - sin relative para evitar problemas de posicionamiento */}
+        <div ref={impactRef} className="lg:col-span-2">
+          <div className="flex justify-end mb-4">
+            <ImageExportButton
+              targetRef={impactRef}
+              filename="impact-analysis"
+              className="z-10"
+            />
+          </div>
           <ImpactAnalysisCard data={analysisData?.impactAnalysis} />
         </div>
         
         {/* Columna derecha: Nivel de Confianza y Smart Insights */}
         <div className="flex flex-col gap-6">
-          <div ref={confidenceRef} className="relative flex-1">
-            <ImageExportButton
-              targetRef={confidenceRef}
-              filename="confidence-level"
-              className="absolute top-4 right-4 z-10"
-            />
+          <div ref={confidenceRef} className="flex-1">
+            <div className="flex justify-end mb-4">
+              <ImageExportButton
+                targetRef={confidenceRef}
+                filename="confidence-level"
+                className="z-10"
+              />
+            </div>
             <ConfidenceLevelCard confidence={analysisData?.confidenceLevel} />
           </div>
           
-          <div ref={insightsRef} className="relative flex-1">
-            <ImageExportButton
-              targetRef={insightsRef}
-              filename="smart-insights"
-              className="absolute top-4 right-4 z-10"
-            />
+          <div ref={insightsRef} className="flex-1">
+            <div className="flex justify-end mb-4">
+              <ImageExportButton
+                targetRef={insightsRef}
+                filename="smart-insights"
+                className="z-10"
+              />
+            </div>
             <SmartInsightsCard insights={analysisData?.smartInsights} />
           </div>
         </div>
         
         {/* Mapa de Calor - ancho completo debajo */}
-        <div ref={trafficRef} className="lg:col-span-3 relative">
-          <ImageExportButton
-            targetRef={trafficRef}
-            filename="traffic-heatmap"
-            className="absolute top-4 right-4 z-10"
-          />
+        <div ref={trafficRef} className="lg:col-span-3">
+          <div className="flex justify-end mb-4">
+            <ImageExportButton
+              targetRef={trafficRef}
+              filename="traffic-heatmap"
+              className="z-10"
+            />
+          </div>
           <TrafficHeatmap data={analysisData?.trafficData} />
         </div>
       </div>
