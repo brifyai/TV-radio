@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../../contexts/AuthContext';
 import { getSpotAnalysisData } from '../../services/spotAnalysisService';
@@ -7,7 +7,7 @@ import ConfidenceLevelCard from './components/ConfidenceLevelCard';
 import SmartInsightsCard from './components/SmartInsightsCard';
 import TrafficHeatmap from './components/TrafficHeatmap';
 import LoadingSpinner from '../UI/LoadingSpinner';
-import ImageExportButton from '../UI/ImageExportButton';
+import SimpleExportButton from '../UI/SimpleExportButton';
 
 const SpotAnalysis = () => {
   const { currentUser } = useAuth();
@@ -15,11 +15,13 @@ const SpotAnalysis = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   
-  // Referencias para exportar imágenes
-  const impactRef = useRef();
-  const confidenceRef = useRef();
-  const insightsRef = useRef();
-  const trafficRef = useRef();
+  // Sistema de exportación sin referencias compartidas
+  const [exportStatus, setExportStatus] = useState({
+    impact: false,
+    confidence: false,
+    insights: false,
+    traffic: false
+  });
 
   useEffect(() => {
     const fetchAnalysisData = async () => {
@@ -78,14 +80,13 @@ const SpotAnalysis = () => {
         </div>
       </motion.div>
 
-      {/* Componentes principales con altura uniforme */}
+      {/* Componentes principales con NUEVO SISTEMA DE EXPORTACIÓN - SIN REFERENCIAS COMPARTIDAS */}
       <div className="p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Contenedor de Análisis de Impacto - sin relative para evitar problemas de posicionamiento */}
-        <div ref={impactRef} className="lg:col-span-2">
+        {/* Contenedor de Análisis de Impacto - con data-export para el nuevo sistema */}
+        <div className="lg:col-span-2" data-export="impact">
           <div className="flex justify-end mb-4">
-            <ImageExportButton
-              targetRef={impactRef}
-              filename="impact-analysis"
+            <SimpleExportButton
+              exportType="impact"
               className="z-10"
             />
           </div>
@@ -94,22 +95,20 @@ const SpotAnalysis = () => {
         
         {/* Columna derecha: Nivel de Confianza y Smart Insights */}
         <div className="flex flex-col gap-6">
-          <div ref={confidenceRef} className="flex-1">
+          <div data-export="confidence">
             <div className="flex justify-end mb-4">
-              <ImageExportButton
-                targetRef={confidenceRef}
-                filename="confidence-level"
+              <SimpleExportButton
+                exportType="confidence"
                 className="z-10"
               />
             </div>
             <ConfidenceLevelCard confidence={analysisData?.confidenceLevel} />
           </div>
           
-          <div ref={insightsRef} className="flex-1">
+          <div data-export="insights">
             <div className="flex justify-end mb-4">
-              <ImageExportButton
-                targetRef={insightsRef}
-                filename="smart-insights"
+              <SimpleExportButton
+                exportType="insights"
                 className="z-10"
               />
             </div>
@@ -118,11 +117,10 @@ const SpotAnalysis = () => {
         </div>
         
         {/* Mapa de Calor - ancho completo debajo */}
-        <div ref={trafficRef} className="lg:col-span-3">
+        <div className="lg:col-span-3" data-export="traffic">
           <div className="flex justify-end mb-4">
-            <ImageExportButton
-              targetRef={trafficRef}
-              filename="traffic-heatmap"
+            <SimpleExportButton
+              exportType="traffic"
               className="z-10"
             />
           </div>
