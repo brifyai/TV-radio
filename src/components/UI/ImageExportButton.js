@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import html2canvas from 'html2canvas';
 import { Download, Loader2 } from 'lucide-react';
 
@@ -15,6 +15,7 @@ const ImageExportButton = ({
   className = ''
 }) => {
   const [isExporting, setIsExporting] = useState(false);
+  const buttonRef = useRef();
 
   const exportAsImage = async () => {
     if (!targetRef?.current) {
@@ -26,9 +27,10 @@ const ImageExportButton = ({
     
     try {
       const element = targetRef.current;
+      const button = buttonRef.current;
       
       // Guardar estado original para restaurar después
-      const originalStyle = {
+      const originalElementStyle = {
         position: element.style.position,
         width: element.style.width,
         height: element.style.height,
@@ -37,6 +39,14 @@ const ImageExportButton = ({
         transition: element.style.transition,
         overflow: element.style.overflow
       };
+      
+      // Guardar estado del botón
+      const originalButtonStyle = {
+        display: button.style.display
+      };
+      
+      // Ocultar el botón durante la exportación
+      button.style.display = 'none';
       
       // Forzar layout fijo para exportación
       element.style.position = 'relative';
@@ -58,7 +68,7 @@ const ImageExportButton = ({
       });
       
       // Esperar renderizado completo (más tiempo para componentes complejos)
-      await new Promise(resolve => setTimeout(resolve, 800));
+      await new Promise(resolve => setTimeout(resolve, 500));
       
       // Configuración mejorada para exportación
       const canvas = await html2canvas(element, {
@@ -68,34 +78,18 @@ const ImageExportButton = ({
         width: element.scrollWidth,
         height: element.scrollHeight,
         logging: false,
-        imageTimeout: 20000, // Más tiempo para componentes complejos
-        onclone: (clonedDoc) => {
-          const clonedElement = clonedDoc.querySelector('[data-export-id]');
-          if (clonedElement) {
-            // Aplicar estilos de exportación al elemento clonado
-            clonedElement.style.position = 'relative';
-            clonedElement.style.width = '100%';
-            clonedElement.style.height = 'auto';
-            clonedElement.style.transform = 'none';
-            clonedElement.style.animation = 'none';
-            clonedElement.style.transition = 'none';
-            clonedElement.style.overflow = 'visible';
-            
-            // Resetear estilos en todos los elementos hijos del clon
-            const clonedChildren = clonedElement.querySelectorAll('*');
-            clonedChildren.forEach(child => {
-              child.style.transform = 'none';
-              child.style.animation = 'none';
-              child.style.transition = 'none';
-              child.style.opacity = '1';
-              child.style.visibility = 'visible';
-            });
-          }
+        imageTimeout: 15000, // Tiempo optimizado
+        ignoreElements: (el) => {
+          // Ignorar elementos con clase 'no-export'
+          return el.classList.contains('no-export');
         }
       });
       
-      // Restaurar estilo original
-      Object.assign(element.style, originalStyle);
+      // Restaurar estilo original del elemento
+      Object.assign(element.style, originalElementStyle);
+      
+      // Restaurar estilo del botón
+      Object.assign(button.style, originalButtonStyle);
 
       // Crear enlace de descarga
       const link = document.createElement('a');
@@ -119,6 +113,7 @@ const ImageExportButton = ({
 
   return (
     <button
+      ref={buttonRef}
       onClick={exportAsImage}
       disabled={isExporting}
       className={`
