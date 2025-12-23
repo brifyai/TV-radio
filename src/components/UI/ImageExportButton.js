@@ -133,7 +133,7 @@ const ImageExportButton = ({
       ) : (
         <>
           <Download className="h-4 w-4 mr-2" />
-          Descargar Imagen
+          Descargar
         </>
       )}
     </button>
