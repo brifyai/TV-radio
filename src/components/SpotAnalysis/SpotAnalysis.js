@@ -1,20 +1,25 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../../contexts/AuthContext';
-import { getSpotAnalysisData } from '../../services/spotAnalysisService'; // Nuevo servicio
-
-// Importar componentes
+import { getSpotAnalysisData } from '../../services/spotAnalysisService';
 import ImpactAnalysisCard from './components/ImpactAnalysisCard';
 import ConfidenceLevelCard from './components/ConfidenceLevelCard';
 import SmartInsightsCard from './components/SmartInsightsCard';
 import TrafficHeatmap from './components/TrafficHeatmap';
 import LoadingSpinner from '../UI/LoadingSpinner';
+import ImageExportButton from '../UI/ImageExportButton';
 
 const SpotAnalysis = () => {
   const { currentUser } = useAuth();
   const [analysisData, setAnalysisData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  
+  // Referencias para exportar imágenes
+  const impactRef = useRef();
+  const confidenceRef = useRef();
+  const insightsRef = useRef();
+  const trafficRef = useRef();
 
   useEffect(() => {
     const fetchAnalysisData = async () => {
@@ -75,21 +80,41 @@ const SpotAnalysis = () => {
 
       {/* Componentes principales con altura uniforme */}
       <div className="p-6 space-y-6">
-        <div data-export-id="impact-analysis-card">
+        <div ref={impactRef} className="relative">
+          <ImageExportButton
+            targetRef={impactRef}
+            filename="impact-analysis"
+            className="absolute top-4 right-4 z-10"
+          />
           <ImpactAnalysisCard data={analysisData?.impactAnalysis} />
         </div>
         
         <div className="flex flex-col md:flex-row gap-6">
-          <div className="flex-1 min-h-[300px]" data-export-id="confidence-level-card">
+          <div ref={confidenceRef} className="flex-1 min-h-[300px] relative">
+            <ImageExportButton
+              targetRef={confidenceRef}
+              filename="confidence-level"
+              className="absolute top-4 right-4 z-10"
+            />
             <ConfidenceLevelCard confidence={analysisData?.confidenceLevel} />
           </div>
           
-          <div className="flex-1 min-h-[300px]" data-export-id="smart-insights-card">
+          <div ref={insightsRef} className="flex-1 min-h-[300px] relative">
+            <ImageExportButton
+              targetRef={insightsRef}
+              filename="smart-insights"
+              className="absolute top-4 right-4 z-10"
+            />
             <SmartInsightsCard insights={analysisData?.smartInsights} />
           </div>
         </div>
         
-        <div data-export-id="traffic-heatmap">
+        <div ref={trafficRef} className="relative">
+          <ImageExportButton
+            targetRef={trafficRef}
+            filename="traffic-heatmap"
+            className="absolute top-4 right-4 z-10"
+          />
           <TrafficHeatmap data={analysisData?.trafficData} />
         </div>
       </div>
