@@ -1,6 +1,10 @@
-import React from 'react';
+import React, { useRef } from 'react';
+import ImageExportButton from '../../UI/ImageExportButton';
 
 const ConfidenceLevelCard = () => {
+  // Referencia para exportar imagen
+  const exportRef = useRef();
+
   const confidenceLevel = 95; // Nivel de confianza del 95%
   
   // Función para determinar el color de la barra de progreso
@@ -11,7 +15,14 @@ const ConfidenceLevelCard = () => {
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100 h-full flex flex-col">
+    <div ref={exportRef} className="bg-white rounded-xl shadow-lg p-6 border border-gray-100 h-full flex flex-col relative">
+      {/* Botón de exportar */}
+      <ImageExportButton
+        targetRef={exportRef}
+        filename="confidence-level"
+        className="absolute top-4 right-4 z-10"
+      />
+
       <div>
         <h2 className="text-xl font-bold text-gray-900 mb-2">Nivel de Confianza</h2>
         <p className="text-gray-600 mb-4">Certeza del análisis estadístico</p>

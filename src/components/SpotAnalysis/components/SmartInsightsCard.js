@@ -1,8 +1,12 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { motion } from 'framer-motion';
 import PropTypes from 'prop-types';
+import ImageExportButton from '../../UI/ImageExportButton';
 
 const SmartInsightsCard = ({ insights = [] }) => {
+  // Referencia para exportar imagen
+  const exportRef = useRef();
+
   // Si no hay insights, mostrar mensaje
   if (!insights || insights.length === 0) {
     return (
@@ -25,7 +29,14 @@ const SmartInsightsCard = ({ insights = [] }) => {
   }
 
   return (
-    <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100 h-full">
+    <div ref={exportRef} className="bg-white rounded-xl shadow-lg p-6 border border-gray-100 h-full relative">
+      {/* Botón de exportar */}
+      <ImageExportButton
+        targetRef={exportRef}
+        filename="smart-insights"
+        className="absolute top-4 right-4 z-10"
+      />
+
       <div className="flex flex-col h-full">
         <div className="flex items-center justify-between mb-4">
           <div>

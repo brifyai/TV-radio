@@ -1,7 +1,11 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { motion } from 'framer-motion';
+import ImageExportButton from '../../UI/ImageExportButton';
 
 const ImpactAnalysisCard = () => {
+  // Referencia para exportar imagen
+  const exportRef = useRef();
+
   // Datos de ejemplo
   const totalSpots = 70;
   const avgImpact = -8.7;
@@ -18,7 +22,14 @@ const ImpactAnalysisCard = () => {
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
+    <div ref={exportRef} className="bg-white rounded-xl shadow-lg p-6 border border-gray-100 relative">
+      {/* Botón de exportar */}
+      <ImageExportButton
+        targetRef={exportRef}
+        filename="impact-analysis"
+        className="absolute top-4 right-4 z-10"
+      />
+
       <h2 className="text-xl font-bold text-gray-900 mb-4">Análisis de Impacto</h2>
       <p className="text-gray-600 mb-6">Resultados de todos los spots analizados</p>
       

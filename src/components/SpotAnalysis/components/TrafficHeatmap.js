@@ -1,13 +1,17 @@
-import React from 'react';
+import React, { useRef } from 'react';
+import ImageExportButton from '../../UI/ImageExportButton';
 
 const TrafficHeatmap = () => {
+  // Referencia para exportar imagen
+  const exportRef = useRef();
+
   // Datos de ejemplo para el mapa de calor
   const days = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
   const hours = ['0', '3', '6', '9', '12', '15', '18', '21'];
   
   // Generar datos aleatorios para demostración
   const generateHeatmapData = () => {
-    return days.map(() => 
+    return days.map(() =>
       hours.map(() => Math.floor(Math.random() * 100))
     );
   };
@@ -24,7 +28,14 @@ const TrafficHeatmap = () => {
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
+    <div ref={exportRef} className="bg-white rounded-xl shadow-lg p-6 border border-gray-100 relative">
+      {/* Botón de exportar */}
+      <ImageExportButton
+        targetRef={exportRef}
+        filename="traffic-heatmap"
+        className="absolute top-4 right-4 z-10"
+      />
+
       <div className="flex justify-between items-center mb-4">
         <div>
           <h2 className="text-xl font-bold text-gray-900">Mapa de Calor de Tráfico</h2>
@@ -76,7 +87,7 @@ const TrafficHeatmap = () => {
       <div className="mt-4 flex items-center">
         <div className="flex-1">
           <p className="text-sm text-gray-600">
-            <span className="font-medium">Mejor Día:</span> Lun | 
+            <span className="font-medium">Mejor Día:</span> Lun |
             <span className="font-medium ml-2">Spot Timing:</span> 06:56 p.m.
           </p>
         </div>

@@ -3,8 +3,8 @@ import html2canvas from 'html2canvas';
 import { Download, Loader2 } from 'lucide-react';
 
 /**
- * Componente de botón para exportar imágenes - VERSIÓN SIMPLIFICADA
- * Elimina parpadeo y posicionamiento complejo
+ * Componente de botón para exportar imágenes - VERSIÓN MEJORADA
+ * Soluciona problemas de parpadeo y posicionamiento
  * @param {Object} targetRef - Referencia al elemento a exportar
  * @param {string} filename - Nombre del archivo de descarga
  * @param {string} className - Clases CSS adicionales
@@ -45,59 +45,18 @@ const ImageExportButton = ({
       element.style.animation = 'none';
       element.style.transition = 'none';
       
-      // Asegurar que esté visible
-      element.scrollIntoView({ behavior: 'instant', block: 'start' });
-      
       // Esperar renderizado completo
-      await new Promise(resolve => setTimeout(resolve, 800));
+      await new Promise(resolve => setTimeout(resolve, 300));
       
-      // Configuración específica para componentes complejos
+      // Configuración simplificada para exportación
       const canvas = await html2canvas(element, {
         scale: 2,
         useCORS: true,
-        allowTaint: true,
         backgroundColor: '#ffffff',
         width: element.scrollWidth,
         height: element.scrollHeight,
-        scrollX: 0,
-        scrollY: 0,
         logging: false,
-        imageTimeout: 25000,
-        removeContainer: false,
-        onclone: (clonedDoc) => {
-          const clonedElement = clonedDoc.querySelector('[data-export-id]');
-          if (clonedElement) {
-            // Eliminar todas las transformaciones que pueden distorsionar
-            clonedElement.style.transform = 'none';
-            clonedElement.style.animation = 'none';
-            clonedElement.style.transition = 'none';
-            
-            // Forzar layout de desktop para grids responsivos
-            const grids = clonedElement.querySelectorAll('[class*="grid"]');
-            grids.forEach(grid => {
-              // Grid de 4 columnas (métricas principales)
-              if (grid.classList.contains('grid-cols-1') && grid.classList.contains('md:grid-cols-4')) {
-                grid.style.display = 'grid';
-                grid.style.gridTemplateColumns = 'repeat(4, 1fr)';
-                grid.style.gap = '1rem';
-              }
-              // Grid de 2 columnas (análisis detallado)
-              if (grid.classList.contains('grid-cols-1') && grid.classList.contains('md:grid-cols-2')) {
-                grid.style.display = 'grid';
-                grid.style.gridTemplateColumns = 'repeat(2, 1fr)';
-                grid.style.gap = '1.5rem';
-              }
-            });
-            
-            // Asegurar que todos los elementos internos mantengan su tamaño
-            const allElements = clonedElement.querySelectorAll('*');
-            allElements.forEach(el => {
-              el.style.transform = 'none';
-              el.style.animation = 'none';
-              el.style.transition = 'none';
-            });
-          }
-        }
+        imageTimeout: 15000
       });
       
       // Restaurar estilo original
@@ -106,14 +65,13 @@ const ImageExportButton = ({
       // Crear enlace de descarga
       const link = document.createElement('a');
       link.download = `${filename}_${new Date().toISOString().split('T')[0]}.png`;
-      link.href = canvas.toDataURL('image/png', 1.0); // Máxima calidad
+      link.href = canvas.toDataURL('image/png', 1.0);
       
       // Simular clic en el enlace
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
 
-      // Mostrar mensaje de éxito
       console.log('✅ Imagen exportada exitosamente');
       
     } catch (error) {
@@ -129,18 +87,24 @@ const ImageExportButton = ({
       onClick={exportAsImage}
       disabled={isExporting}
       className={`
-        absolute top-2 right-2 z-20 inline-flex items-center justify-center
-        p-1.5 bg-white border border-gray-200 rounded shadow-sm text-gray-500
-        hover:text-gray-700 hover:shadow-md cursor-pointer
-        ${isExporting ? 'opacity-50 cursor-not-allowed' : ''}
+        relative inline-flex items-center justify-center
+        px-3 py-1.5 bg-blue-600 text-white rounded-md
+        hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500
+        ${isExporting ? 'opacity-70 cursor-not-allowed' : ''}
         ${className}
       `}
       title="Exportar como imagen en alta calidad"
     >
       {isExporting ? (
-        <Loader2 className="h-3 w-3 animate-spin" />
+        <>
+          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+          Exportando...
+        </>
       ) : (
-        <Download className="h-3 w-3" />
+        <>
+          <Download className="h-4 w-4 mr-2" />
+          Descargar Imagen
+        </>
       )}
     </button>
   );
