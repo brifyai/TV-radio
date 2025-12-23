@@ -156,7 +156,7 @@ const SpotAnalysis = () => {
       setAnalyzing(false);
       setAnalysisProgress(0);
     }
-  }, [spotsData, selectedProperty, analyzeSpotImpact, generateAutomaticAIAnalysis, temporalAnalysisService, predictiveAnalyticsService, setTemporalAnalysis, setTemporalReference, setPredictiveAnalysis]
+  }, [spotsData, selectedProperty, analyzeSpotImpact, generateAutomaticAIAnalysis, temporalAnalysisService, predictiveAnalyticsService, setTemporalAnalysis, setTemporalReference, setPredictiveAnalysis]);
 
   // Función para manejar el toggle del acordeón de timeline
   const toggleTimeline = useCallback((spotIndex) => {
