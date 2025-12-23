@@ -73,18 +73,18 @@ const SpotAnalysis = () => {
         </div>
       </motion.div>
 
-      {/* Componentes principales en formato vertical */}
-      <div className="space-y-6 p-6">
+      {/* Componentes principales con altura uniforme */}
+      <div className="p-6 space-y-6">
         <div data-export-id="impact-analysis-card">
           <ImpactAnalysisCard data={analysisData?.impactAnalysis} />
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div data-export-id="confidence-level-card">
+        <div className="flex flex-col md:flex-row gap-6">
+          <div className="flex-1 min-h-[300px]" data-export-id="confidence-level-card">
             <ConfidenceLevelCard confidence={analysisData?.confidenceLevel} />
           </div>
           
-          <div data-export-id="smart-insights-card">
+          <div className="flex-1 min-h-[300px]" data-export-id="smart-insights-card">
             <SmartInsightsCard insights={analysisData?.smartInsights} />
           </div>
         </div>
