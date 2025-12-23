@@ -34,21 +34,33 @@ const ImageExportButton = ({
         height: element.style.height,
         transform: element.style.transform,
         animation: element.style.animation,
-        transition: element.style.transition
+        transition: element.style.transition,
+        overflow: element.style.overflow
       };
       
       // Forzar layout fijo para exportación
       element.style.position = 'relative';
       element.style.width = '100%';
-      element.style.height = 'auto';
+      element.style.height = `${element.scrollHeight}px`; // Usar altura real del contenido
       element.style.transform = 'none';
       element.style.animation = 'none';
       element.style.transition = 'none';
+      element.style.overflow = 'visible';
       
-      // Esperar renderizado completo
-      await new Promise(resolve => setTimeout(resolve, 300));
+      // Resetear estilos en todos los elementos hijos
+      const allElements = element.querySelectorAll('*');
+      allElements.forEach(el => {
+        el.style.transform = 'none';
+        el.style.animation = 'none';
+        el.style.transition = 'none';
+        el.style.opacity = '1';
+        el.style.visibility = 'visible';
+      });
       
-      // Configuración simplificada para exportación
+      // Esperar renderizado completo (más tiempo para componentes complejos)
+      await new Promise(resolve => setTimeout(resolve, 800));
+      
+      // Configuración mejorada para exportación
       const canvas = await html2canvas(element, {
         scale: 2,
         useCORS: true,
@@ -56,7 +68,30 @@ const ImageExportButton = ({
         width: element.scrollWidth,
         height: element.scrollHeight,
         logging: false,
-        imageTimeout: 15000
+        imageTimeout: 20000, // Más tiempo para componentes complejos
+        onclone: (clonedDoc) => {
+          const clonedElement = clonedDoc.querySelector('[data-export-id]');
+          if (clonedElement) {
+            // Aplicar estilos de exportación al elemento clonado
+            clonedElement.style.position = 'relative';
+            clonedElement.style.width = '100%';
+            clonedElement.style.height = 'auto';
+            clonedElement.style.transform = 'none';
+            clonedElement.style.animation = 'none';
+            clonedElement.style.transition = 'none';
+            clonedElement.style.overflow = 'visible';
+            
+            // Resetear estilos en todos los elementos hijos del clon
+            const clonedChildren = clonedElement.querySelectorAll('*');
+            clonedChildren.forEach(child => {
+              child.style.transform = 'none';
+              child.style.animation = 'none';
+              child.style.transition = 'none';
+              child.style.opacity = '1';
+              child.style.visibility = 'visible';
+            });
+          }
+        }
       });
       
       // Restaurar estilo original

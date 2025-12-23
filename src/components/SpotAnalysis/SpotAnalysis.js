@@ -79,8 +79,9 @@ const SpotAnalysis = () => {
       </motion.div>
 
       {/* Componentes principales con altura uniforme */}
-      <div className="p-6 space-y-6">
-        <div ref={impactRef} className="relative">
+      <div className="p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Contenedor de Análisis de Impacto - misma altura que Nivel de Confianza */}
+        <div ref={impactRef} className="lg:col-span-2 relative">
           <ImageExportButton
             targetRef={impactRef}
             filename="impact-analysis"
@@ -89,8 +90,9 @@ const SpotAnalysis = () => {
           <ImpactAnalysisCard data={analysisData?.impactAnalysis} />
         </div>
         
-        <div className="flex flex-col md:flex-row gap-6">
-          <div ref={confidenceRef} className="flex-1 min-h-[300px] relative">
+        {/* Columna derecha: Nivel de Confianza y Smart Insights */}
+        <div className="flex flex-col gap-6">
+          <div ref={confidenceRef} className="relative flex-1">
             <ImageExportButton
               targetRef={confidenceRef}
               filename="confidence-level"
@@ -99,7 +101,7 @@ const SpotAnalysis = () => {
             <ConfidenceLevelCard confidence={analysisData?.confidenceLevel} />
           </div>
           
-          <div ref={insightsRef} className="flex-1 min-h-[300px] relative">
+          <div ref={insightsRef} className="relative flex-1">
             <ImageExportButton
               targetRef={insightsRef}
               filename="smart-insights"
@@ -109,7 +111,8 @@ const SpotAnalysis = () => {
           </div>
         </div>
         
-        <div ref={trafficRef} className="relative">
+        {/* Mapa de Calor - ancho completo debajo */}
+        <div ref={trafficRef} className="lg:col-span-3 relative">
           <ImageExportButton
             targetRef={trafficRef}
             filename="traffic-heatmap"
