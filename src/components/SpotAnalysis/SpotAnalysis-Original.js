@@ -5,6 +5,7 @@ import { TemporalAnalysisService } from '../../services/temporalAnalysisService'
 import conversionAnalysisService from '../../services/conversionAnalysisService';
 import { predictiveAnalyticsService } from '../../services/predictiveAnalyticsService';
 import ChutesVideoAnalysisService from '../../services/chutesVideoAnalysisService';
+import YouTubeVideoAnalyzer from './components/YouTubeVideoAnalyzer';
 import * as XLSX from 'xlsx';
 import { motion } from 'framer-motion';
 import {
@@ -1718,42 +1719,25 @@ const SpotAnalysis = () => {
           </motion.div>
         </div>
 
-        {/* Sección opcional: Video */}
+        {/* Sección opcional: Video YouTube con IA */}
         <motion.div
           whileHover={{ y: -1 }}
-          className="bg-gradient-to-r from-gray-50 to-slate-50 rounded-xl p-6 mb-8 border border-gray-200"
+          className="bg-gradient-to-r from-red-50 to-pink-50 rounded-xl p-6 mb-8 border border-red-200"
         >
           <div className="flex items-center mb-4">
-            <div className="p-2 bg-gray-500 rounded-lg mr-3">
+            <div className="p-2 bg-gradient-to-r from-red-500 to-pink-600 rounded-lg mr-3">
               <Video className="h-5 w-5 text-white" />
             </div>
             <div>
-              <h3 className="font-semibold text-gray-900">Video del Spot (Opcional)</h3>
-              <p className="text-sm text-gray-600">Sube el video para análisis visual adicional</p>
+              <h3 className="font-semibold text-gray-900">Video del Spot con IA (YouTube)</h3>
+              <p className="text-sm text-gray-600">Inserta un video de YouTube para análisis experto con Google Gemini</p>
             </div>
           </div>
-          <div className="relative">
-            <input
-              type="file"
-              accept="video/*"
-              onChange={handleVideoUpload}
-              className="hidden"
-              id="video-upload"
-            />
-            <label
-              htmlFor="video-upload"
-              className="flex items-center justify-center w-full px-6 py-4 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-gray-400 hover:bg-gray-50 transition-all bg-white"
-            >
-              <Video className="h-6 w-6 text-gray-400 mr-3" />
-              <span className="text-sm text-gray-600">
-                {videoFile ? (
-                  <span className="text-blue-600 font-medium">{videoFile.name}</span>
-                ) : (
-                  'Selecciona video del spot'
-                )}
-              </span>
-            </label>
-          </div>
+          <YouTubeVideoAnalyzer
+            analysisResults={analysisResults}
+            spotData={spotsData}
+            isAnalyzing={analyzing}
+          />
         </motion.div>
 
         {/* Botón de análisis principal */}
