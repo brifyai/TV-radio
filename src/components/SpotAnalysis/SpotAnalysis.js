@@ -10,7 +10,6 @@ import * as XLSX from 'xlsx';
 import { motion } from 'framer-motion';
 import {
   Upload,
-  Video,
   BarChart3,
   TrendingUp,
   Eye,
@@ -537,7 +536,7 @@ const SpotAnalysis = () => {
 
       {/* Sección de subida de archivos */}
       <div className="p-6">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <div className="mb-6">
           {/* Sección principal: Archivo de Spots */}
           <motion.div
             whileHover={{ y: -2 }}
@@ -577,44 +576,6 @@ const SpotAnalysis = () => {
                 {spotsData.length} spots cargados exitosamente
               </div>
             )}
-          </motion.div>
-
-          {/* Sección opcional: Video */}
-          <motion.div
-            whileHover={{ y: -1 }}
-            className="bg-gradient-to-r from-gray-50 to-slate-50 rounded-xl p-6 border border-gray-200"
-          >
-            <div className="flex items-center mb-4">
-              <div className="p-2 bg-gray-500 rounded-lg mr-3">
-                <Video className="h-5 w-5 text-white" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-gray-900">Video del Spot (Opcional)</h3>
-                <p className="text-sm text-gray-600">Sube el video para análisis visual adicional</p>
-              </div>
-            </div>
-            <div className="relative">
-              <input
-                type="file"
-                accept="video/*"
-                onChange={handleVideoUpload}
-                className="hidden"
-                id="video-upload"
-              />
-              <label
-                htmlFor="video-upload"
-                className="flex items-center justify-center w-full px-6 py-4 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-gray-400 hover:bg-gray-50 transition-all bg-white"
-              >
-                <Video className="h-6 w-6 text-gray-400 mr-3" />
-                <span className="text-sm text-gray-600">
-                  {videoFile ? (
-                    <span className="text-blue-600 font-medium">{videoFile.name}</span>
-                  ) : (
-                    'Selecciona video del spot'
-                  )}
-                </span>
-              </label>
-            </div>
           </motion.div>
         </div>
 
