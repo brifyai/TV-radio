@@ -1,68 +1,43 @@
-[build]
-  command = "npm run build"
-  publish = "build"
+# Configuración adicional para solucionar problemas MIME type
+# Este archivo complementa netlify.toml para casos específicos
 
-# Headers globales con control de caché
+# Headers específicos para archivos JavaScript - FORZAR MIME TYPE CORRECTO
 [[headers]]
-  for = "/*"
+  for = "/static/js/*.js"
   [headers.values]
-    Content-Security-Policy = "connect-src 'self' https://uwbxyaszdqwypbebogvw.supabase.co https://api.chutes.ai https://accounts.google.com https://oauth2.googleapis.com https://www.googleapis.com https://analytics.googleapis.com https://www.google-analytics.com https://googleapis.com https://accounts.google.com/gsi/client https://apis.google.com https://ssl.gstatic.com https://www.gstatic.com https://fonts.googleapis.com https://fonts.gstatic.com; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://accounts.google.com https://apis.google.com https://www.google-analytics.com https://ssl.gstatic.com https://www.gstatic.com https://fonts.googleapis.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://fonts.gstatic.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; frame-src 'self' https://accounts.google.com https://apis.google.com; object-src 'none'; base-uri 'self'; form-action 'self' https://accounts.google.com;"
-    X-Frame-Options = "SAMEORIGIN"
-    X-Content-Type-Options = "nosniff"
-    X-XSS-Protection = "1; mode=block"
-    Referrer-Policy = "strict-origin-when-cross-origin"
-    Permissions-Policy = "geolocation=(), microphone=(), camera=()"
-    # Control de caché - NO almacenar en caché
+    Content-Type = "application/javascript"
     Cache-Control = "no-cache, no-store, must-revalidate"
-    Pragma = "no-cache"
-    Expires = "0"
 
-# Headers específicos para archivos estáticos (CSS, JS, imágenes)
+# Headers específicos para archivos CSS - FORZAR MIME TYPE CORRECTO  
+[[headers]]
+  for = "/static/css/*.css"
+  [headers.values]
+    Content-Type = "text/css"
+    Cache-Control = "no-cache, no-store, must-revalidate"
+
+# Headers para archivos en el directorio raíz
 [[headers]]
   for = "/*.js"
   [headers.values]
-    Cache-Control = "public, max-age=3600, must-revalidate"
-    # Cache por 1 hora para archivos JS
+    Content-Type = "application/javascript"
+    Cache-Control = "no-cache, no-store, must-revalidate"
 
 [[headers]]
   for = "/*.css"
   [headers.values]
-    Cache-Control = "public, max-age=3600, must-revalidate"
-    # Cache por 1 hora para archivos CSS
+    Content-Type = "text/css"
+    Cache-Control = "no-cache, no-store, must-revalidate"
 
+# Headers para chunks de webpack
 [[headers]]
-  for = "/*.png"
+  for = "/static/js/chunk-*.js"
   [headers.values]
-    Cache-Control = "public, max-age=86400, must-revalidate"
-    # Cache por 24 horas para imágenes
+    Content-Type = "application/javascript"
+    Cache-Control = "no-cache, no-store, must-revalidate"
 
+# Headers para assets de webpack
 [[headers]]
-  for = "/*.jpg"
+  for = "/static/css/chunk-*.css"
   [headers.values]
-    Cache-Control = "public, max-age=86400, must-revalidate"
-    # Cache por 24 horas para imágenes
-
-[[headers]]
-  for = "/*.svg"
-  [headers.values]
-    Cache-Control = "public, max-age=86400, must-revalidate"
-    # Cache por 24 horas para SVG
-
-# Headers para funciones serverless - NO CACHE
-[[headers]]
-  for = "/netlify/functions/*"
-  [headers.values]
-    Cache-Control = "no-cache, no-store, must-revalidate, private"
-    Pragma = "no-cache"
-    Expires = "0"
-    # Prevenir caché de respuestas de API
-
-# Headers específicos para el proxy de analytics
-[[headers]]
-  for = "/.netlify/functions/analytics-proxy/*"
-  [headers.values]
-    Cache-Control = "no-cache, no-store, must-revalidate, private"
-    Pragma = "no-cache"
-    Expires = "0"
-    Vary = "Authorization"
-    # Importante: variar por token de autorización
+    Content-Type = "text/css"
+    Cache-Control = "no-cache, no-store, must-revalidate"
