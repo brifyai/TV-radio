@@ -324,10 +324,10 @@ const SpotAnalysis = () => {
       try {
         setLoading(true);
         setError(null);
-        console.log('🔍 DEBUG: Fetching spot analysis data for user:', user?.id);
+        console.log('🔍 DEBUG: Fetching spot analysis data for user:', user?.id, 'property:', selectedProperty);
         
         console.log('🔄 Attempting to fetch real data from API...');
-        const realData = await getSpotAnalysisData(user.id);
+        const realData = await getSpotAnalysisData(user.id, selectedProperty);
         
         if (!realData || Object.keys(realData).length === 0) {
           throw new Error('No se encontraron datos para la propiedad seleccionada.');

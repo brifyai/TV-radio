@@ -5,9 +5,10 @@ import { googleAnalyticsService } from './googleAnalyticsService';
 /**
  * Obtiene datos de análisis de spots TV para un usuario
  * @param {string} userId - ID del usuario autenticado
+ * @param {string} propertyId - ID de la propiedad de Google Analytics
  * @returns {Promise<Object>} Datos de análisis estructurados
  */
-export const getSpotAnalysisData = async (userId) => {
+export const getSpotAnalysisData = async (userId, propertyId) => {
   try {
     // Validar que tenemos un userId válido
     if (!userId || userId === 'undefined' || userId === 'null') {
@@ -15,10 +16,23 @@ export const getSpotAnalysisData = async (userId) => {
       throw new Error('UserId inválido');
     }
 
-    console.log('🔍 Making API call for userId:', userId);
+    // Validar que tenemos un propertyId válido
+    if (!propertyId || propertyId === 'undefined' || propertyId === 'null') {
+      console.warn('⚠️ Invalid propertyId provided, skipping API call');
+      throw new Error('ID de propiedad inválido');
+    }
+
+    console.log('🔍 Making API call for userId:', userId, 'propertyId:', propertyId);
     
-    // Obtener datos de Google Analytics
-    const analyticsData = await googleAnalyticsService.getAnalyticsData(userId);
+    // Obtener datos de Google Analytics con parámetros básicos
+    const metrics = ['activeUsers', 'sessions', 'pageviews'];
+    const dimensions = ['minute'];
+    const dateRange = {
+      startDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 7 días atrás
+      endDate: new Date().toISOString().split('T')[0] // hoy
+    };
+    
+    const analyticsData = await googleAnalyticsService.getAnalyticsData(userId, propertyId, metrics, dimensions, dateRange);
     
     // Obtener análisis temporal
     const temporalAnalysisService = new TemporalAnalysisService();
