@@ -604,6 +604,23 @@ const SpotAnalysis = () => {
           />
         </div>
 
+        {/* Botón de análisis principal - DESPUÉS del video de YouTube */}
+        <div className="flex justify-center mb-8">
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => {
+              // Función de análisis placeholder - implementar lógica real
+              alert('Función de análisis en desarrollo. Se integrará con el sistema de análisis de spots.');
+            }}
+            disabled={!selectedProperty || spotsData.length === 0}
+            className="inline-flex items-center px-12 py-4 text-lg font-semibold rounded-xl text-white bg-gradient-to-r from-blue-600 via-purple-600 to-blue-700 hover:from-blue-700 hover:via-purple-700 hover:to-blue-800 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transition-all duration-300"
+          >
+            <BarChart3 className="h-6 w-6 mr-3" />
+            Analizar Impacto de Spots
+          </motion.button>
+        </div>
+
         {/* Componentes principales con NUEVO SISTEMA DE EXPORTACIÓN - SIN REFERENCIAS COMPARTIDAS */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Contenedor de Análisis de Impacto - ANCHO COMPLETO 100% */}
