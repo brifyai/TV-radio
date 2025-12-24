@@ -3,22 +3,97 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
 const supabaseAnonKey = process.env.REACT_APP_SUPABASE_ANON_KEY;
 
+// Diagnóstico COMPLETO en el navegador
+console.log('🔍 DIAGNÓSTICO COMPLETO SUPABASE - NAVEGADOR');
+console.log('='.repeat(60));
+
+// Verificar todas las variables REACT_APP_
+console.log('📋 Variables REACT_APP_ disponibles:');
+const reactAppVars = Object.keys(process.env).filter(key => key.startsWith('REACT_APP_'));
+reactAppVars.forEach(key => {
+  const value = process.env[key];
+  const isValid = value && !value.includes('tu_') && !value.includes('example') && !value.includes('your-project');
+  console.log(`  ${key}: ${isValid ? '✅' : '❌'} ${value ? 'DEFINIDA' : 'NO DEFINIDA'}`);
+});
+
+// Verificar específicamente Supabase
+console.log('\n🔐 Variables de Supabase:');
+console.log(`  REACT_APP_SUPABASE_URL: ${supabaseUrl || '❌ NO DEFINIDA'}`);
+console.log(`  REACT_APP_SUPABASE_ANON_KEY: ${supabaseAnonKey ? '✅ DEFINIDA' : '❌ NO DEFINIDA'}`);
+
+// Validación detallada
+const urlValid = supabaseUrl &&
+  !supabaseUrl.includes('tu_supabase_url_aqui') &&
+  !supabaseUrl.includes('your-project') &&
+  supabaseUrl.startsWith('https://') &&
+  supabaseUrl.includes('supabase.co');
+
+const keyValid = supabaseAnonKey &&
+  !supabaseAnonKey.includes('tu_supabase_anon_key_aqui') &&
+  !supabaseAnonKey.includes('example-key') &&
+  supabaseAnonKey.length > 50;
+
+console.log(`\n🎯 Validación de credenciales:`);
+console.log(`  URL válida: ${urlValid ? '✅ SÍ' : '❌ NO'}`);
+console.log(`  Key válida: ${keyValid ? '✅ SÍ' : '❌ NO'}`);
+
+// Resultado final
+const allValid = urlValid && keyValid;
+console.log(`\n📊 Resultado final: ${allValid ? '✅ CLIENTE REAL' : '❌ MOCK CLIENT'}`);
+
+if (!allValid) {
+  console.log('\n💡 Sugerencias:');
+  console.log('  1. Verifica que el archivo .env esté en la raíz del proyecto');
+  console.log('  2. Reinicia el servidor con npm start después de cambiar .env');
+  console.log('  3. Asegúrate de que las variables tengan el prefijo REACT_APP_');
+  console.log('  4. Verifica que no haya espacios en blanco alrededor del = en .env');
+}
+
+console.log('\n🧪 Información del entorno:');
+console.log(`  NODE_ENV: ${process.env.NODE_ENV}`);
+console.log(`  Entorno de desarrollo: ${process.env.NODE_ENV === 'development' ? '✅ SÍ' : '❌ NO'}`);
+console.log(`  Variables totales REACT_APP_: ${reactAppVars.length}`);
+
+console.log('\n🔍 DIAGNÓSTICO SUPABASE - VALORES REALES:');
+console.log('  REACT_APP_SUPABASE_URL:', supabaseUrl || '❌ NO DEFINIDA');
+console.log('  REACT_APP_SUPABASE_ANON_KEY:', supabaseAnonKey ? '✅ DEFINIDA' : '❌ NO DEFINIDA');
+console.log('  URL válida:', supabaseUrl && supabaseUrl !== 'tu_supabase_url_aqui' && !supabaseUrl.includes('your-project') ? '✅ SÍ' : '❌ NO');
+console.log('  Key válida:', supabaseAnonKey && supabaseAnonKey !== 'tu_supabase_anon_key_aqui' && !supabaseAnonKey.includes('example-key') ? '✅ SÍ' : '❌ NO');
+
 // Create a mock client that returns empty responses
 const mockSupabase = {
   auth: {
     getSession: () => Promise.resolve({ data: { session: null }, error: null }),
     onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }),
-    signInWithPassword: () => Promise.reject(new Error('Supabase not configured')),
-    signUp: () => Promise.reject(new Error('Supabase not configured')),
-    signInWithOAuth: () => Promise.reject(new Error('Supabase not configured')),
+    signInWithPassword: () => {
+      console.error('🚨 ERROR: Intentando usar signInWithPassword con MOCK CLIENT');
+      return Promise.reject(new Error('Supabase not configured'));
+    },
+    signUp: () => {
+      console.error('🚨 ERROR: Intentando usar signUp con MOCK CLIENT');
+      return Promise.reject(new Error('Supabase not configured'));
+    },
+    signInWithOAuth: () => {
+      console.error('🚨 ERROR: Intentando usar signInWithOAuth con MOCK CLIENT');
+      return Promise.reject(new Error('Supabase not configured'));
+    },
     signOut: () => Promise.resolve({ error: null }),
-    resetPasswordForEmail: () => Promise.reject(new Error('Supabase not configured')),
-    updateUser: () => Promise.reject(new Error('Supabase not configured'))
+    resetPasswordForEmail: () => {
+      console.error('🚨 ERROR: Intentando usar resetPasswordForEmail con MOCK CLIENT');
+      return Promise.reject(new Error('Supabase not configured'));
+    },
+    updateUser: () => {
+      console.error('🚨 ERROR: Intentando usar updateUser con MOCK CLIENT');
+      return Promise.reject(new Error('Supabase not configured'));
+    }
   },
   from: () => ({
     select: () => ({
       eq: () => ({
-        single: () => Promise.resolve({ data: null, error: new Error('Supabase not configured') }),
+        single: () => {
+          console.error('🚨 ERROR: Intentando usar from().select().eq().single() con MOCK CLIENT');
+          return Promise.resolve({ data: null, error: new Error('Supabase not configured') });
+        },
         gt: () => ({
           maybeSingle: () => Promise.resolve({ data: null, error: null })
         })
@@ -28,12 +103,27 @@ const mockSupabase = {
       }),
       maybeSingle: () => Promise.resolve({ data: null, error: null })
     }),
-    insert: () => Promise.resolve({ data: null, error: new Error('Supabase not configured') }),
-    upsert: () => Promise.resolve({ data: null, error: new Error('Supabase not configured') }),
-    update: () => Promise.resolve({ data: null, error: new Error('Supabase not configured') }),
-    delete: () => Promise.resolve({ data: null, error: new Error('Supabase not configured') })
+    insert: () => {
+      console.error('🚨 ERROR: Intentando usar insert con MOCK CLIENT');
+      return Promise.resolve({ data: null, error: new Error('Supabase not configured') });
+    },
+    upsert: () => {
+      console.error('🚨 ERROR: Intentando usar upsert con MOCK CLIENT');
+      return Promise.resolve({ data: null, error: new Error('Supabase not configured') });
+    },
+    update: () => {
+      console.error('🚨 ERROR: Intentando usar update con MOCK CLIENT');
+      return Promise.resolve({ data: null, error: new Error('Supabase not configured') });
+    },
+    delete: () => {
+      console.error('🚨 ERROR: Intentando usar delete con MOCK CLIENT');
+      return Promise.resolve({ data: null, error: new Error('Supabase not configured') });
+    }
   }),
-  rpc: () => Promise.resolve({ data: null, error: new Error('Supabase not configured') })
+  rpc: () => {
+    console.error('🚨 ERROR: Intentando usar rpc con MOCK CLIENT');
+    return Promise.resolve({ data: null, error: new Error('Supabase not configured') });
+  }
 };
 
 // Check if Supabase credentials are properly configured
@@ -41,11 +131,29 @@ const useMockClient = !supabaseUrl || !supabaseAnonKey ||
   supabaseAnonKey.includes('example-key') ||
   supabaseUrl.includes('your-project');
 
+console.log('📊 Resultado diagnóstico:', useMockClient ? '❌ Usando MOCK CLIENT' : '✅ Usando CLIENTE REAL');
+
 if (useMockClient) {
   console.warn('⚠️ Supabase credentials not properly configured. Using mock client.');
+  console.warn('💡 Para usar el cliente real, asegúrate de tener las variables de entorno correctas en el archivo .env');
 }
 
-export const supabase = useMockClient ? mockSupabase : createClient(supabaseUrl, supabaseAnonKey);
+// Crear cliente real o usar mock
+let supabaseClient;
+try {
+  if (useMockClient) {
+    supabaseClient = mockSupabase;
+  } else {
+    console.log('🚀 Creando cliente real de Supabase...');
+    supabaseClient = createClient(supabaseUrl, supabaseAnonKey);
+    console.log('✅ Cliente real de Supabase creado exitosamente');
+  }
+} catch (error) {
+  console.error('❌ Error al crear cliente Supabase:', error);
+  supabaseClient = mockSupabase;
+}
+
+export const supabase = supabaseClient;
 
 // Database schema for multi-user GA4 integration
 export const databaseSchema = {
