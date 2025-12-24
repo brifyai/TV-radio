@@ -621,40 +621,84 @@ const SpotAnalysis = () => {
           </motion.button>
         </div>
 
-        {/* Componentes principales con NUEVO SISTEMA DE EXPORTACIÓN - SIN REFERENCIAS COMPARTIDAS */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Contenedor de Análisis de Impacto - ANCHO COMPLETO 100% */}
-          <div className="lg:col-span-3" data-export="impact" id="impact-analysis-card">
-            <ImpactAnalysisCard
-              data={analysisData?.impactAnalysis}
-              exportButton={<SimpleExportButton exportType="impact" className="z-10" />}
-            />
+        {/* Componentes principales - SOLO MOSTRAR DESPUÉS DEL ANÁLISIS */}
+        {analysisData && (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Contenedor de Análisis de Impacto - ANCHO COMPLETO 100% */}
+            <div className="lg:col-span-3" data-export="impact" id="impact-analysis-card">
+              <ImpactAnalysisCard
+                data={analysisData?.impactAnalysis}
+                exportButton={<SimpleExportButton exportType="impact" className="z-10" />}
+              />
+            </div>
+            
+            {/* Nivel de Confianza - ancho completo debajo del análisis de impacto */}
+            <div className="lg:col-span-3" data-export="confidence" id="confidence-level-card">
+              <ConfidenceLevelCard
+                confidence={analysisData?.confidenceLevel}
+                exportButton={<SimpleExportButton exportType="confidence" className="z-10" />}
+              />
+            </div>
+            
+            {/* Smart Insights - ancho completo */}
+            <div className="lg:col-span-3" data-export="insights" id="smart-insights-card">
+              <SmartInsightsCard
+                insights={analysisData?.smartInsights}
+                exportButton={<SimpleExportButton exportType="insights" className="z-10" />}
+              />
+            </div>
+            
+            {/* Mapa de Calor - ancho completo */}
+            <div className="lg:col-span-3" data-export="traffic" id="traffic-heatmap-card">
+              <TrafficHeatmap
+                data={analysisData?.trafficData}
+                exportButton={<SimpleExportButton exportType="traffic" className="z-10" />}
+              />
+            </div>
           </div>
-          
-          {/* Nivel de Confianza - ancho completo debajo del análisis de impacto */}
-          <div className="lg:col-span-3" data-export="confidence" id="confidence-level-card">
-            <ConfidenceLevelCard
-              confidence={analysisData?.confidenceLevel}
-              exportButton={<SimpleExportButton exportType="confidence" className="z-10" />}
-            />
+        )}
+        
+        {/* Mensaje instructivo cuando no hay análisis */}
+        {!analysisData && !analyzing && (
+          <div className="text-center py-12">
+            <div className="bg-gray-50 rounded-xl p-8 border border-gray-200">
+              <BarChart3 className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                Listo para analizar
+              </h3>
+              <p className="text-gray-600 mb-4">
+                Configura tu cuenta de Google Analytics, carga el archivo de spots y opcionalmente agrega un video de YouTube para comenzar el análisis.
+              </p>
+              <p className="text-sm text-gray-500">
+                Los resultados del análisis aparecerán aquí una vez que hagas clic en "Analizar Impacto de Spots"
+              </p>
+            </div>
           </div>
-          
-          {/* Smart Insights - ancho completo */}
-          <div className="lg:col-span-3" data-export="insights" id="smart-insights-card">
-            <SmartInsightsCard
-              insights={analysisData?.smartInsights}
-              exportButton={<SimpleExportButton exportType="insights" className="z-10" />}
-            />
+        )}
+        
+        {/* Indicador de análisis en progreso */}
+        {analyzing && (
+          <div className="text-center py-12">
+            <div className="bg-blue-50 rounded-xl p-8 border border-blue-200">
+              <RefreshCw className="h-12 w-12 text-blue-600 mx-auto mb-4 animate-spin" />
+              <h3 className="text-lg font-medium text-blue-900 mb-2">
+                Analizando impacto de spots...
+              </h3>
+              <p className="text-blue-700">
+                Procesando datos de Google Analytics y video de YouTube
+              </p>
+              <div className="mt-4 w-full bg-blue-200 rounded-full h-2">
+                <div
+                  className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                  style={{ width: `${analysisProgress}%` }}
+                />
+              </div>
+              <p className="text-sm text-blue-600 mt-2">
+                {analysisProgress}% completado
+              </p>
+            </div>
           </div>
-          
-          {/* Mapa de Calor - ancho completo */}
-          <div className="lg:col-span-3" data-export="traffic" id="traffic-heatmap-card">
-            <TrafficHeatmap
-              data={analysisData?.trafficData}
-              exportButton={<SimpleExportButton exportType="traffic" className="z-10" />}
-            />
-          </div>
-        </div>
+        )}
       </div>
     </div>
   );
