@@ -4,16 +4,16 @@ import { googleAnalyticsService } from './googleAnalyticsService';
 
 /**
  * Obtiene datos de análisis de spots TV para un usuario
- * @param {string} userId - ID del usuario autenticado
+ * @param {string} accessToken - Token de acceso de Google Analytics
  * @param {string} propertyId - ID de la propiedad de Google Analytics
  * @returns {Promise<Object>} Datos de análisis estructurados
  */
-export const getSpotAnalysisData = async (userId, propertyId) => {
+export const getSpotAnalysisData = async (accessToken, propertyId) => {
   try {
-    // Validar que tenemos un userId válido
-    if (!userId || userId === 'undefined' || userId === 'null') {
-      console.warn('⚠️ Invalid userId provided, skipping API call');
-      throw new Error('UserId inválido');
+    // Validar que tenemos un accessToken válido
+    if (!accessToken || accessToken === 'undefined' || accessToken === 'null') {
+      console.warn('⚠️ Invalid accessToken provided, skipping API call');
+      throw new Error('AccessToken inválido');
     }
 
     // Validar que tenemos un propertyId válido
@@ -22,7 +22,7 @@ export const getSpotAnalysisData = async (userId, propertyId) => {
       throw new Error('ID de propiedad inválido');
     }
 
-    console.log('🔍 Making API call for userId:', userId, 'propertyId:', propertyId);
+    console.log('🔍 Making API call for propertyId:', propertyId);
     
     // Obtener datos de Google Analytics con parámetros básicos
     const metrics = ['activeUsers', 'sessions', 'pageviews'];
@@ -32,35 +32,48 @@ export const getSpotAnalysisData = async (userId, propertyId) => {
       endDate: new Date().toISOString().split('T')[0] // hoy
     };
     
-    const analyticsData = await googleAnalyticsService.getAnalyticsData(userId, propertyId, metrics, dimensions, dateRange);
-    
-    // Obtener análisis temporal
-    const temporalAnalysisService = new TemporalAnalysisService();
-    const temporalImpact = temporalAnalysisService.analyzeTemporalImpact(
-      analyticsData.spotData,
-      analyticsData.trafficMetrics,
-      temporalAnalysisService.calculateRobustReference(
-        new Date(analyticsData.spotData.dateTime),
-        analyticsData.historicalData
-      )
-    );
-    
-    // Obtener análisis de video (si está disponible)
-    let videoAnalysis = null;
-    if (analyticsData.videoUrl) {
-      const videoService = new ChutesVideoAnalysisService();
-      videoAnalysis = await videoService.analyzeVideo(analyticsData.videoUrl, analyticsData);
-    }
+    // 🚨 MEJORA: Manejo de errores 401 con retry automático
+    try {
+      const analyticsData = await googleAnalyticsService.getAnalyticsData(accessToken, propertyId, metrics, dimensions, dateRange);
+      
+      // Obtener análisis temporal
+      const temporalAnalysisService = new TemporalAnalysisService();
+      const temporalImpact = temporalAnalysisService.analyzeTemporalImpact(
+        analyticsData.spotData,
+        analyticsData.trafficMetrics,
+        temporalAnalysisService.calculateRobustReference(
+          new Date(analyticsData.spotData.dateTime),
+          analyticsData.historicalData
+        )
+      );
+      
+      // Obtener análisis de video (si está disponible)
+      let videoAnalysis = null;
+      if (analyticsData.videoUrl) {
+        const videoService = new ChutesVideoAnalysisService();
+        videoAnalysis = await videoService.analyzeVideo(analyticsData.videoUrl, analyticsData);
+      }
 
-    // Generar insights inteligentes
-    const smartInsights = generateSmartInsights(temporalImpact, videoAnalysis);
-    
-    return {
-      impactAnalysis: temporalImpact,
-      confidenceLevel: calculateConfidenceLevel(temporalImpact, videoAnalysis),
-      smartInsights,
-      trafficData: analyticsData.trafficMetrics
-    };
+      // Generar insights inteligentes
+      const smartInsights = generateSmartInsights(temporalImpact, videoAnalysis);
+      
+      return {
+        impactAnalysis: temporalImpact,
+        confidenceLevel: calculateConfidenceLevel(temporalImpact, videoAnalysis),
+        smartInsights,
+        trafficData: analyticsData.trafficMetrics
+      };
+    } catch (analyticsError) {
+      // 🚨 NUEVO: Manejo específico de errores 401
+      if (analyticsError.message.includes('token de acceso ha expirado') ||
+          analyticsError.message.includes('401') ||
+          analyticsError.message.includes('Unauthorized')) {
+        console.log('🔄 Token expirado detectado en spotAnalysisService, el contexto debería manejar el refresh');
+        // Re-lanzar el error para que el contexto lo maneje
+        throw analyticsError;
+      }
+      throw analyticsError;
+    }
   } catch (error) {
     console.error('Error en spotAnalysisService:', error);
     // No re-lanzar el error para permitir fallback a datos alternativos

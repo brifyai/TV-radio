@@ -6,6 +6,7 @@ import { generateAIAnalysis, generateBatchAIAnalysis } from '../../services/aiAn
 import { TemporalAnalysisService } from '../../services/temporalAnalysisService';
 import conversionAnalysisService from '../../services/conversionAnalysisService';
 import { predictiveAnalyticsService } from '../../services/predictiveAnalyticsService';
+import { supabase } from '../../config/supabase-new';
 import ExcelJS from 'exceljs';
 import { motion } from 'framer-motion';
 import {
@@ -326,8 +327,28 @@ const SpotAnalysis = () => {
         setError(null);
         console.log('🔍 DEBUG: Fetching spot analysis data for user:', user?.id, 'property:', selectedProperty);
         
+        // 🚨 MEJORA: Obtener accessToken del contexto de Google Analytics
+        const { data: { session } } = await supabase.auth.getSession();
+        let accessToken;
+        
+        if (session?.provider_token) {
+          accessToken = session.provider_token;
+        } else {
+          // Fallback: obtener token de la base de datos
+          const { data: userProfile } = await supabase
+            .from('users')
+            .select('google_access_token')
+            .eq('id', user.id)
+            .single();
+          
+          if (!userProfile?.google_access_token) {
+            throw new Error('No hay token de acceso disponible. Por favor, conecta tu cuenta de Google Analytics.');
+          }
+          accessToken = userProfile.google_access_token;
+        }
+        
         console.log('🔄 Attempting to fetch real data from API...');
-        const realData = await getSpotAnalysisData(user.id, selectedProperty);
+        const realData = await getSpotAnalysisData(accessToken, selectedProperty);
         
         if (!realData || Object.keys(realData).length === 0) {
           throw new Error('No se encontraron datos para la propiedad seleccionada.');

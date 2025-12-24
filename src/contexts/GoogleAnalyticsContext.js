@@ -175,10 +175,6 @@ export const GoogleAnalyticsProvider = ({ children }) => {
 
       if (!userProfile?.google_refresh_token) {
         console.warn('⚠️ No refresh token available, user needs to reauthenticate');
-        // Ocultar mensaje de error de sesión expirada - solo loggear
-        const errorMessage = 'Tu sesión de Google Analytics ha expirado. Por favor, vuelve a conectar tu cuenta.';
-        console.log('🔒 Mensaje de error ocultado:', errorMessage);
-        // setError(errorMessage); // COMENTADO para ocultar el mensaje
         setErrorType('session_expired');
         setIsConnected(false);
         return;
@@ -204,12 +200,10 @@ export const GoogleAnalyticsProvider = ({ children }) => {
       setErrorType(null);
       setIsConnected(true);
       await loadAccountsAndProperties(true); // Load accounts first, properties in background
+      
+      console.log('✅ Token refrescado exitosamente');
     } catch (err) {
       console.error('Error refreshing Google token:', err);
-      // Ocultar mensaje de error de sesión expirada - solo loggear
-      const errorMessage = 'Tu sesión de Google Analytics ha expirado. Por favor, vuelve a conectar tu cuenta.';
-      console.log('🔒 Mensaje de error ocultado:', errorMessage);
-      // setError(errorMessage); // COMENTADO para ocultar el mensaje
       setErrorType('session_expired');
       setIsConnected(false);
     } finally {
@@ -515,6 +509,26 @@ export const GoogleAnalyticsProvider = ({ children }) => {
       setLastErrorTime(0);
     } catch (err) {
       console.error('Error loading accounts and properties:', err);
+      
+      // 🚨 NUEVO: Intentar refresh automático en caso de error 401
+      if (err.message.includes('token de acceso ha expirado') ||
+          err.message.includes('401') ||
+          err.message.includes('Unauthorized')) {
+        console.log('🔄 Detectado error 401, intentando refresh automático del token...');
+        try {
+          await refreshGoogleToken();
+          // Si el refresh fue exitoso, intentar cargar las cuentas nuevamente
+          if (isConnected) {
+            console.log('✅ Token refrescado exitosamente, reintentando carga de cuentas...');
+            await loadAccountsAndProperties(loadProperties);
+            return; // Salir para evitar el setError
+          }
+        } catch (refreshError) {
+          console.error('❌ Error en refresh automático:', refreshError);
+          // Continuar con el manejo normal del error
+        }
+      }
+      
       setError(err.message);
       // 🚨 MANEJAR ERROR: Incrementar contador
       handleErrorIncrement(err);
@@ -870,6 +884,25 @@ export const GoogleAnalyticsProvider = ({ children }) => {
       return analyticsData;
     } catch (err) {
       console.error('Error getting analytics data:', err);
+      
+      // 🚨 NUEVO: Intentar refresh automático en caso de error 401
+      if (err.message.includes('token de acceso ha expirado') ||
+          err.message.includes('401') ||
+          err.message.includes('Unauthorized')) {
+        console.log('🔄 Detectado error 401 en getAnalyticsData, intentando refresh automático del token...');
+        try {
+          await refreshGoogleToken();
+          // Si el refresh fue exitoso, reintentar la consulta
+          if (isConnected) {
+            console.log('✅ Token refrescado exitosamente, reintentando consulta de datos...');
+            return await getAnalyticsData(propertyId, metrics, dimensions, dateRange);
+          }
+        } catch (refreshError) {
+          console.error('❌ Error en refresh automático:', refreshError);
+          // Continuar con el manejo normal del error
+        }
+      }
+      
       setError(err.message);
       throw err;
     } finally {
