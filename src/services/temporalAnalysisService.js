@@ -143,11 +143,39 @@ export class TemporalAnalysisService {
    * Obtener datos de Google Analytics para una ventana de tiempo específica
    */
   getDataForTimeWindow(start, end, analyticsData) {
-    // Filtrar datos que caen dentro de la ventana temporal
-    return analyticsData.filter(data => {
-      const dataDate = new Date(data.date);
-      return dataDate >= start && dataDate <= end;
-    });
+    // Manejar diferentes estructuras de datos de Google Analytics
+    if (!analyticsData) {
+      return [];
+    }
+    
+    // Si analyticsData es la respuesta de Google Analytics API
+    if (analyticsData.rows && Array.isArray(analyticsData.rows)) {
+      return analyticsData.rows.filter(row => {
+        // Extraer fecha del dimensionValue (formato: "2024-12-24 14:30")
+        const dimensionValue = row.dimensionValues?.[0]?.value;
+        if (!dimensionValue) return false;
+        
+        // Parsear fecha en formato "YYYY-MM-DD HH:MM"
+        const dataDate = new Date(dimensionValue.replace(' ', 'T') + ':00');
+        return dataDate >= start && dataDate <= end;
+      }).map(row => ({
+        date: row.dimensionValues?.[0]?.value,
+        activeUsers: parseInt(row.metricValues?.[0]?.value) || 0,
+        sessions: parseInt(row.metricValues?.[1]?.value) || 0,
+        pageviews: parseInt(row.metricValues?.[2]?.value) || 0
+      }));
+    }
+    
+    // Si analyticsData ya es un array de datos procesados
+    if (Array.isArray(analyticsData)) {
+      return analyticsData.filter(data => {
+        const dataDate = new Date(data.date);
+        return dataDate >= start && dataDate <= end;
+      });
+    }
+    
+    // Si no hay datos válidos, retornar array vacío
+    return [];
   }
 
   /**
