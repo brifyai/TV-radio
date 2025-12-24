@@ -55,6 +55,11 @@ const Login = () => {
 
       await signInWithEmail(formData.email, formData.password);
       setSuccess('¡Inicio de sesión exitoso!');
+      
+      // Redirigir al dashboard después de un login exitoso
+      setTimeout(() => {
+        navigate('/dashboard');
+      }, 1000);
     } catch (err) {
       setError(err.message);
     } finally {

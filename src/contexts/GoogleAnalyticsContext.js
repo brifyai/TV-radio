@@ -482,6 +482,12 @@ export const GoogleAnalyticsProvider = ({ children }) => {
       // Load accounts first - this is fast
       const accountsData = await googleAnalyticsService.getAccounts(accessToken);
       
+      // 🚨 VALIDACIÓN CRÍTICA: Asegurar que accountsData sea un array
+      if (!accountsData || !Array.isArray(accountsData)) {
+        console.error('❌ ERROR: accountsData no es un array válido:', accountsData);
+        throw new Error('Error al obtener cuentas: datos inválidos recibidos');
+      }
+      
       // Procesar las cuentas para extraer el ID del campo name
       const processedAccounts = accountsData.map(account => {
         // Extraer el ID numérico del campo name (formato: "accounts/123456")

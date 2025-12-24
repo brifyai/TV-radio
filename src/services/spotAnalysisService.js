@@ -9,6 +9,14 @@ import { googleAnalyticsService } from './googleAnalyticsService';
  */
 export const getSpotAnalysisData = async (userId) => {
   try {
+    // Validar que tenemos un userId válido
+    if (!userId || userId === 'undefined' || userId === 'null') {
+      console.warn('⚠️ Invalid userId provided, skipping API call');
+      throw new Error('UserId inválido');
+    }
+
+    console.log('🔍 Making API call for userId:', userId);
+    
     // Obtener datos de Google Analytics
     const analyticsData = await googleAnalyticsService.getAnalyticsData(userId);
     
@@ -33,7 +41,8 @@ export const getSpotAnalysisData = async (userId) => {
     };
   } catch (error) {
     console.error('Error en spotAnalysisService:', error);
-    throw new Error('Error al obtener datos de análisis de spots TV');
+    // No re-lanzar el error para permitir fallback a datos simulados
+    throw error;
   }
 };
 

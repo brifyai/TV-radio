@@ -311,7 +311,7 @@ const Layout = () => {
       )}
 
       {/* Main content */}
-      <div className={`flex flex-col flex-1 ${!fullscreenMode ? 'md:pl-72' : ''} ${location.pathname === '/spot-analysis' ? 'overflow-visible' : 'overflow-hidden'}`}>
+      <div className={`flex flex-col flex-1 ${!fullscreenMode ? 'md:pl-72' : ''}`}>
         {/* Header - siempre visible */}
         <header className="bg-white shadow">
           <div className="w-full px-4 sm:px-6 lg:px-8">
@@ -457,16 +457,10 @@ const Layout = () => {
               </div>
             )}
 
-            {/* SPECIAL HANDLING FOR SPOT ANALYSIS - BREAK OUT OF CONTAINER */}
-            {location.pathname === '/spot-analysis' ? (
-              <div className="w-screen relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw]">
-                <Outlet />
-              </div>
-            ) : (
-              <div className="w-full">
-                <Outlet />
-              </div>
-            )}
+            {/* Layout normal para todas las páginas */}
+            <div className="w-full">
+              <Outlet />
+            </div>
           </div>
         </main>
 
