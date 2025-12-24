@@ -470,7 +470,7 @@ const SpotAnalysis = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             {/* Selección de Cuenta */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -546,36 +546,6 @@ const SpotAnalysis = () => {
                   {spotsData.length} spots cargados
                 </div>
               )}
-            </div>
-
-            {/* Video del Spot con IA (YouTube) */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Video del Spot (YouTube)
-              </label>
-              <div className="relative">
-                <input
-                  type="url"
-                  placeholder="https://youtube.com/watch?v=..."
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm"
-                  onChange={(e) => {
-                    // Validar URL de YouTube
-                    const url = e.target.value;
-                    const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)[a-zA-Z0-9_-]{11}(\S*)?$/;
-                    if (youtubeRegex.test(url)) {
-                      // Aquí se integraría la lógica de análisis
-                      console.log('URL de YouTube válida:', url);
-                    }
-                  }}
-                />
-                <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                  <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                </div>
-              </div>
-              <div className="mt-1 flex items-center text-xs text-gray-500">
-                <div className="w-2 h-2 bg-red-500 rounded-full mr-2"></div>
-                Análisis con IA
-              </div>
             </div>
           </div>
 
