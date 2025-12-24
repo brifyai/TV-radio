@@ -597,7 +597,13 @@ const SpotAnalysis = () => {
         
         try {
           // Obtener datos históricos para referencia robusta (últimos 30 días)
-          const spotDateTime = results[0].spot.dateTime;
+          const firstSpot = results[0]?.spot;
+          if (!firstSpot?.dateTime) {
+            console.warn('⚠️ No se puede realizar análisis temporal: primer spot sin dateTime válido');
+            return;
+          }
+          
+          const spotDateTime = firstSpot.dateTime;
           const historicalData = await temporalAnalysisService.getHistoricalData(
             selectedProperty,
             new Date(spotDateTime.getTime() - 30 * 24 * 60 * 60 * 1000), // 30 días atrás
@@ -636,7 +642,12 @@ const SpotAnalysis = () => {
         
         try {
           // Generar análisis predictivo para el primer spot (como ejemplo)
-          const spotForPrediction = results[0].spot;
+          const spotForPrediction = results[0]?.spot;
+          if (!spotForPrediction?.dateTime) {
+            console.warn('⚠️ No se puede realizar análisis predictivo: spot sin dateTime válido');
+            return;
+          }
+          
           const historicalDataForPrediction = await temporalAnalysisService.getHistoricalData(
             selectedProperty,
             new Date(spotForPrediction.dateTime.getTime() - 30 * 24 * 60 * 60 * 1000),
