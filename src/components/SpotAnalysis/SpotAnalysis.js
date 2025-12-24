@@ -6,6 +6,7 @@ import ImpactAnalysisCard from './components/ImpactAnalysisCard';
 import ConfidenceLevelCard from './components/ConfidenceLevelCard';
 import SmartInsightsCard from './components/SmartInsightsCard';
 import TrafficHeatmap from './components/TrafficHeatmap';
+import YouTubeVideoInput from './components/YouTubeVideoInput';
 import LoadingSpinner from '../UI/LoadingSpinner';
 import SimpleExportButton from '../UI/SimpleExportButton';
 
@@ -14,6 +15,7 @@ const SpotAnalysis = () => {
   const [analysisData, setAnalysisData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [youtubeAnalysis, setYoutubeAnalysis] = useState(null);
   
 
   useEffect(() => {
@@ -72,6 +74,15 @@ const SpotAnalysis = () => {
           </div>
         </div>
       </motion.div>
+
+      {/* Sección de Video con IA - Nueva integración YouTube */}
+      <div className="p-6">
+        <YouTubeVideoInput
+          analysisResults={analysisData?.impactAnalysis?.analysisResults}
+          isAnalyzing={loading}
+          onAnalysisComplete={(data) => setYoutubeAnalysis(data)}
+        />
+      </div>
 
       {/* Componentes principales con NUEVO SISTEMA DE EXPORTACIÓN - SIN REFERENCIAS COMPARTIDAS */}
       <div className="p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
