@@ -1,5 +1,2 @@
-# Trigger de reconstrucción forzada
-# Fecha: 2025-12-24T13:30:58.111Z
-# Razón: Limpieza de caché forzada
-TIMESTAMP: 1766583058111
-CACHE_BUST: true
+# REBUILD TRIGGER - 1766587986015
+# Este archivo fuerza a Netlify a hacer un rebuild completo

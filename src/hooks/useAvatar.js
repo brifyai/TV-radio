@@ -54,7 +54,7 @@ const useAvatar = () => {
       });
 
       // Actualizar en auth metadata
-      const { supabase } = await import('../config/supabase');
+      const { supabase } = await import('../config/supabase-new');
       const { error: authError } = await supabase.auth.updateUser({
         data: { avatar_url: newAvatarUrl }
       });

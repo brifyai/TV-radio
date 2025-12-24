@@ -172,7 +172,7 @@ export const GoogleAnalyticsProvider = ({ children }) => {
       setError(null);
 
       // CRITICAL: Verificar que hay una sesión activa antes de proceder
-      const { supabase } = await import('../config/supabase');
+      const { supabase } = await import('../config/supabase-new');
       const { data: { session: currentSession } } = await supabase.auth.getSession();
       
       if (!currentSession) {

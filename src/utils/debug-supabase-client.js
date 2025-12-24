@@ -14,7 +14,7 @@ window.debugSupabase = function() {
   // Importar el cliente de Supabase
   try {
     // Esto debe ejecutarse después de que se haya cargado el módulo
-    import('../config/supabase.js').then(module => {
+    import('../config/supabase-new.js').then(module => {
       const { supabase } = module;
       
       console.log('\n🔍 Estado del cliente Supabase:');
