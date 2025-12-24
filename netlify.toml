@@ -1,73 +1,10 @@
-[build]
-  command = "CI=false npm run build"
-  publish = "build"
-
-[build.environment]
-  NODE_VERSION = "18"
-  CI = "false"
-
-[[headers]]
-  for = "/*"
-  [headers.values]
-    X-Frame-Options = "DENY"
-    X-Content-Type-Options = "nosniff"
-    X-XSS-Protection = "1; mode=block"
-    Referrer-Policy = "strict-origin-when-cross-origin"
-    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://www.google-analytics.com https://analytics.google.com; frame-src 'self'; manifest-src 'self'; worker-src 'self' blob:;"
-    Permissions-Policy = "geolocation=(), microphone=(), camera=()"
-    Strict-Transport-Security = "max-age=31536000; includeSubDomains; preload"
-
-[[headers]]
-  for = "/*.js"
-  [headers.values]
-    Cache-Control = "public, max-age=31536000, immutable"
-    Content-Type = "application/javascript; charset=utf-8"
-    X-Content-Type-Options = "nosniff"
-
-[[headers]]
-  for = "/*.css"
-  [headers.values]
-    Cache-Control = "public, max-age=31536000, immutable"
-    Content-Type = "text/css; charset=utf-8"
-
-[[headers]]
-  for = "/*.{jpg,jpeg,png,gif,webp,avif,svg}"
-  [headers.values]
-    Cache-Control = "public, max-age=2592000, immutable"
-    X-Content-Type-Options = "nosniff"
-
-[[headers]]
-  for = "/api/*"
-  [headers.values]
-    Access-Control-Allow-Headers = "Content-Type, Authorization"
-    Access-Control-Allow-Methods = "GET, POST, PUT, DELETE, OPTIONS"
-    Access-Control-Allow-Origin = "*"
-    Cache-Control = "no-cache, no-store, must-revalidate"
-    Expires = "0"
-    Pragma = "no-cache"
-
-[[headers]]
-  for = "/.netlify/functions/*"
-  [headers.values]
-    Access-Control-Allow-Headers = "Content-Type, Authorization"
-    Access-Control-Allow-Methods = "GET, POST, PUT, DELETE, OPTIONS"
-    Access-Control-Allow-Origin = "*"
-    Cache-Control = "no-cache, no-store, must-revalidate"
-
-[functions]
-  node_bundler = "esbuild"
-
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
-
-[[redirects]]
-  from = "/home"
-  to = "/"
-  status = 301
-
-[[redirects]]
-  from = "/index.html"
-  to = "/"
-  status = 301
+"[build]"  
+"  command = \"npm run build\""  
+"  publish = \"build\""  
+""  
+"[[headers]]"  
+"  for = \"/*\""  
+"  [headers.values]"  
+"    Content-Security-Policy = \"connect-src 'self' https://uwbxyaszdqwypbebogvw.supabase.co https://www.google-analytics.com https://analytics.google.com\""  
+"/_headers"  
+"  Content-Security-Policy: connect-src 'self' https://uwbxyaszdqwypbebogvw.supabase.co https://www.google-analytics.com https://analytics.google.com"  
