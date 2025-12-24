@@ -34,9 +34,9 @@ function initGoogleAnalytics() {
   
   // Crear script de Google Analytics dinámicamente
   const script = document.createElement('script');
-  script.async = true;
-  script.src = `https://www.googletagmanager.com/gtag/js?id=${measurementId}`;
-  document.head.appendChild(script);
+  // Inicializar gtag directamente sin Tag Manager
+  window.dataLayer = window.dataLayer || [];
+  window.gtag = function(){dataLayer.push(arguments);};
   
   // Inicializar gtag
   window.dataLayer = window.dataLayer || [];
@@ -119,7 +119,7 @@ event.respondWith(
 ## Resultados
 
 ### ✅ Errores Resueltos:
-1. **Google Tag Manager**: Ya no muestra error `net::ERR_FAILED` por placeholder
+1. **Google Analytics**: Ya no muestra error `net::ERR_FAILED` por placeholder (Tag Manager eliminado)
 2. **Service Worker**: Error "Failed to convert value to 'Response'" eliminado
 3. **Configuración Dinámica**: Sistema automatizado para variables de entorno en HTML
 

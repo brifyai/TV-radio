@@ -10,13 +10,11 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="preconnect" href="https://www.google-analytics.com">
-    <link rel="preconnect" href="https://www.googletagmanager.com">
     
     <!-- DNS Prefetch for Performance -->
     <link rel="dns-prefetch" href="//www.google-analytics.com">
     <link rel="dns-prefetch" href="//fonts.googleapis.com">
     <link rel="dns-prefetch" href="//fonts.gstatic.com">
-    <link rel="dns-prefetch" href="//www.googletagmanager.com">
     
     <!-- Favicon and Icons -->
     <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
@@ -350,7 +348,7 @@
         // Crear script de Google Analytics dinámicamente
         const script = document.createElement('script');
         script.async = true;
-        script.src = `https://www.googletagmanager.com/gtag/js?id=${measurementId}`;
+        // Inicializar gtag directamente sin Tag Manager
         document.head.appendChild(script);
         
         // Inicializar gtag

@@ -63,11 +63,16 @@ const parseRequestBody = (body) => {
 
 // Manejador para obtener cuentas de Google Analytics
 exports.handler = async (event, context) => {
-  // Configurar CORS headers
+  // Configurar CORS headers con control de caché
   const headers = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS'
+    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+    // Headers de control de caché - IMPORTANTE: No almacenar en caché
+    'Cache-Control': 'no-cache, no-store, must-revalidate, private',
+    'Pragma': 'no-cache',
+    'Expires': '0',
+    'Vary': 'Authorization' // Importante: variar respuesta por token
   };
 
   // Manejar solicitudes OPTIONS (preflight)

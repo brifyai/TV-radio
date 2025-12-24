@@ -1,6 +1,6 @@
 {
   "name": "imetrics",
-  "version": "1.0.1766537136892",
+  "version": "1.0.1766583058111",
   "private": true,
   "dependencies": {
     "@react-oauth/google": "^0.12.1",

@@ -1,5 +1,5 @@
-Trigger de rebuild para Netlify
-Fecha: 2025-12-22T12:17:02.114Z
-Commit local: ca08d7b
-Problema: Netlify deployando commit anterior 877583a en lugar del más reciente
-Solución: Forzar rebuild para sincronizar con commits locales
+# Trigger de reconstrucción forzada
+# Fecha: 2025-12-24T13:30:58.111Z
+# Razón: Limpieza de caché forzada
+TIMESTAMP: 1766583058111
+CACHE_BUST: true
