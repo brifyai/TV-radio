@@ -1,8 +1,0 @@
-"[build]"  
-"command = \"npm run build\""  
-"publish = \"build\""  
-""  
-"[[headers]]"  
-"for = \"/*\""  
-"[headers.values]"  
-"Content-Security-Policy = \"connect-src 'self' https://uwbxyaszdqwypbebogvw.supabase.co\""  
