@@ -303,20 +303,17 @@ const SpotAnalysis = () => {
   // Cargar datos iniciales
   useEffect(() => {
     const fetchAnalysisData = async () => {
+      // Solo intentar cargar datos si tenemos usuario, conexión y propiedad seleccionada
+      if (!user?.id || !isConnected || !selectedProperty) {
+        setLoading(false);
+        return;
+      }
+
       try {
         setLoading(true);
         setError(null);
         console.log('🔍 DEBUG: Fetching spot analysis data for user:', user?.id);
         
-        // SOLO obtener datos reales - NO hay datos simulados
-        if (!user?.id) {
-          throw new Error('Usuario no autenticado. Por favor, inicia sesión.');
-        }
-        
-        if (!selectedProperty) {
-          throw new Error('Selecciona una propiedad de Google Analytics para continuar.');
-        }
-
         console.log('🔄 Attempting to fetch real data from API...');
         const realData = await getSpotAnalysisData(user.id);
         
@@ -336,9 +333,8 @@ const SpotAnalysis = () => {
       }
     };
 
-    // Solo ejecutar una vez al montar el componente
     fetchAnalysisData();
-  }, [user?.id, selectedProperty]);
+  }, [user?.id, selectedProperty, isConnected]);
 
   // Manejar subida de archivo de spots
   const handleSpotsFileUpload = useCallback(async (event) => {
