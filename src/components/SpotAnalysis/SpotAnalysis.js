@@ -95,6 +95,9 @@ const SpotAnalysis = () => {
     const horaIndex = headers.findIndex(h => h === 'hora inicio');
     const canalIndex = headers.findIndex(h => h === 'canal');
     const tituloIndex = headers.findIndex(h => h === 'titulo programa');
+    const versionIndex = headers.findIndex(h => h === 'version');
+    const duracionIndex = headers.findIndex(h => h === 'duracion');
+    const tipoComercialIndex = headers.findIndex(h => h === 'tipo comercial');
     const inversionIndex = headers.findIndex(h => h === 'inversion');
     
     if (fechaIndex === -1 || horaIndex === -1) {
@@ -110,6 +113,9 @@ const SpotAnalysis = () => {
         hora_inicio: values[horaIndex] || '',
         canal: values[canalIndex] || '',
         titulo_programa: values[tituloIndex] || '',
+        tipo_comercial: values[tipoComercialIndex] || '',
+        version: values[versionIndex] || '',
+        duracion: values[duracionIndex] || '',
         inversion: values[inversionIndex] || ''
       };
     }).filter(spot => spot.fecha || spot.hora_inicio); // Filtrar filas vacías
@@ -130,6 +136,9 @@ const SpotAnalysis = () => {
     const horaIndex = headers.findIndex(h => h === 'hora inicio');
     const canalIndex = headers.findIndex(h => h === 'canal');
     const tituloIndex = headers.findIndex(h => h === 'titulo programa');
+    const versionIndex = headers.findIndex(h => h === 'version');
+    const duracionIndex = headers.findIndex(h => h === 'duracion');
+    const tipoComercialIndex = headers.findIndex(h => h === 'tipo comercial');
     const inversionIndex = headers.findIndex(h => h === 'inversion');
     
     if (fechaIndex === -1 || horaIndex === -1) {
@@ -143,6 +152,9 @@ const SpotAnalysis = () => {
         hora_inicio: row[horaIndex] || '',
         canal: row[canalIndex] || '',
         titulo_programa: row[tituloIndex] || '',
+        tipo_comercial: row[tipoComercialIndex] || '',
+        version: row[versionIndex] || '',
+        duracion: row[duracionIndex] || '',
         inversion: row[inversionIndex] || ''
       };
     }).filter(spot => spot.fecha || spot.hora_inicio); // Filtrar filas vacías
@@ -495,9 +507,9 @@ const SpotAnalysis = () => {
                 />
                 <label
                   htmlFor="spots-file-upload"
-                  className="flex flex-col items-center justify-center w-full px-3 py-2 border-2 border-dashed border-green-300 rounded-lg cursor-pointer hover:border-green-400 hover:bg-green-50 transition-all bg-white min-h-[50px]"
+                  className="flex items-center justify-center w-full px-3 py-2 border-2 border-dashed border-green-300 rounded-lg cursor-pointer hover:border-green-400 hover:bg-green-50 transition-all bg-white h-[32px]"
                 >
-                  <Upload className="h-4 w-4 text-green-500 mb-1" />
+                  <Upload className="h-3 w-3 text-green-500 mr-2" />
                   <span className="text-xs text-gray-600 text-center">
                     {spotsFile ? (
                       <span className="text-green-600 font-medium truncate block">{spotsFile.name}</span>
@@ -573,49 +585,36 @@ const SpotAnalysis = () => {
 
         {/* Componentes principales con NUEVO SISTEMA DE EXPORTACIÓN - SIN REFERENCIAS COMPARTIDAS */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Contenedor de Análisis de Impacto - con data-export para el nuevo sistema */}
-          <div className="lg:col-span-2" data-export="impact">
-            <div className="flex justify-end mb-4">
-              <SimpleExportButton
-                exportType="impact"
-                className="z-10"
-              />
-            </div>
-            <ImpactAnalysisCard data={analysisData?.impactAnalysis} />
+          {/* Contenedor de Análisis de Impacto - ANCHO COMPLETO 100% */}
+          <div className="lg:col-span-3" data-export="impact" id="impact-analysis-card">
+            <ImpactAnalysisCard
+              data={analysisData?.impactAnalysis}
+              exportButton={<SimpleExportButton exportType="impact" className="z-10" />}
+            />
           </div>
           
-          {/* Columna derecha: Nivel de Confianza y Smart Insights */}
-          <div className="flex flex-col gap-6">
-            <div data-export="confidence">
-              <div className="flex justify-end mb-4">
-                <SimpleExportButton
-                  exportType="confidence"
-                  className="z-10"
-                />
-              </div>
-              <ConfidenceLevelCard confidence={analysisData?.confidenceLevel} />
-            </div>
-            
-            <div data-export="insights">
-              <div className="flex justify-end mb-4">
-                <SimpleExportButton
-                  exportType="insights"
-                  className="z-10"
-                />
-              </div>
-              <SmartInsightsCard insights={analysisData?.smartInsights} />
-            </div>
+          {/* Nivel de Confianza - ancho completo debajo del análisis de impacto */}
+          <div className="lg:col-span-3" data-export="confidence" id="confidence-level-card">
+            <ConfidenceLevelCard
+              confidence={analysisData?.confidenceLevel}
+              exportButton={<SimpleExportButton exportType="confidence" className="z-10" />}
+            />
           </div>
           
-          {/* Mapa de Calor - ancho completo debajo */}
-          <div className="lg:col-span-3" data-export="traffic">
-            <div className="flex justify-end mb-4">
-              <SimpleExportButton
-                exportType="traffic"
-                className="z-10"
-              />
-            </div>
-            <TrafficHeatmap data={analysisData?.trafficData} />
+          {/* Smart Insights - ancho completo */}
+          <div className="lg:col-span-3" data-export="insights" id="smart-insights-card">
+            <SmartInsightsCard
+              insights={analysisData?.smartInsights}
+              exportButton={<SimpleExportButton exportType="insights" className="z-10" />}
+            />
+          </div>
+          
+          {/* Mapa de Calor - ancho completo */}
+          <div className="lg:col-span-3" data-export="traffic" id="traffic-heatmap-card">
+            <TrafficHeatmap
+              data={analysisData?.trafficData}
+              exportButton={<SimpleExportButton exportType="traffic" className="z-10" />}
+            />
           </div>
         </div>
       </div>
