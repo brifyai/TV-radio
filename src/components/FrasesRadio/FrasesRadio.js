@@ -4,7 +4,7 @@ import { generateAIAnalysis, generateBatchAIAnalysis } from '../../services/aiAn
 import { TemporalAnalysisService } from '../../services/temporalAnalysisService';
 import conversionAnalysisService from '../../services/conversionAnalysisService';
 import { predictiveAnalyticsService } from '../../services/predictiveAnalyticsService';
-import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
 import { motion } from 'framer-motion';
 import {
   Upload,
@@ -309,7 +309,7 @@ const FrasesRadio = () => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       
-      reader.onload = (e) => {
+      reader.onload = async (e) => {
         try {
           let frases = [];
           
@@ -317,11 +317,20 @@ const FrasesRadio = () => {
             const content = e.target.result;
             frases = parseCSV(content);
           } else if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
-            // Parsear Excel con XLSX
-            const workbook = XLSX.read(e.target.result, { type: 'binary' });
-            const sheetName = workbook.SheetNames[0];
-            const worksheet = workbook.Sheets[sheetName];
-            const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+            // Parsear Excel con ExcelJS
+            const workbook = new ExcelJS.Workbook();
+            await workbook.xlsx.load(e.target.result);
+            const worksheet = workbook.worksheets[0];
+            const jsonData = [];
+            
+            worksheet.eachRow((row, rowNumber) => {
+              const rowData = [];
+              row.eachCell((cell, colNumber) => {
+                rowData.push(cell.value);
+              });
+              jsonData.push(rowData);
+            });
+            
             frases = parseExcelData(jsonData);
           } else {
             reject(new Error('Formato de archivo no soportado'));

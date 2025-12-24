@@ -6,7 +6,7 @@ import { generateAIAnalysis, generateBatchAIAnalysis } from '../../services/aiAn
 import { TemporalAnalysisService } from '../../services/temporalAnalysisService';
 import conversionAnalysisService from '../../services/conversionAnalysisService';
 import { predictiveAnalyticsService } from '../../services/predictiveAnalyticsService';
-import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
 import { motion } from 'framer-motion';
 import {
   Upload,
@@ -34,65 +34,6 @@ import YouTubeVideoInput from './components/YouTubeVideoInput';
 import LoadingSpinner from '../UI/LoadingSpinner';
 import SimpleExportButton from '../UI/SimpleExportButton';
 
-// Función para generar datos simulados
-const getSimulatedSpotAnalysisData = () => {
-  return {
-    impactAnalysis: {
-      analysisResults: {
-        impactScore: 85,
-        impactPercentage: 23.5,
-        timingEffectiveness: 'Excelente',
-        timingRecommendation: 'El spot fue transmitido en el momento óptimo de mayor audiencia',
-        sustainabilityScore: 78,
-        sustainabilityDescription: 'El efecto del spot se mantiene por 3-4 días',
-        conversionRate: 4.2,
-        dataQuality: 'high'
-      }
-    },
-    confidenceLevel: 92,
-    smartInsights: [
-      {
-        category: 'Timing del Spot',
-        value: 95,
-        icon: '⏰',
-        text: 'El spot fue transmitido en el momento óptimo de mayor audiencia',
-        color: 'bg-blue-100',
-        border: 'border-blue-300'
-      },
-      {
-        category: 'Análisis de Impacto',
-        value: 85,
-        icon: '📊',
-        text: 'Impacto: 23.5% de aumento',
-        color: 'bg-green-100',
-        border: 'border-green-300'
-      },
-      {
-        category: 'Sostenibilidad del Efecto',
-        value: 78,
-        icon: '⚡',
-        text: 'El efecto del spot se mantiene por 3-4 días',
-        color: 'bg-yellow-100',
-        border: 'border-yellow-300'
-      },
-      {
-        category: 'Tasa de Conversión Real',
-        value: 4.2,
-        icon: '📊',
-        text: 'Tasa real: 4.2%',
-        color: 'bg-purple-100',
-        border: 'border-purple-300'
-      }
-    ],
-    trafficData: {
-      hourlyData: Array.from({ length: 24 }, (_, i) => ({
-        hour: i,
-        traffic: Math.floor(Math.random() * 1000) + 500,
-        conversions: Math.floor(Math.random() * 50) + 10
-      }))
-    }
-  };
-};
 
 const SpotAnalysis = () => {
   const { user } = useAuth();
@@ -314,10 +255,10 @@ const SpotAnalysis = () => {
 
   // Parsear archivo de spots (CSV o Excel)
   const parseSpotsFile = useCallback(async (file) => {
-    return new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
       const reader = new FileReader();
       
-      reader.onload = (e) => {
+      reader.onload = async (e) => {
         try {
           const content = e.target.result;
           let data;
@@ -326,11 +267,20 @@ const SpotAnalysis = () => {
             // Parsear CSV
             data = parseCSV(content);
           } else {
-            // Parsear Excel
-            const workbook = XLSX.read(content, { type: 'binary' });
-            const sheetName = workbook.SheetNames[0];
-            const worksheet = workbook.Sheets[sheetName];
-            const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, raw: false });
+            // Parsear Excel con ExcelJS
+            const workbook = new ExcelJS.Workbook();
+            await workbook.xlsx.load(content);
+            const worksheet = workbook.worksheets[0];
+            const jsonData = [];
+            
+            worksheet.eachRow((row, rowNumber) => {
+              const rowData = [];
+              row.eachCell((cell, colNumber) => {
+                rowData.push(cell.value);
+              });
+              jsonData.push(rowData);
+            });
+            
             data = parseExcelData(jsonData);
           }
           
@@ -355,32 +305,32 @@ const SpotAnalysis = () => {
     const fetchAnalysisData = async () => {
       try {
         setLoading(true);
+        setError(null);
         console.log('🔍 DEBUG: Fetching spot analysis data for user:', user?.id);
         
-        // Intentar obtener datos reales primero
-        if (user?.id && selectedProperty) {
-          try {
-            console.log('🔄 Attempting to fetch real data from API...');
-            const realData = await getSpotAnalysisData(user.id);
-            setAnalysisData(realData);
-            console.log('✅ Real data loaded successfully');
-            return;
-          } catch (apiError) {
-            console.warn('⚠️ API request failed, using simulated data:', apiError.message);
-            // Continuar con datos simulados si la API falla
-          }
+        // SOLO obtener datos reales - NO hay datos simulados
+        if (!user?.id) {
+          throw new Error('Usuario no autenticado. Por favor, inicia sesión.');
         }
         
-        // Si no hay usuario o propiedad, o si la API falla, usar datos simulados
-        console.log('🔄 Using simulated data (no user/property or API failed)');
-        const simulatedData = getSimulatedSpotAnalysisData();
-        setAnalysisData(simulatedData);
+        if (!selectedProperty) {
+          throw new Error('Selecciona una propiedad de Google Analytics para continuar.');
+        }
+
+        console.log('🔄 Attempting to fetch real data from API...');
+        const realData = await getSpotAnalysisData(user.id);
+        
+        if (!realData || Object.keys(realData).length === 0) {
+          throw new Error('No se encontraron datos para la propiedad seleccionada.');
+        }
+        
+        setAnalysisData(realData);
+        console.log('✅ Real data loaded successfully');
         
       } catch (err) {
-        console.error('Error in fetchAnalysisData:', err);
-        // En cualquier error, usar datos simulados como último recurso
-        const simulatedData = getSimulatedSpotAnalysisData();
-        setAnalysisData(simulatedData);
+        console.error('❌ Error in fetchAnalysisData:', err);
+        setError(err.message || 'Error al cargar los datos. Verifica tu configuración.');
+        setAnalysisData(null);
       } finally {
         setLoading(false);
       }

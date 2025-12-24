@@ -10,6 +10,7 @@
     "chart.js": "^4.5.1",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
+    "exceljs": "^4.4.0",
     "express": "^5.2.1",
     "framer-motion": "^12.23.26",
     "google-auth-library": "^9.4.0",
@@ -29,8 +30,7 @@
     "react-spring": "^10.0.3",
     "recharts": "^2.15.4",
     "source-list-map": "^2.0.1",
-    "tailwindcss": "^3.3.0",
-    "xlsx": "^0.18.5"
+    "tailwindcss": "^3.3.0"
   },
   "scripts": {
     "start": "react-scripts start",
