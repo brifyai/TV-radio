@@ -420,7 +420,7 @@ const SpotAnalysis = () => {
         </div>
       </motion.div>
 
-      {/* Sección de configuración de Analytics */}
+      {/* Sección integrada: Configuración de Analytics + Archivo de Spots */}
       <div className="p-6 mb-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -433,11 +433,11 @@ const SpotAnalysis = () => {
             </div>
             <div>
               <h2 className="text-xl font-bold text-gray-900">Configuración de Google Analytics</h2>
-              <p className="text-gray-600">Selecciona la cuenta y propiedad para el análisis</p>
+              <p className="text-gray-600">Selecciona la cuenta, propiedad y carga el archivo de spots para el análisis</p>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Selección de Cuenta */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -479,6 +479,41 @@ const SpotAnalysis = () => {
                 ))}
               </select>
             </div>
+
+            {/* Archivo de Spots */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Archivo de Spots
+              </label>
+              <div className="relative">
+                <input
+                  type="file"
+                  accept=".xlsx,.xls,.csv"
+                  onChange={handleSpotsFileUpload}
+                  className="hidden"
+                  id="spots-file-upload"
+                />
+                <label
+                  htmlFor="spots-file-upload"
+                  className="flex flex-col items-center justify-center w-full px-3 py-2 border-2 border-dashed border-green-300 rounded-lg cursor-pointer hover:border-green-400 hover:bg-green-50 transition-all bg-white min-h-[60px]"
+                >
+                  <Upload className="h-4 w-4 text-green-500 mb-1" />
+                  <span className="text-xs text-gray-600 text-center">
+                    {spotsFile ? (
+                      <span className="text-green-600 font-medium truncate block">{spotsFile.name}</span>
+                    ) : (
+                      'Excel o CSV'
+                    )}
+                  </span>
+                </label>
+              </div>
+              {spotsData.length > 0 && (
+                <div className="mt-2 flex items-center text-xs text-green-600">
+                  <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                  {spotsData.length} spots cargados
+                </div>
+              )}
+            </div>
           </div>
 
           {!isConnected && (
@@ -494,50 +529,8 @@ const SpotAnalysis = () => {
         </motion.div>
       </div>
 
-      {/* Sección de subida de archivos */}
+      {/* Sección de análisis */}
       <div className="p-6">
-        <div className="mb-6">
-          {/* Sección principal: Archivo de Spots */}
-          <motion.div
-            whileHover={{ y: -2 }}
-            className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-6 border border-green-100"
-          >
-            <div className="flex items-center mb-4">
-              <div className="p-2 bg-green-500 rounded-lg mr-3">
-                <Upload className="h-5 w-5 text-white" />
-              </div>
-              <h3 className="font-semibold text-gray-900">Archivo de Spots</h3>
-            </div>
-            <div className="relative">
-              <input
-                type="file"
-                accept=".xlsx,.xls,.csv"
-                onChange={handleSpotsFileUpload}
-                className="hidden"
-                id="spots-file-upload"
-              />
-              <label
-                htmlFor="spots-file-upload"
-                className="flex flex-col items-center justify-center w-full px-6 py-8 border-2 border-dashed border-green-300 rounded-lg cursor-pointer hover:border-green-400 hover:bg-green-50 transition-all bg-white"
-              >
-                <Upload className="h-8 w-8 text-green-500 mb-2" />
-                <span className="text-sm text-gray-600 text-center">
-                  {spotsFile ? (
-                    <span className="text-green-600 font-medium">{spotsFile.name}</span>
-                  ) : (
-                    'Selecciona archivo Excel o CSV'
-                  )}
-                </span>
-              </label>
-            </div>
-            {spotsData.length > 0 && (
-              <div className="mt-3 flex items-center text-sm text-green-600">
-                <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-                {spotsData.length} spots cargados exitosamente
-              </div>
-            )}
-          </motion.div>
-        </div>
 
         {/* Sección de Video con IA - Nueva integración YouTube */}
         <div className="mb-6">
