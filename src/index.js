@@ -3,10 +3,6 @@ import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
 import AppFallback from './components/AppFallback';
-import './utils/logger'; // Activar control de logging para evitar spam de 87,000+ mensajes
-import './utils/disable-websocket-errors'; // Suprimir errores de WebSocket en desarrollo
-import './utils/session-storage-polyfill'; // Polyfill para SessionStorage cuando no está disponible
-import './utils/disable-react-devtools-warning'; // Suprimir advertencia de React DevTools
 
 // Add console logging to track app initialization
 console.log('🚀 APP INIT: Starting application initialization...');
