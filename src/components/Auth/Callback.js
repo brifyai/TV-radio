@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '../../config/supabase';
+import { supabase } from '../../config/supabase-new';
 import { useGoogleAnalytics } from '../../contexts/GoogleAnalyticsContext';
 import LoadingSpinner from '../UI/LoadingSpinner';
 

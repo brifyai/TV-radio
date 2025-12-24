@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { useAuth } from '../../contexts/AuthContext';
 import { useGoogleAnalytics } from '../../contexts/GoogleAnalyticsContext';
 import userSettingsService from '../../services/userSettingsService';
-import { supabase } from '../../config/supabase';
+import { supabase } from '../../config/supabase-new';
 import Avatar from '../UI/Avatar';
 import {
   User,

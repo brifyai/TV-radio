@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
 import { googleAnalyticsService } from '../services/googleAnalyticsService';
-import { supabase } from '../config/supabase';
+import { supabase } from '../config/supabase-new';
 
 const GoogleAnalyticsContext = createContext();
 

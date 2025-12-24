@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useGoogleAnalytics } from '../../contexts/GoogleAnalyticsContext';
-import { supabase } from '../../config/supabase';
+import { supabase } from '../../config/supabase-new';
 import LoadingSpinner from '../UI/LoadingSpinner';
 
 const AnalyticsDirectCallback = () => {
