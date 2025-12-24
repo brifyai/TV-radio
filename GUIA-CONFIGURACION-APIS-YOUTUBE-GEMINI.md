@@ -48,8 +48,8 @@ Esta guía te ayudará a configurar las APIs necesarias para el análisis autom�
 
 ### Variables de entorno necesarias:
 ```
-REACT_APP_YOUTUBE_API_KEY=tu_clave_youtube_aqui
-REACT_APP_GEMINI_API_KEY=tu_clave_gemini_aqui
+REACT_APP_YOUTUBE_API_KEY=[CONFIGURADA_EN_NETLIFY]
+REACT_APP_GEMINI_API_KEY=[CONFIGURADA_EN_NETLIFY]
 ```
 
 ### Cómo agregarlas:
