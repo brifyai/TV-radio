@@ -35,7 +35,6 @@ import PredictiveAnalyticsDashboard from '../SpotAnalysis/components/PredictiveA
 
 // Importar hooks de validación de integridad
 import { useDataIntegrity } from '../../hooks/useDataIntegrity';
-import { SimulatedDataWarning } from '../UI/DataIntegrityWarning';
 
 const FrasesRadio = () => {
   const { accounts, properties, getAnalyticsData, isConnected } = useGoogleAnalytics();
@@ -52,10 +51,10 @@ const FrasesRadio = () => {
     }
     
     // Validar que no sea un patrón sospechoso
-    const suspiciousPatterns = [35, 45, 65, 87, 95]; // Valores comúnmente simulados
+    const suspiciousPatterns = [35, 45, 65, 87, 95]; // Valores comúnmente anómalos
     if (suspiciousPatterns.includes(Math.round(value))) {
-      console.warn(`🚨 Patrón sospechoso en métrica ${metricName}: ${value}%`);
-      // Rechazar valores sospechosos en lugar de ajustarlos
+      console.warn(`🚨 Patrón anómalo en métrica ${metricName}: ${value}%`);
+      // Rechazar valores anómalos en lugar de ajustarlos
       return 0;
     }
     

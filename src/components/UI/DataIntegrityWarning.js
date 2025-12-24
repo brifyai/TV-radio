@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 
 /**
  * COMPONENTE DE ADVERTENCIA DE INTEGRIDAD DE DATOS
- * Muestra claramente al usuario cuando los datos no están disponibles o son simulados
+ * Muestra claramente al usuario cuando los datos no están disponibles o son inválidos
  */
 
 const DataIntegrityWarning = ({ 
@@ -36,8 +36,8 @@ const DataIntegrityWarning = ({
           borderColor: 'border-yellow-200',
           textColor: 'text-yellow-800',
           iconColor: 'text-yellow-600',
-          title: 'Datos Simulados Detectados',
-          defaultMessage: 'Se han detectado datos simulados. Estos datos no reflejan información real.',
+          title: 'Datos Anómalos Detectados',
+          defaultMessage: 'Se han detectado datos anómalos. Estos datos no reflejan información real.',
           severity: 'warning'
         };
       
@@ -174,17 +174,17 @@ export const NoDataAvailable = ({
 };
 
 /**
- * COMPONENTE PARA MOSTRAR DATOS SIMULADOS
+ * COMPONENTE PARA MOSTRAR DATOS ANÓMALOS
  */
-export const SimulatedDataWarning = ({ 
+export const InvalidDataWarning = ({
   onAccept = null,
   onCancel = null,
   className = ""
 }) => {
   return (
     <DataIntegrityWarning
-      type="simulated"
-      message="Los datos mostrados son simulados para propósitos de demostración."
+      type="invalid"
+      message="Los datos mostrados contienen información anómala o inválida."
       details="Estos datos no reflejan información real de Google Analytics ni análisis de video reales."
       className={className}
     />

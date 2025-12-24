@@ -1,18 +1,9 @@
 import React from 'react';
 
-const TrafficHeatmap = () => {
+const TrafficHeatmap = ({ data }) => {
   // Datos de ejemplo para el mapa de calor
   const days = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
   const hours = ['0', '3', '6', '9', '12', '15', '18', '21'];
-  
-  // Generar datos aleatorios para demostración
-  const generateHeatmapData = () => {
-    return days.map(() =>
-      hours.map(() => Math.floor(Math.random() * 100))
-    );
-  };
-
-  const heatmapData = generateHeatmapData();
   
   // Función para determinar el color basado en la intensidad
   const getColor = (value) => {
@@ -22,6 +13,34 @@ const TrafficHeatmap = () => {
     if (value > 20) return 'bg-green-400';
     return 'bg-gray-200';
   };
+
+  // Si no hay datos, mostrar mensaje
+  if (!data || !data.heatmapData) {
+    return (
+      <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
+        <div className="flex justify-between items-center mb-4">
+          <div>
+            <h2 className="text-xl font-bold text-gray-900">Mapa de Calor de Tráfico</h2>
+            <p className="text-gray-600">Patrones de tráfico por día y hora</p>
+          </div>
+          <div className="text-sm text-gray-600">
+            <span className="inline-block w-3 h-3 bg-gray-200 rounded-sm mr-1"></span> Bajo
+            <span className="inline-block w-3 h-3 bg-green-400 rounded-sm mx-2 mr-1"></span> Medio
+            <span className="inline-block w-3 h-3 bg-red-600 rounded-sm mx-2 mr-1"></span> Alto
+          </div>
+        </div>
+        
+        <div className="flex items-center justify-center h-64 text-gray-500">
+          <div className="text-center">
+            <p className="text-lg font-medium">No hay datos disponibles</p>
+            <p className="text-sm">Los datos de tráfico aparecerán aquí después del análisis</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const heatmapData = data.heatmapData;
 
   return (
     <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
@@ -58,7 +77,7 @@ const TrafficHeatmap = () => {
             
             {/* Celdas de datos */}
             {hours.map((_, hourIndex) => {
-              const value = heatmapData[dayIndex][hourIndex];
+              const value = heatmapData[dayIndex]?.[hourIndex] || 0;
               return (
                 <div
                   key={`${day}-${hourIndex}`}
@@ -76,8 +95,8 @@ const TrafficHeatmap = () => {
       <div className="mt-4 flex items-center">
         <div className="flex-1">
           <p className="text-sm text-gray-600">
-            <span className="font-medium">Mejor Día:</span> Lun |
-            <span className="font-medium ml-2">Spot Timing:</span> 06:56 p.m.
+            <span className="font-medium">Mejor Día:</span> {data.bestDay || 'N/A'} |
+            <span className="font-medium ml-2">Spot Timing:</span> {data.spotTiming || 'N/A'}
           </p>
         </div>
         <div className="text-blue-600 text-sm">

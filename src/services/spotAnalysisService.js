@@ -41,7 +41,7 @@ export const getSpotAnalysisData = async (userId) => {
     };
   } catch (error) {
     console.error('Error en spotAnalysisService:', error);
-    // No re-lanzar el error para permitir fallback a datos simulados
+    // No re-lanzar el error para permitir fallback a datos alternativos
     throw error;
   }
 };

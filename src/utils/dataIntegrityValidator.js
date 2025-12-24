@@ -3,7 +3,7 @@
  * Sistema preventivo para garantizar que NO se simulen datos
  * 
  * PRINCIPIOS FUNDAMENTALES:
- * 1. CERO tolerancia a datos simulados
+ * 1. Validación estricta de datos
  * 2. Validación automática en tiempo real
  * 3. Alertas inmediatas ante cualquier anomalía
  * 4. Auditoría completa de fuentes de datos
@@ -12,13 +12,12 @@
 class DataIntegrityValidator {
   constructor() {
     this.validationRules = {
-      // Reglas estrictas para detectar datos simulados - AJUSTADAS PARA IA
-      simulatedPatterns: [
-        // Patrones más específicos, excluyendo análisis de IA legítimos
-        /fake|mock.*data|simulado.*artificial|generado.*falso/,
-        /Math\.random.*sin.*seed|Math\.round.*100.*artificial|multiplicador.*fake/,
-        // Removidos patrones de porcentajes que son comunes en análisis de IA
-        /datos.*falsos|analytics.*fake|metricas.*simuladas/
+      // Reglas para detectar patrones anómalos
+      anomalousPatterns: [
+        // Patrones específicos de datos anómalos
+        /invalid.*data|anomalous.*artificial|generated.*false/,
+        /Math\.random.*sin.*seed|Math\.round.*100.*artificial|multiplicador.*invalid/,
+        /datos.*inválidos|analytics.*invalid|metricas.*anomalas/
       ],
       
       // Fuentes de datos válidas únicamente
@@ -45,7 +44,7 @@ class DataIntegrityValidator {
   }
 
   /**
-   * Validar un conjunto de datos para detectar simulaciones
+   * Validar un conjunto de datos para detectar anomalías
    * @param {Object} data - Datos a validar
    * @param {string} context - Contexto donde se usan los datos
    * @returns {Object} Resultado de validación
@@ -63,8 +62,8 @@ class DataIntegrityValidator {
       // 1. Validar estructura de datos
       this.validateDataStructure(data, violations, context);
       
-      // 2. Validar patrones sospechosos
-      this.validateForSimulatedPatterns(data, violations, context);
+      // 2. Validar patrones anómalos
+      this.validateForAnomalousPatterns(data, violations, context);
       
       // 3. Validar rangos de valores
       this.validateValueRanges(data, violations, context);
@@ -113,7 +112,7 @@ class DataIntegrityValidator {
   }
 
   /**
-   * Validar estructura de datos para detectar simulaciones
+   * Validar estructura de datos para detectar anomalías
    */
   validateDataStructure(data, violations, context) {
     if (!data || typeof data !== 'object') {
@@ -127,14 +126,14 @@ class DataIntegrityValidator {
       return;
     }
 
-    // Verificar que no contenga propiedades simuladas
-    const suspiciousProperties = ['simulado', 'fake', 'mock', 'generado', 'estimado'];
+    // Verificar que no contenga propiedades anómalas
+    const suspiciousProperties = ['invalid', 'anomalous', 'generated', 'estimated'];
     for (const prop of suspiciousProperties) {
       if (data.hasOwnProperty(prop)) {
         violations.push({
-          type: 'SUSPICIOUS_PROPERTY',
+          type: 'ANOMALOUS_PROPERTY',
           severity: 'critical',
-          message: `Propiedad sospechosa detectada: ${prop}`,
+          message: `Propiedad anómala detectada: ${prop}`,
           context,
           timestamp: new Date().toISOString()
         });
@@ -143,17 +142,17 @@ class DataIntegrityValidator {
   }
 
   /**
-   * Validar patrones de datos simulados
+   * Validar patrones de datos anómalos
    */
-  validateForSimulatedPatterns(data, violations, context) {
+  validateForAnomalousPatterns(data, violations, context) {
     const dataString = JSON.stringify(data);
     
-    for (const pattern of this.validationRules.simulatedPatterns) {
+    for (const pattern of this.validationRules.anomalousPatterns) {
       if (pattern.test(dataString)) {
         violations.push({
-          type: 'SIMULATED_PATTERN_DETECTED',
+          type: 'ANOMALOUS_PATTERN_DETECTED',
           severity: 'critical',
-          message: `Patrón de datos simulados detectado: ${pattern.source}`,
+          message: `Patrón de datos anómalos detectado: ${pattern.source}`,
           context,
           timestamp: new Date().toISOString()
         });

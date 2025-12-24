@@ -2,49 +2,37 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { BarChart3, Activity } from 'lucide-react';
 
-const TrafficChart3 = ({ analysisResults }) => {
-  // Generar datos de tráfico por hora basados en datos reales de análisis
-  const generateTrafficData = () => {
-    const hours = Array.from({ length: 24 }, (_, i) => i);
-    
-    if (analysisResults && analysisResults.length > 0) {
-      const spotData = analysisResults[0];
-      const spotHour = spotData.spot.dateTime.getHours();
-      
-      return hours.map(hour => {
-        // Datos diferentes para el tercer gráfico
-        let baseTraffic = 25 + Math.random() * 15;
+const TrafficChart3 = ({ data }) => {
+  // Si no hay datos, mostrar mensaje
+  if (!data || !data.hourlyTraffic) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        className="bg-white rounded-xl shadow-lg p-6 border border-gray-100"
+      >
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h3 className="text-xl font-bold text-gray-900">Actividad Comercial</h3>
+            <p className="text-sm text-gray-600">Tráfico durante horas comerciales</p>
+          </div>
+          <div className="p-3 bg-purple-100 rounded-full">
+            <Activity className="h-6 w-6 text-purple-600" />
+          </div>
+        </div>
         
-        // Patrones diferentes - enfocado en actividad comercial
-        if (hour >= 10 && hour <= 12) baseTraffic += 20; // Mañana comercial
-        if (hour >= 15 && hour <= 17) baseTraffic += 25; // Tarde comercial
-        if (hour >= 21 && hour <= 23) baseTraffic += 30; // Noche comercial
-        if (hour >= 13 && hour <= 14) baseTraffic += 15; // Almuerzo
-        if (hour >= 0 && hour <= 7) baseTraffic -= 15; // Noche/madrugada muy baja
-        
-        // Marcar el horario del spot con intensidad diferente
-        const isSpotTime = hour === spotHour;
-        if (isSpotTime) {
-          baseTraffic += 45;
-        }
-        
-        return {
-          hour: `${hour}:00`,
-          traffic: Math.round(baseTraffic),
-          isSpotTime
-        };
-      });
-    }
-    
-    // Datos simulados si no hay análisis
-    return hours.map(hour => ({
-      hour: `${hour}:00`,
-      traffic: Math.round(25 + Math.random() * 20),
-      isSpotTime: false
-    }));
-  };
+        <div className="flex items-center justify-center h-64 text-gray-500">
+          <div className="text-center">
+            <p className="text-lg font-medium">No hay datos disponibles</p>
+            <p className="text-sm">Los datos de tráfico aparecerán aquí después del análisis</p>
+          </div>
+        </div>
+      </motion.div>
+    );
+  }
 
-  const trafficData = generateTrafficData();
+  const trafficData = data.hourlyTraffic;
   const maxTraffic = Math.max(...trafficData.map(d => d.traffic));
 
   return (
@@ -112,7 +100,7 @@ const TrafficChart3 = ({ analysisResults }) => {
                 const hour = parseInt(d.hour.split(':')[0]);
                 return (hour >= 10 && hour <= 12) || (hour >= 15 && hour <= 17) || (hour >= 21 && hour <= 23);
               });
-              const peakHour = commercialHours.reduce((max, current) => 
+              const peakHour = commercialHours.reduce((max, current) =>
                 current.traffic > max.traffic ? current : max
               );
               return peakHour.hour;

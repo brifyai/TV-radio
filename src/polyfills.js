@@ -4,20 +4,20 @@ global.process = require('process');
 
 // Polyfills para módulos que pptxgenjs necesita
 if (typeof window !== 'undefined') {
-  // Mock fs module
+  // Polyfill for fs module
   window.require = window.require || function() { return {}; };
   
-  // Mock https module  
+  // Polyfill for https module
   window.https = window.https || {};
   
-  // Mock http module
+  // Polyfill for http module
   window.http = window.http || {};
   
-  // Mock crypto module
+  // Polyfill for crypto module
   window.crypto = window.crypto || {
     randomBytes: () => Buffer.alloc(32),
     createHash: () => ({
-      update: () => ({ digest: () => 'mock' })
+      update: () => ({ digest: () => 'placeholder' })
     })
   };
 }

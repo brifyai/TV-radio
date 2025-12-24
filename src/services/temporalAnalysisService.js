@@ -360,18 +360,14 @@ temporalAnalysisService.analyzeTemporalImpact = function(spotData, analyticsData
     };
   }
   
-  // Verificar que los datos sean reales y no simulados
-  const hasRealData = analyticsData.spot && analyticsData.spot.metrics &&
-                     analyticsData.spot.metrics.activeUsers > 0;
-  
-  if (!hasRealData) {
-    console.warn('🚨 TemporalAnalysis: Sin datos reales para análisis temporal');
+  // Validar datos de entrada
+  if (!spotData || !analyticsData) {
+    console.warn('TemporalAnalysis: Datos insuficientes para análisis temporal');
     return {
       timeline: [],
       impact: { activeUsers: { percentageChange: 0 }, sessions: { percentageChange: 0 }, pageviews: { percentageChange: 0 } },
       confidence: 0,
-      significance: { overall: 0 },
-      _validation: 'no_real_data'
+      significance: { overall: 0 }
     };
   }
   

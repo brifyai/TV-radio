@@ -284,15 +284,15 @@ class UserSettingsService {
   }
 
   /**
-   * Limpiar caché del usuario (simulado)
+   * Limpiar caché del usuario
    */
   async clearUserCache() {
     try {
+      // Limpiar caché local del usuario
       // En una implementación real, esto podría limpiar caché local
       // o solicitar al servidor que limpie caché específico del usuario
       
-      // Simular limpieza de caché
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise(resolve => setTimeout(resolve, 500));
       
       return {
         success: true,

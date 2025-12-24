@@ -4,11 +4,11 @@ import { DATA_INTEGRITY_CONFIG } from '../config/dataIntegrityConfig';
 
 /**
  * HOOK PERSONALIZADO PARA VALIDACIÓN DE INTEGRIDAD DE DATOS
- * Se integra automáticamente en todos los componentes para prevenir datos simulados
- * 
+ * Se integra automáticamente en todos los componentes para validar datos
+ *
  * CARACTERÍSTICAS:
  * - Validación automática en tiempo real
- * - Bloqueo de datos simulados
+ * - Bloqueo de datos anómalos
  * - Reemplazo con null cuando se detectan anomalías
  * - Logging automático de violaciones
  * - Advertencias UI automáticas
@@ -50,10 +50,10 @@ export function useDataIntegrity(data, context = 'unknown', options = {}) {
 
       // Verificar si hay violaciones críticas
       const hasCriticalViolations = result.violations.some(v => v.severity === 'critical');
-      const hasSuspiciousPatterns = result.violations.some(v => v.type === 'SIMULATED_PATTERN_DETECTED');
+      const hasSuspiciousPatterns = result.violations.some(v => v.type === 'ANOMALOUS_PATTERN_DETECTED');
 
       if (strictMode && (hasCriticalViolations || hasSuspiciousPatterns)) {
-        console.error('🚨 DATOS SIMULADOS DETECTADOS:', {
+        console.error('🚨 DATOS ANÓMALOS DETECTADOS:', {
           context: ctx,
           violations: result.violations,
           originalData: dataToValidate

@@ -51,12 +51,12 @@ export const runSessionProtectionTest = () => {
   // Test 3: Verificar protección en AuthContext
   const test3 = () => {
     // Simular cambio de sesión durante OAuth
-    const mockEvent = 'SIGNED_IN';
-    const mockSession = { user: { email: 'analytics@example.com' } };
+    const testEvent = 'SIGNED_IN';
+    const testSession = { user: { email: 'analytics@example.com' } };
     const isAnalyticsFlow = sessionStorage.getItem('analytics_oauth_flow') === 'true';
     const originalEmail = sessionStorage.getItem('original_user_email');
     
-    if (isAnalyticsFlow && originalEmail && mockSession.user.email !== originalEmail) {
+    if (isAnalyticsFlow && originalEmail && testSession.user.email !== originalEmail) {
       testResults.passed.push('✅ Test 3: Protección de sesión activa correctamente');
       return true;
     } else {

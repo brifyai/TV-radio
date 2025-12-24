@@ -37,7 +37,7 @@ console.log(`  Key válida: ${keyValid ? '✅ SÍ' : '❌ NO'}`);
 
 // Resultado final
 const allValid = urlValid && keyValid;
-console.log(`\n📊 Resultado final: ${allValid ? '✅ CLIENTE REAL' : '❌ MOCK CLIENT'}`);
+console.log(`\n📊 Resultado final: ${allValid ? '✅ CLIENTE REAL' : '❌ CLIENTE NO CONFIGURADO'}`);
 
 if (!allValid) {
   console.log('\n💡 Sugerencias:');

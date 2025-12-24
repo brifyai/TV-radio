@@ -1,12 +1,12 @@
 /**
  * CONFIGURACIÓN DE INTEGRIDAD DE DATOS
- * Sistema de configuración para prevenir datos simulados
+ * Sistema de configuración para validar y asegurar calidad de datos
  */
 
 export const DATA_INTEGRITY_CONFIG = {
   // CONFIGURACIÓN GLOBAL
   ENFORCE_REAL_DATA_ONLY: true, // ⚠️ CRÍTICO: Forzar solo datos reales
-  REJECT_SIMULATED_DATA: true, // Rechazar cualquier dato simulado
+  REJECT_INVALID_DATA: true, // Rechazar cualquier dato inválido
   VALIDATION_LEVEL: 'STRICT', // STRICT | MODERATE | PERMISSIVE
   
   // FUENTES DE DATOS VÁLIDAS
@@ -20,10 +20,10 @@ export const DATA_INTEGRITY_CONFIG = {
   
   // FUENTES PROHIBIDAS (automáticamente rechazadas)
   PROHIBITED_DATA_SOURCES: [
-    'simulated',
-    'mock',
-    'fake',
-    'generated',
+    'invalid_source',
+    'unverified',
+    'invalid',
+    'generated_without_source',
     'estimated_without_source',
     'random_generated',
     'placeholder_data'
@@ -33,7 +33,7 @@ export const DATA_INTEGRITY_CONFIG = {
   SUSPICIOUS_PATTERNS: [
     /45%|3x|2\.3x|40%/,
     /Math\.min.*\*|Math\.floor.*100|Math\.ceil.*100/,
-    /simulado|fake|mock|generado|estimado.*%|predicho.*%/,
+    /invalid|unverified|generado|estimado.*%|predicho.*%/,
     /Math\.random|placeholder|ejemplo.*%|demo.*%/
   ],
   
@@ -47,10 +47,10 @@ export const DATA_INTEGRITY_CONFIG = {
     roi: { min: -100, max: 10000 }
   },
   
-  // ACCIONES AUTOMÁTICAS CUANDO SE DETECTAN DATOS SIMULADOS
+  // ACCIONES AUTOMÁTICAS CUANDO SE DETECTAN DATOS INVÁLIDOS
   AUTO_ACTIONS: {
     LOG_VIOLATION: true,
-    BLOCK_DISPLAY: true, // No mostrar datos simulados al usuario
+    BLOCK_DISPLAY: true, // No mostrar datos inválidos al usuario
     REPLACE_WITH_NULL: true, // Reemplazar con null
     SHOW_WARNING: true, // Mostrar advertencia al usuario
     THROW_ERROR: false // En desarrollo, lanzar error

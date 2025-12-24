@@ -22,7 +22,7 @@ window.debugSupabase = function() {
       console.log('¿Tiene método auth?', typeof supabase.auth);
       console.log('¿Tiene método from?', typeof supabase.from);
       
-      // Verificar si es el mock o el cliente real
+      // Verificar si es un cliente configurado correctamente
       if (supabase.auth && supabase.auth.signInWithPassword) {
         // Intentar ejecutar una función para ver qué error da
         supabase.auth.signInWithPassword({ email: 'test@test.com', password: 'test123' })
