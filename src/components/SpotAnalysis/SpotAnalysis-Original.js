@@ -1760,7 +1760,7 @@ const SpotAnalysis = () => {
           />
         </motion.div>
 
-        {/* Botón de análisis principal */}
+        {/* Botón de análisis principal - DESPUÉS del video de YouTube */}
         <div className="flex justify-center mb-8">
           <motion.button
             whileHover={{ scale: 1.02 }}
