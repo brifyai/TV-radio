@@ -357,14 +357,28 @@ const SpotAnalysis = () => {
         setLoading(true);
         console.log('🔍 DEBUG: Fetching spot analysis data for user:', user?.id);
         
-        // SIEMPRE usar datos simulados en desarrollo para evitar errores de API
-        console.log('🔄 Using simulated data for development');
+        // Intentar obtener datos reales primero
+        if (user?.id && selectedProperty) {
+          try {
+            console.log('🔄 Attempting to fetch real data from API...');
+            const realData = await getSpotAnalysisData(user.id);
+            setAnalysisData(realData);
+            console.log('✅ Real data loaded successfully');
+            return;
+          } catch (apiError) {
+            console.warn('⚠️ API request failed, using simulated data:', apiError.message);
+            // Continuar con datos simulados si la API falla
+          }
+        }
+        
+        // Si no hay usuario o propiedad, o si la API falla, usar datos simulados
+        console.log('🔄 Using simulated data (no user/property or API failed)');
         const simulatedData = getSimulatedSpotAnalysisData();
         setAnalysisData(simulatedData);
         
       } catch (err) {
         console.error('Error in fetchAnalysisData:', err);
-        // En cualquier error, usar datos simulados
+        // En cualquier error, usar datos simulados como último recurso
         const simulatedData = getSimulatedSpotAnalysisData();
         setAnalysisData(simulatedData);
       } finally {
@@ -374,7 +388,7 @@ const SpotAnalysis = () => {
 
     // Solo ejecutar una vez al montar el componente
     fetchAnalysisData();
-  }, []);
+  }, [user?.id, selectedProperty]);
 
   // Manejar subida de archivo de spots
   const handleSpotsFileUpload = useCallback(async (event) => {
