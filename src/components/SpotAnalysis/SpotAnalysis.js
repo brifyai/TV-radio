@@ -437,7 +437,7 @@ const SpotAnalysis = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
             {/* Selección de Cuenta */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -449,7 +449,7 @@ const SpotAnalysis = () => {
                   setSelectedAccount(e.target.value);
                   setSelectedProperty(''); // Reset property when account changes
                 }}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
               >
                 <option value="">Selecciona una cuenta</option>
                 {sortedAccounts.map((account) => (
@@ -469,7 +469,7 @@ const SpotAnalysis = () => {
                 value={selectedProperty}
                 onChange={(e) => setSelectedProperty(e.target.value)}
                 disabled={!selectedAccount}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 text-sm"
               >
                 <option value="">Selecciona una propiedad</option>
                 {filteredProperties.map((property) => (
@@ -495,7 +495,7 @@ const SpotAnalysis = () => {
                 />
                 <label
                   htmlFor="spots-file-upload"
-                  className="flex flex-col items-center justify-center w-full px-3 py-2 border-2 border-dashed border-green-300 rounded-lg cursor-pointer hover:border-green-400 hover:bg-green-50 transition-all bg-white min-h-[60px]"
+                  className="flex flex-col items-center justify-center w-full px-3 py-2 border-2 border-dashed border-green-300 rounded-lg cursor-pointer hover:border-green-400 hover:bg-green-50 transition-all bg-white min-h-[50px]"
                 >
                   <Upload className="h-4 w-4 text-green-500 mb-1" />
                   <span className="text-xs text-gray-600 text-center">
@@ -508,11 +508,41 @@ const SpotAnalysis = () => {
                 </label>
               </div>
               {spotsData.length > 0 && (
-                <div className="mt-2 flex items-center text-xs text-green-600">
+                <div className="mt-1 flex items-center text-xs text-green-600">
                   <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
                   {spotsData.length} spots cargados
                 </div>
               )}
+            </div>
+
+            {/* Video del Spot con IA (YouTube) */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Video del Spot (YouTube)
+              </label>
+              <div className="relative">
+                <input
+                  type="url"
+                  placeholder="https://youtube.com/watch?v=..."
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm"
+                  onChange={(e) => {
+                    // Validar URL de YouTube
+                    const url = e.target.value;
+                    const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)[a-zA-Z0-9_-]{11}(\S*)?$/;
+                    if (youtubeRegex.test(url)) {
+                      // Aquí se integraría la lógica de análisis
+                      console.log('URL de YouTube válida:', url);
+                    }
+                  }}
+                />
+                <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                  <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                </div>
+              </div>
+              <div className="mt-1 flex items-center text-xs text-gray-500">
+                <div className="w-2 h-2 bg-red-500 rounded-full mr-2"></div>
+                Análisis con IA
+              </div>
             </div>
           </div>
 
