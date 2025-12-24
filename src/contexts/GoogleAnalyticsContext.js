@@ -21,6 +21,12 @@ export const GoogleAnalyticsProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [errorType, setErrorType] = useState(null); // Para diferenciar tipos de error
+  
+  // 🚨 NUEVO: Sistema de rate limiting para evitar bucles infinitos
+  const [retryCount, setRetryCount] = useState(0);
+  const [lastErrorTime, setLastErrorTime] = useState(0);
+  const MAX_RETRIES = 3;
+  const RETRY_DELAY = 30000; // 30 segundos
 
   // Check if user has Google Analytics connection
   useEffect(() => {
@@ -47,6 +53,15 @@ export const GoogleAnalyticsProvider = ({ children }) => {
 
   const checkGoogleConnection = async () => {
     try {
+      // 🚨 RATE LIMITING: Verificar si hemos excedido el límite de reintentos
+      const now = Date.now();
+      if (now - lastErrorTime < RETRY_DELAY && retryCount >= MAX_RETRIES) {
+        console.log('🚨 RATE LIMIT: Demasiados errores recientes, pausando intentos');
+        setError('Demasiados errores de conexión. Por favor, intenta nuevamente en unos minutos.');
+        setIsConnected(false);
+        return;
+      }
+
       setLoading(true);
       setError(null);
 
@@ -60,11 +75,16 @@ export const GoogleAnalyticsProvider = ({ children }) => {
         try {
           setIsConnected(true);
           await loadAccountsAndProperties(true); // Load accounts first, properties in background
+          // ✅ ÉXITO: Resetear contadores de error
+          setRetryCount(0);
+          setLastErrorTime(0);
         } catch (gaError) {
           console.error('Error accessing GA4 with provider token:', gaError);
           // Token exists but doesn't have GA4 access
           setIsConnected(false);
           setError('El token de Google no tiene acceso a Google Analytics. Por favor, vuelve a conectar con los scopes correctos.');
+          // 🚨 MANEJAR ERROR 403: Incrementar contador
+          handleErrorIncrement(gaError);
         }
       } else {
         // Check legacy tokens in database for backward compatibility
@@ -86,6 +106,9 @@ export const GoogleAnalyticsProvider = ({ children }) => {
           if (tokenExpiry > now) {
             setIsConnected(true);
             await loadAccountsAndProperties(true); // Load accounts first, properties in background
+            // ✅ ÉXITO: Resetear contadores de error
+            setRetryCount(0);
+            setLastErrorTime(0);
           } else {
             // Try to refresh the token
             await refreshGoogleToken();
@@ -95,14 +118,42 @@ export const GoogleAnalyticsProvider = ({ children }) => {
           console.log('🔍 DEBUG: No Google tokens found, user needs to authenticate');
           setIsConnected(false);
           // setError('No hay conexión con Google Analytics. Por favor, conecta tu cuenta para ver los datos.'); // OCULTADO
+          // ✅ NO HAY TOKEN: Resetear contadores (no es un error)
+          setRetryCount(0);
+          setLastErrorTime(0);
         }
       }
     } catch (err) {
       console.error('Error checking Google connection:', err);
       setError('Error verificando conexión con Google Analytics: ' + err.message);
       setIsConnected(false);
+      // 🚨 MANEJAR ERROR: Incrementar contador
+      handleErrorIncrement(err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // 🚨 NUEVA FUNCIÓN: Manejar incremento de errores con rate limiting
+  const handleErrorIncrement = (error) => {
+    const now = Date.now();
+    const newRetryCount = retryCount + 1;
+    
+    setRetryCount(newRetryCount);
+    setLastErrorTime(now);
+    
+    console.log(`🚨 ERROR COUNT: ${newRetryCount}/${MAX_RETRIES} - Último error hace ${Math.round((now - lastErrorTime) / 1000)}s`);
+    
+    // Si es un error 403, ser más específico
+    if (error.message.includes('403') || error.message.includes('Forbidden')) {
+      console.log('🚨 ERROR 403 DETECTADO: Posibles causas - permisos insuficientes o token inválido');
+      setErrorType('permission_denied');
+    }
+    
+    // Si excedemos el límite, mostrar mensaje de rate limiting
+    if (newRetryCount >= MAX_RETRIES) {
+      console.log('🚨 RATE LIMIT EXCEEDED: Pausando intentos por', RETRY_DELAY / 1000, 'segundos');
+      setError('Demasiados errores de conexión. Por favor, intenta nuevamente en unos minutos.');
     }
   };
 
@@ -397,6 +448,13 @@ export const GoogleAnalyticsProvider = ({ children }) => {
 
   const loadAccountsAndProperties = async (loadProperties = true) => {
     try {
+      // 🚨 RATE LIMITING: Verificar si hemos excedido el límite de reintentos
+      const now = Date.now();
+      if (now - lastErrorTime < RETRY_DELAY && retryCount >= MAX_RETRIES) {
+        console.log('🚨 RATE LIMIT: Demasiados errores recientes, pausando carga de cuentas');
+        return;
+      }
+
       setLoading(true);
 
       // Try to get Google provider token from Supabase first
@@ -445,9 +503,15 @@ export const GoogleAnalyticsProvider = ({ children }) => {
       if (loadProperties) {
         loadPropertiesInBackground(processedAccounts, accessToken);
       }
+
+      // ✅ ÉXITO: Resetear contadores de error
+      setRetryCount(0);
+      setLastErrorTime(0);
     } catch (err) {
       console.error('Error loading accounts and properties:', err);
       setError(err.message);
+      // 🚨 MANEJAR ERROR: Incrementar contador
+      handleErrorIncrement(err);
     } finally {
       setLoading(false);
     }
