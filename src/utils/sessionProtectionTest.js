@@ -52,7 +52,7 @@ export const runSessionProtectionTest = () => {
   const test3 = () => {
     // Simular cambio de sesión durante OAuth
     const testEvent = 'SIGNED_IN';
-    const testSession = { user: { email: 'analytics@example.com' } };
+    const testSession = { user: { email: 'analytics@test.com' } };
     const isAnalyticsFlow = sessionStorage.getItem('analytics_oauth_flow') === 'true';
     const originalEmail = sessionStorage.getItem('original_user_email');
     
@@ -68,13 +68,13 @@ export const runSessionProtectionTest = () => {
   // Test 4: Verificar flujo completo
   const test4 = () => {
     const steps = [
-      'Usuario inicia sesión con camiloalegriabarra@gmail.com',
+      'Usuario inicia sesión con email@original.com',
       'Usuario hace clic en "Conectar Google Analytics"',
-      'Se abre OAuth de Google con camilo@origencomunicaciones.cl',
+      'Se abre OAuth de Google con email@analytics.com',
       'SessionStorage preserva email original',
       'AuthContext ignora cambio de sesión',
       'Tokens de Analytics se almacenan para usuario original',
-      'Sesión final sigue siendo camiloalegriabarra@gmail.com'
+      'Sesión final sigue siendo email@original.com'
     ];
     
     testResults.passed.push('✅ Test 4: Flujo completo validado (verificación manual)');

@@ -21,7 +21,15 @@ export const getSpotAnalysisData = async (userId) => {
     const analyticsData = await googleAnalyticsService.getAnalyticsData(userId);
     
     // Obtener análisis temporal
-    const temporalAnalysis = await TemporalAnalysisService.analyzeTemporalImpact(analyticsData);
+    const temporalAnalysisService = new TemporalAnalysisService();
+    const temporalImpact = temporalAnalysisService.analyzeTemporalImpact(
+      analyticsData.spotData,
+      analyticsData.trafficMetrics,
+      temporalAnalysisService.calculateRobustReference(
+        new Date(analyticsData.spotData.dateTime),
+        analyticsData.historicalData
+      )
+    );
     
     // Obtener análisis de video (si está disponible)
     let videoAnalysis = null;
@@ -31,11 +39,11 @@ export const getSpotAnalysisData = async (userId) => {
     }
 
     // Generar insights inteligentes
-    const smartInsights = generateSmartInsights(temporalAnalysis, videoAnalysis);
+    const smartInsights = generateSmartInsights(temporalImpact, videoAnalysis);
     
     return {
-      impactAnalysis: temporalAnalysis,
-      confidenceLevel: calculateConfidenceLevel(temporalAnalysis, videoAnalysis),
+      impactAnalysis: temporalImpact,
+      confidenceLevel: calculateConfidenceLevel(temporalImpact, videoAnalysis),
       smartInsights,
       trafficData: analyticsData.trafficMetrics
     };

@@ -4,35 +4,27 @@ import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Toolti
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
-const TrafficHeatmapCard = () => {
-  const data = {
-    labels: ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'],
-    datasets: [
-      {
-        label: 'Tráfico',
-        data: [65, 59, 80, 81, 56, 55, 40],
-        backgroundColor: [
-          'rgba(255, 99, 132, 0.8)',
-          'rgba(54, 162, 235, 0.8)',
-          'rgba(255, 206, 86, 0.8)',
-          'rgba(75, 192, 192, 0.8)',
-          'rgba(153, 102, 255, 0.8)',
-          'rgba(255, 159, 64, 0.8)',
-          'rgba(199, 199, 199, 0.8)'
-        ],
-        borderColor: [
-          'rgba(255, 99, 132, 1)',
-          'rgba(54, 162, 235, 1)',
-          'rgba(255, 206, 86, 1)',
-          'rgba(75, 192, 192, 1)',
-          'rgba(153, 102, 255, 1)',
-          'rgba(255, 159, 64, 1)',
-          'rgba(199, 199, 199, 1)'
-        ],
-        borderWidth: 1,
-      },
-    ],
-  };
+const TrafficHeatmapCard = ({ data: propData }) => {
+  // Si no hay datos, mostrar mensaje de carga
+  if (!propData || !propData.labels || !propData.datasets) {
+    return (
+      <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
+        <h2 className="text-xl font-bold text-gray-900 mb-4">Mapa de Calor de Tráfico</h2>
+        <p className="text-gray-600 mb-6">Distribución del tráfico durante la semana</p>
+        
+        <div className="h-64 flex items-center justify-center bg-gray-50 rounded-lg">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
+            <p className="text-gray-500">Cargando datos de tráfico...</p>
+          </div>
+        </div>
+        
+        <div className="mt-4 text-sm text-gray-600">
+          <p>Los datos de tráfico aparecerán aquí después del análisis</p>
+        </div>
+      </div>
+    );
+  }
 
   const options = {
     responsive: true,
@@ -64,13 +56,11 @@ const TrafficHeatmapCard = () => {
       <p className="text-gray-600 mb-6">Distribución del tráfico durante la semana</p>
       
       <div className="h-64">
-        <Bar data={data} options={options} />
+        <Bar data={propData} options={options} />
       </div>
       
       <div className="mt-4 text-sm text-gray-600">
-        <p>🔴 Lunes: Mayor tráfico en la mañana</p>
-        <p>🔵 Martes: Pico a medio día</p>
-        <p>🟡 Miércoles: Consistente todo el día</p>
+        <p>📊 Los datos se actualizan automáticamente según el análisis</p>
       </div>
     </div>
   );

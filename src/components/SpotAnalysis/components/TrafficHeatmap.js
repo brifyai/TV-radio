@@ -1,6 +1,22 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 
-const TrafficHeatmap = ({ data }) => {
+const TrafficHeatmap = ({ data, exportButton }) => {
+  const [isExporting, setIsExporting] = useState(false);
+  
+  // Detectar cuando se está exportando
+  useEffect(() => {
+    const handleExportStart = () => setIsExporting(true);
+    const handleExportEnd = () => setIsExporting(false);
+    
+    window.addEventListener('export-start', handleExportStart);
+    window.addEventListener('export-end', handleExportEnd);
+    
+    return () => {
+      window.removeEventListener('export-start', handleExportStart);
+      window.removeEventListener('export-end', handleExportEnd);
+    };
+  }, []);
+  
   // Datos de ejemplo para el mapa de calor
   const days = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
   const hours = ['0', '3', '6', '9', '12', '15', '18', '21'];
@@ -17,7 +33,14 @@ const TrafficHeatmap = ({ data }) => {
   // Si no hay datos, mostrar mensaje
   if (!data || !data.heatmapData) {
     return (
-      <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
+      <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100 relative">
+        {/* Botón de descarga en la parte superior derecha */}
+        {!isExporting && exportButton && (
+          <div className="absolute top-2 right-2 z-10">
+            {exportButton}
+          </div>
+        )}
+        
         <div className="flex justify-between items-center mb-4">
           <div>
             <h2 className="text-xl font-bold text-gray-900">Mapa de Calor de Tráfico</h2>
@@ -43,7 +66,14 @@ const TrafficHeatmap = ({ data }) => {
   const heatmapData = data.heatmapData;
 
   return (
-    <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
+    <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100 relative">
+      {/* Botón de descarga en la parte superior derecha */}
+      {!isExporting && exportButton && (
+        <div className="absolute top-2 right-2 z-10">
+          {exportButton}
+        </div>
+      )}
+      
       <div className="flex justify-between items-center mb-4">
         <div>
           <h2 className="text-xl font-bold text-gray-900">Mapa de Calor de Tráfico</h2>

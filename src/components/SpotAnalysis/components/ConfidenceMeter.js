@@ -3,10 +3,10 @@ import { motion } from 'framer-motion';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 import { BarChart3 } from 'lucide-react';
 
-const ConfidenceMeter = ({ confidenceScore = 85, analysisData }) => {
+const ConfidenceMeter = ({ confidenceScore, analysisData }) => {
   // Calcular score de confianza basado en múltiples factores reales
   const calculateConfidence = () => {
-    if (!analysisData || analysisData.length === 0) return 60;
+    if (!analysisData || analysisData.length === 0) return 0;
     
     let score = 60; // Base score
     

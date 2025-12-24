@@ -1,12 +1,35 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import PropTypes from 'prop-types';
 
-const SmartInsightsCard = ({ insights = [] }) => {
+const SmartInsightsCard = ({ insights = [], exportButton }) => {
+  const [isExporting, setIsExporting] = useState(false);
+  
+  // Detectar cuando se está exportando
+  useEffect(() => {
+    const handleExportStart = () => setIsExporting(true);
+    const handleExportEnd = () => setIsExporting(false);
+    
+    window.addEventListener('export-start', handleExportStart);
+    window.addEventListener('export-end', handleExportEnd);
+    
+    return () => {
+      window.removeEventListener('export-start', handleExportStart);
+      window.removeEventListener('export-end', handleExportEnd);
+    };
+  }, []);
+
   // Si no hay insights, mostrar mensaje
   if (!insights || insights.length === 0) {
     return (
-      <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
+      <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100 relative">
+        {/* Botón de descarga en la parte superior derecha */}
+        {!isExporting && exportButton && (
+          <div className="absolute top-2 right-2 z-10">
+            {exportButton}
+          </div>
+        )}
+        
         <div className="flex items-center justify-between mb-4">
           <div>
             <h2 className="text-xl font-bold text-gray-900">Smart Insights</h2>
@@ -25,7 +48,14 @@ const SmartInsightsCard = ({ insights = [] }) => {
   }
 
   return (
-    <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100 h-full">
+    <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100 h-full relative">
+      {/* Botón de descarga en la parte superior derecha */}
+      {!isExporting && exportButton && (
+        <div className="absolute top-2 right-2 z-10">
+          {exportButton}
+        </div>
+      )}
+      
       <div className="flex flex-col h-full">
         <div className="flex items-center justify-between mb-4">
           <div>

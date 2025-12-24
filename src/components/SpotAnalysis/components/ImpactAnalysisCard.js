@@ -1,23 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 
-const ImpactAnalysisCard = () => {
+const ImpactAnalysisCard = ({ data, exportButton }) => {
   // Estado para detectar si se está exportando
   const [isExporting, setIsExporting] = useState(false);
   
-  // Datos de ejemplo
-  const totalSpots = 70;
-  const avgImpact = -8.7;
-  const successfulSpots = 21;
-  const bestSpot = {
-    impact: 93.5,
-    program: 'QUE DICE CHILE',
-    date: '05/12/2025 18:59:29'
+  // Datos por defecto si no se proporcionan
+  const totalSpots = data?.totalSpots || 0;
+  const avgImpact = data?.avgImpact || 0;
+  const successfulSpots = data?.successfulSpots || 0;
+  const bestSpot = data?.bestSpot || {
+    impact: 0,
+    program: 'Sin datos',
+    date: 'Sin fecha'
   };
-  const worstSpot = {
-    impact: -52.2,
-    program: 'QUE DICE CHILE',
-    date: '01/12/2025 18:56:40'
+  const worstSpot = data?.worstSpot || {
+    impact: 0,
+    program: 'Sin datos',
+    date: 'Sin fecha'
   };
 
   // Detectar cuando se está exportando
@@ -35,7 +35,14 @@ const ImpactAnalysisCard = () => {
   }, []);
 
   return (
-    <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
+    <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100 relative">
+      {/* Botón de descarga en la parte superior derecha */}
+      {!isExporting && exportButton && (
+        <div className="absolute top-2 right-2 z-10">
+          {exportButton}
+        </div>
+      )}
+      
       <h2 className="text-xl font-bold text-gray-900 mb-4">Análisis de Impacto</h2>
       <p className="text-gray-600 mb-6">Resultados de todos los spots analizados</p>
       

@@ -24,16 +24,8 @@ window.debugSupabase = function() {
       
       // Verificar si es un cliente configurado correctamente
       if (supabase.auth && supabase.auth.signInWithPassword) {
-        // Intentar ejecutar una función para ver qué error da
-        supabase.auth.signInWithPassword({ email: 'test@test.com', password: 'test123' })
-          .then(result => {
-            console.log('✅ Resultado de signInWithPassword:', result);
-          })
-          .catch(error => {
-            console.log('❌ Error de signInWithPassword:', error.message);
-            console.log('Tipo de error:', typeof error);
-            console.log('Stack del error:', error.stack);
-          });
+        console.log('✅ Cliente Supabase configurado correctamente');
+        console.log('ℹ️ Para probar autenticación, usar credenciales válidas manualmente');
       }
       
       // Verificar el constructor del objeto
