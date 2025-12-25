@@ -111,7 +111,16 @@ export class TemporalAnalysisService {
    * @returns {Object} Análisis de impacto por ventana temporal
    */
   analyzeTemporalImpact(spotData, analyticsData, referencia) {
-    const spotDateTime = new Date(spotData.dateTime);
+    // Manejar el caso cuando no hay datos de spot específicos
+    let spotDateTime;
+    if (spotData && spotData.dateTime) {
+      spotDateTime = new Date(spotData.dateTime);
+    } else {
+      // Usar fecha actual como referencia para análisis general
+      spotDateTime = new Date();
+      console.log('📊 TemporalAnalysis: Usando fecha actual para análisis general de GA');
+    }
+    
     const impact = {};
 
     Object.entries(this.timeWindows).forEach(([windowKey, windowConfig]) => {
