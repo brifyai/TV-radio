@@ -611,7 +611,8 @@ const SpotAnalysisMinuteByMinute = () => {
 
           <YouTubeVideoInput
             onAnalysisComplete={setYoutubeAnalysis}
-            spotsData={spotsData}
+            analysisResults={spotsData}
+            isAnalyzing={analyzing}
           />
 
           {youtubeAnalysis && (
