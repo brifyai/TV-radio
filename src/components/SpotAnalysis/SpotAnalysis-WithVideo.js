@@ -2016,8 +2016,8 @@ const SpotAnalysis = () => {
           </div>
         </div>
 
-        {/* Grid principal de configuración */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+        {/* Grid principal de configuración - 4 columnas alineadas */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {/* Card: Cuenta de Analytics */}
           <motion.div
             whileHover={{ y: -2 }}
@@ -2108,10 +2108,10 @@ const SpotAnalysis = () => {
               />
               <label
                 htmlFor="spots-file-upload"
-                className="flex flex-col items-center justify-center w-full px-6 py-8 border-2 border-dashed border-green-300 rounded-lg cursor-pointer hover:border-green-400 hover:bg-green-50 transition-all bg-white"
+                className="flex flex-col items-center justify-center w-full px-4 py-6 border-2 border-dashed border-green-300 rounded-lg cursor-pointer hover:border-green-400 hover:bg-green-50 transition-all bg-white"
               >
-                <Upload className="h-8 w-8 text-green-500 mb-2" />
-                <span className="text-sm text-gray-600 text-center">
+                <Upload className="h-6 w-6 text-green-500 mb-2" />
+                <span className="text-xs text-gray-600 text-center">
                   {spotsFile ? (
                     <span className="text-green-600 font-medium">{spotsFile.name}</span>
                   ) : (
@@ -2127,103 +2127,99 @@ const SpotAnalysis = () => {
               </div>
             )}
           </motion.div>
-        </div>
 
-        {/* Sección de Video con análisis de IA */}
-        <motion.div
-          whileHover={{ y: -1 }}
-          className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-6 mb-8 border border-purple-200"
-        >
-          <div className="flex items-center mb-4">
-            <div className="p-2 bg-purple-500 rounded-lg mr-3">
-              <FileVideo className="h-5 w-5 text-white" />
-            </div>
-            <div>
+          {/* Card: Video del Spot con IA */}
+          <motion.div
+            whileHover={{ y: -2 }}
+            className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-6 border border-purple-100"
+          >
+            <div className="flex items-center mb-4">
+              <div className="p-2 bg-purple-500 rounded-lg mr-3">
+                <FileVideo className="h-5 w-5 text-white" />
+              </div>
               <h3 className="font-semibold text-gray-900">Video del Spot con IA</h3>
-              <p className="text-sm text-gray-600">Sube el video para análisis visual avanzado con chutes.ai</p>
             </div>
-          </div>
-          <div className="relative">
-            <input
-              type="file"
-              accept="video/*"
-              onChange={handleVideoUpload}
-              className="hidden"
-              id="video-upload"
-            />
-            <label
-              htmlFor="video-upload"
-              className="flex items-center justify-center w-full px-6 py-4 border-2 border-dashed border-purple-300 rounded-lg cursor-pointer hover:border-purple-400 hover:bg-purple-50 transition-all bg-white"
-            >
-              <FileVideo className="h-6 w-6 text-purple-400 mr-3" />
-              <span className="text-sm text-gray-600">
-                {videoFile ? (
-                  <span className="text-purple-600 font-medium">{videoFile.name}</span>
-                ) : (
-                  'Selecciona video del spot'
-                )}
-              </span>
-            </label>
-          </div>
-          
-          {/* Botón de análisis de video */}
-          {videoFile && (
-            <div className="mt-4 flex justify-center">
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={analyzeVideoWithAI}
-                disabled={analyzingVideo}
-                className="inline-flex items-center px-8 py-3 text-lg font-semibold rounded-xl text-white bg-gradient-to-r from-purple-600 via-pink-600 to-purple-700 hover:from-purple-700 hover:via-pink-700 hover:to-purple-800 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transition-all duration-300"
+            <div className="relative">
+              <input
+                type="file"
+                accept="video/*"
+                onChange={handleVideoUpload}
+                className="hidden"
+                id="video-upload"
+              />
+              <label
+                htmlFor="video-upload"
+                className="flex flex-col items-center justify-center w-full px-4 py-6 border-2 border-dashed border-purple-300 rounded-lg cursor-pointer hover:border-purple-400 hover:bg-purple-50 transition-all bg-white"
               >
-                {analyzingVideo ? (
-                  <>
-                    <RefreshCw className="h-5 w-5 mr-2 animate-spin" />
-                    Analizando Video...
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="h-5 w-5 mr-2" />
-                    Analizar Video con IA
-                  </>
-                )}
-              </motion.button>
+                <FileVideo className="h-6 w-6 text-purple-400 mb-2" />
+                <span className="text-xs text-gray-600 text-center">
+                  {videoFile ? (
+                    <span className="text-purple-600 font-medium">{videoFile.name}</span>
+                  ) : (
+                    'Selecciona video del spot'
+                  )}
+                </span>
+              </label>
             </div>
-          )}
+            
+            {/* Botón de análisis de video */}
+            {videoFile && (
+              <div className="mt-4 flex justify-center">
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={analyzeVideoWithAI}
+                  disabled={analyzingVideo}
+                  className="inline-flex items-center px-4 py-2 text-sm font-semibold rounded-lg text-white bg-gradient-to-r from-purple-600 via-pink-600 to-purple-700 hover:from-purple-700 hover:via-pink-700 hover:to-purple-800 disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg transition-all duration-300"
+                >
+                  {analyzingVideo ? (
+                    <>
+                      <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                      Analizando...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="h-4 w-4 mr-2" />
+                      Analizar Video
+                    </>
+                  )}
+                </motion.button>
+              </div>
+            )}
 
-          {/* Progreso del análisis de video */}
-          {analyzingVideo && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="mt-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-4 border border-purple-200"
-            >
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center">
-                  <div className="p-2 bg-purple-500 rounded-lg mr-3">
-                    <Sparkles className="h-4 w-4 text-white animate-pulse" />
+            {/* Progreso del análisis de video */}
+            {analyzingVideo && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="mt-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg p-3 border border-purple-200"
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center">
+                    <div className="p-1 bg-purple-500 rounded mr-2">
+                      <Sparkles className="h-3 w-3 text-white animate-pulse" />
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-semibold text-gray-900">Analizando Video</h4>
+                      <p className="text-xs text-gray-600">Qwen2.5-VL-72B</p>
+                    </div>
                   </div>
-                  <div>
-                    <h4 className="text-sm font-semibold text-gray-900">Analizando Video con IA</h4>
-                    <p className="text-xs text-gray-600">Procesando con Qwen2.5-VL-72B-Instruct</p>
+                  <div className="text-right">
+                    <div className="text-sm font-bold text-purple-600">{videoAnalysisProgress}%</div>
                   </div>
                 </div>
-                <div className="text-right">
-                  <div className="text-lg font-bold text-purple-600">{videoAnalysisProgress}%</div>
-                  <div className="text-xs text-gray-600">Completado</div>
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <motion.div
+                    className="bg-gradient-to-r from-purple-500 to-pink-600 h-2 rounded-full"
+                    initial={{ width: 0 }}
+                    animate={{ width: `${videoAnalysisProgress}%` }}
+                    transition={{ duration: 0.5 }}
+                  />
                 </div>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-3">
-                <motion.div
-                  className="bg-gradient-to-r from-purple-500 to-pink-600 h-3 rounded-full"
-                  initial={{ width: 0 }}
-                  animate={{ width: `${videoAnalysisProgress}%` }}
-                  transition={{ duration: 0.5 }}
-                />
-              </div>
-            </motion.div>
-          )}
-        </motion.div>
+              </motion.div>
+            )}
+          </motion.div>
+        </div>
 
         {/* Botón de análisis principal */}
         <div className="flex justify-center mb-8">

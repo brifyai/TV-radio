@@ -30,6 +30,7 @@
     "react-spring": "^10.0.3",
     "recharts": "^2.15.4",
     "source-list-map": "^2.0.1",
+    "sweetalert2": "^11.26.17",
     "tailwindcss": "^3.3.0"
   },
   "scripts": {

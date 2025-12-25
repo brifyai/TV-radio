@@ -25,6 +25,7 @@ import {
   Clock,
   TrendingDown
 } from 'lucide-react';
+import { showError, showWarning } from '../../utils/swal';
 
 // Importar componentes modernos
 import ImpactAnalysisCard from './components/ImpactAnalysisCard';
@@ -377,14 +378,14 @@ const SpotAnalysis = () => {
     // Validar tipo de archivo
     const validTypes = ['application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'text/csv'];
     if (!validTypes.includes(file.type)) {
-      alert('Por favor, sube un archivo Excel (.xlsx, .xls) o CSV');
+      showWarning('Por favor, sube un archivo Excel (.xlsx, .xls) o CSV', 'Tipo de archivo inválido');
       return;
     }
 
     // Validar tamaño máximo (5MB)
     const MAX_SIZE = 5 * 1024 * 1024; // 5MB en bytes
     if (file.size > MAX_SIZE) {
-      alert('El archivo excede el tamaño máximo permitido de 5MB');
+      showWarning('El archivo excede el tamaño máximo permitido de 5MB', 'Archivo demasiado grande');
       return;
     }
 
@@ -396,40 +397,25 @@ const SpotAnalysis = () => {
       console.log('📊 Datos de spots cargados:', data);
     } catch (error) {
       console.error('❌ Error al procesar archivo de spots:', error);
-      alert(`Error al procesar el archivo: ${error.message}. Por favor, verifica el formato.`);
+      showError(`Error al procesar el archivo: ${error.message}. Por favor, verifica el formato.`, 'Error al procesar archivo');
     }
   }, [parseSpotsFile]);
-
-  // Manejar subida de video
-  const handleVideoUpload = useCallback((event) => {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    // Validar tipo de archivo
-    if (!file.type.startsWith('video/')) {
-      alert('Por favor, sube un archivo de video válido');
-      return;
-    }
-
-    setVideoFile(file);
-    console.log('🎥 Video cargado:', file.name);
-  }, []);
 
   // Función principal de análisis de spots
   const handleAnalyzeSpots = useCallback(async () => {
     // Validaciones
     if (!selectedProperty) {
-      alert('Por favor, selecciona una propiedad de Google Analytics');
+      showWarning('Por favor, selecciona una propiedad de Google Analytics', 'Propiedad requerida');
       return;
     }
 
     if (spotsData.length === 0) {
-      alert('Por favor, carga un archivo de spots válido');
+      showWarning('Por favor, carga un archivo de spots válido', 'Archivo de spots requerido');
       return;
     }
 
     if (!isConnected) {
-      alert('Por favor, conecta tu cuenta de Google Analytics');
+      showWarning('Por favor, conecta tu cuenta de Google Analytics', 'Conexión requerida');
       return;
     }
 
