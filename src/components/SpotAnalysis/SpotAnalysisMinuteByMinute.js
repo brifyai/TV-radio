@@ -6,7 +6,6 @@ import {
   Upload,
   BarChart3,
   Brain,
-  TrendingUp,
   Target,
   CheckCircle,
   XCircle,
@@ -14,16 +13,12 @@ import {
   RefreshCw,
   Info,
   Clock,
-  Users,
-  MousePointer,
   Eye,
   Activity,
-  Calendar,
   ArrowUp,
   ArrowDown,
   Minus,
-  Play,
-  Pause
+  Play
 } from 'lucide-react';
 import { showError, showWarning, showSuccess } from '../../utils/swal';
 
@@ -38,14 +33,14 @@ import YouTubeVideoInputSimple from './components/YouTubeVideoInputSimple';
 
 const SpotAnalysisMinuteByMinute = () => {
   const { user } = useAuth();
-  const { accounts, properties, isConnected, analyticsData } = useGoogleAnalytics();
+  const { accounts, properties, isConnected } = useGoogleAnalytics();
   
   // Estados principales
   const [selectedAccount, setSelectedAccount] = useState('');
   const [selectedProperty, setSelectedProperty] = useState('');
   const [spotsFile, setSpotsFile] = useState(null);
   const [spotsData, setSpotsData] = useState([]);
-  const [selectedSpot, setSelectedSpot] = useState(null);
+  const [selectedSpots, setSelectedSpots] = useState([]); // Para selección múltiple
   const [analysisResults, setAnalysisResults] = useState(null);
   const [analyzing, setAnalyzing] = useState(false);
   const [analysisStage, setAnalysisStage] = useState('');
@@ -53,6 +48,7 @@ const SpotAnalysisMinuteByMinute = () => {
   const [error, setError] = useState(null);
   const [setupComplete, setSetupComplete] = useState(false);
   const [analysisWindow, setAnalysisWindow] = useState(30); // minutos
+  const [showSpotDropdown, setShowSpotDropdown] = useState(false); // Para controlar el dropdown
 
   // Instancias de servicios con useMemo
   const spotAnalysisService = useMemo(() => new SimpleSpotAnalysisService(), []);
@@ -95,6 +91,20 @@ const SpotAnalysisMinuteByMinute = () => {
     }
   }, [user, setupComplete, setupDatabase]);
 
+  // Cerrar dropdown al hacer clic fuera
+  React.useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (showSpotDropdown && !event.target.closest('.spot-dropdown-container')) {
+        setShowSpotDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showSpotDropdown]);
+
   // Manejar subida de archivo
   const handleFileUpload = useCallback(async (event) => {
     const file = event.target.files[0];
@@ -135,11 +145,32 @@ const SpotAnalysisMinuteByMinute = () => {
     }
   }, [spotAnalysisService]);
 
+  // Funciones para selección múltiple de spots
+  const toggleSpotSelection = (spot) => {
+    const spotId = `${spot.fecha}-${spot.hora_inicio}-${spot.canal}`;
+    setSelectedSpots(prev => {
+      const isSelected = prev.some(s => `${s.fecha}-${s.hora_inicio}-${s.canal}` === spotId);
+      if (isSelected) {
+        return prev.filter(s => `${s.fecha}-${s.hora_inicio}-${s.canal}` !== spotId);
+      } else {
+        return [...prev, spot];
+      }
+    });
+  };
+
+  const selectAllSpots = () => {
+    setSelectedSpots([...spotsData]);
+  };
+
+  const deselectAllSpots = () => {
+    setSelectedSpots([]);
+  };
+
   // ANÁLISIS INTEGRADO (Google Analytics + Excel + YouTube)
   const performIntegratedAnalysis = useCallback(async () => {
     console.log('🚀 performIntegratedAnalysis called');
     console.log('📋 State check:', {
-      selectedSpot: !!selectedSpot,
+      selectedSpotsCount: selectedSpots.length,
       selectedProperty: !!selectedProperty,
       spotsDataLength: spotsData.length,
       analyzing,
@@ -147,9 +178,9 @@ const SpotAnalysisMinuteByMinute = () => {
       spotAnalysisService: !!spotAnalysisService
     });
 
-    if (!selectedSpot) {
-      console.log('❌ No spot selected');
-      showWarning('Por favor, selecciona un spot para analizar', 'Spot requerido');
+    if (selectedSpots.length === 0) {
+      console.log('❌ No spots selected');
+      showWarning('Por favor, selecciona al menos un spot para analizar', 'Spots requeridos');
       return;
     }
 
@@ -181,20 +212,32 @@ const SpotAnalysisMinuteByMinute = () => {
         throw new Error('Servicio de análisis de spots no disponible');
       }
       
-      // Fase 1: Análisis de Google Analytics
+      // Fase 1: Análisis de Google Analytics para todos los spots
       setAnalysisStage('📊 Obteniendo datos de Google Analytics...');
       console.log('📊 Calling minuteAnalysisService.performMinuteByMinuteAnalysis...');
-      const analyticsResults = await minuteAnalysisService.performMinuteByMinuteAnalysis(
-        selectedSpot,
-        selectedProperty,
-        analysisWindow
-      );
-      console.log('✅ Analytics results received:', !!analyticsResults);
+      
+      // Analizar cada spot seleccionado
+      const allAnalyticsResults = [];
+      for (let i = 0; i < selectedSpots.length; i++) {
+        const spot = selectedSpots[i];
+        setAnalysisStage(`📊 Analizando spot ${i + 1} de ${selectedSpots.length}...`);
+        
+        const analyticsResults = await minuteAnalysisService.performMinuteByMinuteAnalysis(
+          spot,
+          selectedProperty,
+          analysisWindow
+        );
+        allAnalyticsResults.push({
+          spot,
+          results: analyticsResults
+        });
+      }
+      console.log('✅ Analytics results received for all spots:', allAnalyticsResults.length);
 
       // Fase 2: Análisis del archivo Excel
       setAnalysisStage('📋 Analizando datos del archivo Excel...');
       console.log('📋 Calling spotAnalysisService.analyzeSpotsData...');
-      const excelAnalysis = await spotAnalysisService.analyzeSpotsData(spotsData, selectedSpot);
+      const excelAnalysis = await spotAnalysisService.analyzeSpotsData(spotsData, selectedSpots);
       console.log('✅ Excel analysis received:', !!excelAnalysis);
 
       // Fase 3: Análisis de YouTube (si hay video)
@@ -211,7 +254,7 @@ const SpotAnalysisMinuteByMinute = () => {
       setAnalysisStage('🧠 Combinando análisis de todas las fuentes...');
       const integratedResults = {
         // Resultados de Google Analytics
-        analyticsData: analyticsResults,
+        analyticsData: allAnalyticsResults,
         
         // Resultados del análisis Excel
         excelAnalysis: excelAnalysis,
@@ -221,7 +264,7 @@ const SpotAnalysisMinuteByMinute = () => {
         
         // Análisis integrado
         integratedInsights: {
-          trafficImpact: analyticsResults?.impactMetrics || null,
+          trafficImpact: allAnalyticsResults.map(r => r.results?.impactMetrics).filter(Boolean),
           spotPerformance: excelAnalysis?.spotAnalysis || null,
           videoCorrelation: youtubeResults ? {
             hasVideo: true,
@@ -231,7 +274,7 @@ const SpotAnalysisMinuteByMinute = () => {
           
           // Insights combinados
           combinedInsights: [
-            ...(analyticsResults?.insights?.insights || []),
+            ...allAnalyticsResults.flatMap(r => r.results?.insights?.insights || []),
             ...(excelAnalysis?.insights || []),
             ...(youtubeResults ? [{
               severity: 'medium',
@@ -241,25 +284,26 @@ const SpotAnalysisMinuteByMinute = () => {
           ],
           
           // Resumen ejecutivo integrado
-          executiveSummary: generateExecutiveSummary(analyticsResults, excelAnalysis, youtubeResults),
+          executiveSummary: generateExecutiveSummary(allAnalyticsResults, excelAnalysis, youtubeResults),
           
           // Recomendaciones integradas
-          integratedRecommendations: generateIntegratedRecommendations(analyticsResults, excelAnalysis, youtubeResults)
+          integratedRecommendations: generateIntegratedRecommendations(allAnalyticsResults, excelAnalysis, youtubeResults)
         },
         
         // Metadatos del análisis
         analysisMetadata: {
           timestamp: new Date().toISOString(),
           sources: ['Google Analytics', 'Excel Data', ...(youtubeResults ? ['YouTube'] : [])],
-          spotInfo: selectedSpot,
-          analysisWindow: analysisWindow
+          spotsAnalyzed: selectedSpots,
+          analysisWindow: analysisWindow,
+          totalSpots: selectedSpots.length
         }
       };
       
       console.log('✅ Integrated results created:', !!integratedResults);
       setAnalysisResults(integratedResults);
       console.log('✅ Integrated analysis completed');
-      showSuccess('Análisis integrado completado exitosamente', 'Análisis terminado');
+      showSuccess(`Análisis integrado completado para ${selectedSpots.length} spot(s)`, 'Análisis terminado');
       
     } catch (error) {
       console.error('❌ Error in integrated analysis:', error);
@@ -274,19 +318,30 @@ const SpotAnalysisMinuteByMinute = () => {
       setAnalyzing(false);
       setAnalysisStage('');
     }
-  }, [selectedSpot, selectedProperty, analysisWindow, minuteAnalysisService, spotAnalysisService, spotsData, youtubeAnalysis]);
+  }, [selectedSpots, selectedProperty, analysisWindow, minuteAnalysisService, spotAnalysisService, spotsData, youtubeAnalysis]);
 
   // Función auxiliar para generar resumen ejecutivo
-  const generateExecutiveSummary = (analyticsResults, excelAnalysis, youtubeResults) => {
+  const generateExecutiveSummary = (allAnalyticsResults, excelAnalysis, youtubeResults) => {
     const parts = [];
     
-    if (analyticsResults?.impactMetrics) {
-      const impact = analyticsResults.impactMetrics.totalImpact;
-      parts.push(`El spot generó un impacto del ${impact.users.percentage.toFixed(1)}% en usuarios web`);
+    if (allAnalyticsResults && allAnalyticsResults.length > 0) {
+      // Calcular promedio de impacto de todos los spots
+      const avgImpact = allAnalyticsResults.reduce((acc, result) => {
+        if (result.results?.impactMetrics?.totalImpact) {
+          acc.users += result.results.impactMetrics.totalImpact.users.percentage;
+          acc.sessions += result.results.impactMetrics.totalImpact.sessions.percentage;
+          acc.count++;
+        }
+        return acc;
+      }, { users: 0, sessions: 0, count: 0 });
+      
+      if (avgImpact.count > 0) {
+        parts.push(`Los ${allAnalyticsResults.length} spot(s) analizados generaron un impacto promedio del ${(avgImpact.users / avgImpact.count).toFixed(1)}% en usuarios web`);
+      }
     }
     
     if (excelAnalysis?.spotAnalysis) {
-      parts.push(`Análisis del archivo Excel muestra patrones específicos del spot`);
+      parts.push(`Análisis del archivo Excel muestra patrones específicos de los spots`);
     }
     
     if (youtubeResults) {
@@ -297,11 +352,22 @@ const SpotAnalysisMinuteByMinute = () => {
   };
 
   // Función auxiliar para generar recomendaciones integradas
-  const generateIntegratedRecommendations = (analyticsResults, excelAnalysis, youtubeResults) => {
+  const generateIntegratedRecommendations = (allAnalyticsResults, excelAnalysis, youtubeResults) => {
     const recommendations = [];
     
-    if (analyticsResults?.impactMetrics?.totalImpact.users.percentage < 5) {
-      recommendations.push('Considera optimizar el timing del spot para mayor impacto web');
+    if (allAnalyticsResults && allAnalyticsResults.length > 0) {
+      // Calcular promedio de impacto
+      const avgImpact = allAnalyticsResults.reduce((acc, result) => {
+        if (result.results?.impactMetrics?.totalImpact) {
+          acc.users += result.results.impactMetrics.totalImpact.users.percentage;
+          acc.count++;
+        }
+        return acc;
+      }, { users: 0, count: 0 });
+      
+      if (avgImpact.count > 0 && (avgImpact.users / avgImpact.count) < 5) {
+        recommendations.push('Considera optimizar el timing de los spots para mayor impacto web');
+      }
     }
     
     if (excelAnalysis?.spotAnalysis?.recommendations) {
@@ -566,13 +632,19 @@ const SpotAnalysisMinuteByMinute = () => {
           <div className="text-right">
             <div className="text-2xl font-bold">{spotsData.length}</div>
             <div className="text-green-200 text-sm">Spots Cargados</div>
-            {selectedSpot && (
+            {selectedSpots.length > 0 && (
               <div className="mt-2">
                 <div className="text-lg font-semibold">
-                  {selectedSpot.canal}
+                  {selectedSpots.length === 1
+                    ? selectedSpots[0].canal
+                    : `${selectedSpots.length} spots seleccionados`
+                  }
                 </div>
                 <div className="text-green-200 text-sm">
-                  {selectedSpot.fecha} {selectedSpot.hora_inicio}
+                  {selectedSpots.length === 1
+                    ? `${selectedSpots[0].fecha} ${selectedSpots[0].hora_inicio}`
+                    : 'Múltiples spots'
+                  }
                 </div>
               </div>
             )}
@@ -640,28 +712,116 @@ const SpotAnalysisMinuteByMinute = () => {
               </select>
             </div>
 
-            {/* Selección de Spot */}
-            <div>
+            {/* Selección de Spots (Múltiple) */}
+            <div className="spot-dropdown-container">
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Spot a Analizar
+                Spots a Analizar
               </label>
-              <select
-                value={selectedSpot ? `${selectedSpot.fecha}-${selectedSpot.hora_inicio}-${selectedSpot.canal}` : ''}
-                onChange={(e) => {
-                  const spotId = e.target.value;
-                  const spot = spotsData.find(s => `${s.fecha}-${s.hora_inicio}-${s.canal}` === spotId);
-                  setSelectedSpot(spot || null);
-                }}
-                disabled={spotsData.length === 0}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:bg-gray-100"
-              >
-                <option value="">Selecciona un spot</option>
-                {spotsData.map((spot, index) => (
-                  <option key={index} value={`${spot.fecha}-${spot.hora_inicio}-${spot.canal}`}>
-                    {spot.fecha} {spot.hora_inicio} - {spot.canal}
-                  </option>
-                ))}
-              </select>
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setShowSpotDropdown(!showSpotDropdown)}
+                  disabled={spotsData.length === 0}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:bg-gray-100 text-left flex items-center justify-between bg-white hover:bg-gray-50"
+                >
+                  <span className="text-gray-700">
+                    {selectedSpots.length === 0
+                      ? 'Selecciona spots...'
+                      : `${selectedSpots.length} spot(s) seleccionado(s)`
+                    }
+                  </span>
+                  <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+                
+                {showSpotDropdown && (
+                  <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-64 overflow-hidden">
+                    {/* Header con controles */}
+                    <div className="p-3 border-b border-gray-200 bg-gray-50">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium text-gray-700">
+                          {spotsData.length} spots disponibles
+                        </span>
+                        <div className="flex space-x-2">
+                          <button
+                            type="button"
+                            onClick={selectAllSpots}
+                            className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded hover:bg-green-200"
+                          >
+                            Seleccionar Todos
+                          </button>
+                          <button
+                            type="button"
+                            onClick={deselectAllSpots}
+                            className="text-xs px-2 py-1 bg-red-100 text-red-700 rounded hover:bg-red-200"
+                          >
+                            Deseleccionar Todos
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Lista de spots */}
+                    <div className="max-h-48 overflow-y-auto">
+                      {spotsData.map((spot, index) => {
+                        const spotId = `${spot.fecha}-${spot.hora_inicio}-${spot.canal}`;
+                        const isSelected = selectedSpots.some(s => `${s.fecha}-${s.hora_inicio}-${s.canal}` === spotId);
+                        
+                        return (
+                          <label
+                            key={index}
+                            className="flex items-center p-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
+                          >
+                            <input
+                              type="checkbox"
+                              checked={isSelected}
+                              onChange={() => toggleSpotSelection(spot)}
+                              className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
+                            />
+                            <div className="ml-3 flex-1">
+                              <div className="text-sm font-medium text-gray-900">
+                                {spot.fecha} {spot.hora_inicio}
+                              </div>
+                              <div className="text-sm text-gray-500">
+                                {spot.canal}
+                              </div>
+                            </div>
+                          </label>
+                        );
+                      })}
+                    </div>
+                    
+                    {/* Footer con resumen */}
+                    {selectedSpots.length > 0 && (
+                      <div className="p-3 border-t border-gray-200 bg-gray-50">
+                        <div className="text-sm text-gray-600">
+                          <span className="font-medium">{selectedSpots.length}</span> spot(s) seleccionado(s)
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+              
+              {/* Mostrar spots seleccionados */}
+              {selectedSpots.length > 0 && (
+                <div className="mt-2 p-2 bg-green-50 rounded-lg border border-green-200">
+                  <div className="text-xs text-green-700 font-medium mb-1">Spots seleccionados:</div>
+                  <div className="space-y-1 max-h-20 overflow-y-auto">
+                    {selectedSpots.slice(0, 3).map((spot, index) => (
+                      <div key={index} className="text-xs text-green-600">
+                        {spot.fecha} {spot.hora_inicio} - {spot.canal}
+                      </div>
+                    ))}
+                    {selectedSpots.length > 3 && (
+                      <div className="text-xs text-green-500">
+                        ... y {selectedSpots.length - 3} más
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Ventana de Análisis */}
@@ -774,7 +934,7 @@ const SpotAnalysisMinuteByMinute = () => {
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={performIntegratedAnalysis}
-            disabled={!selectedSpot || !selectedProperty || analyzing}
+            disabled={selectedSpots.length === 0 || !selectedProperty || analyzing}
             className="inline-flex items-center px-12 py-4 text-lg font-semibold rounded-xl text-white bg-gradient-to-r from-green-600 via-blue-600 to-green-700 hover:from-green-700 hover:via-blue-700 hover:to-green-800 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transition-all duration-300"
           >
             {analyzing ? (
@@ -785,7 +945,7 @@ const SpotAnalysisMinuteByMinute = () => {
             ) : (
               <>
                 <Play className="h-6 w-6 mr-3" />
-                Ejecutar Análisis Integrado (Analytics + Excel + YouTube)
+                Ejecutar Análisis Integrado ({selectedSpots.length} spot(s))
               </>
             )}
           </motion.button>
@@ -841,19 +1001,19 @@ const SpotAnalysisMinuteByMinute = () => {
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div className="text-center p-4 bg-blue-50 rounded-lg">
                   <div className="text-lg font-bold text-blue-600">
-                    {analysisResults.analysisMetadata?.spotInfo?.canal || selectedSpot?.canal || 'N/A'}
+                    {analysisResults.analysisMetadata?.spotsAnalyzed?.[0]?.canal || selectedSpots[0]?.canal || 'N/A'}
                   </div>
                   <div className="text-sm text-blue-800">Canal</div>
                 </div>
                 <div className="text-center p-4 bg-green-50 rounded-lg">
                   <div className="text-lg font-bold text-green-600">
-                    {analysisResults.analysisMetadata?.spotInfo?.fecha || selectedSpot?.fecha || 'N/A'}
+                    {analysisResults.analysisMetadata?.spotsAnalyzed?.[0]?.fecha || selectedSpots[0]?.fecha || 'N/A'}
                   </div>
                   <div className="text-sm text-green-800">Fecha</div>
                 </div>
                 <div className="text-center p-4 bg-purple-50 rounded-lg">
                   <div className="text-lg font-bold text-purple-600">
-                    {analysisResults.analysisMetadata?.spotInfo?.hora_inicio || selectedSpot?.hora_inicio || 'N/A'}
+                    {analysisResults.analysisMetadata?.spotsAnalyzed?.[0]?.hora_inicio || selectedSpots[0]?.hora_inicio || 'N/A'}
                   </div>
                   <div className="text-sm text-purple-800">Hora del Spot</div>
                 </div>
