@@ -107,50 +107,67 @@ class GoogleAnalyticsService {
 
   /**
    * Exchange authorization code for access and refresh tokens
+   * OPTIMIZADO: Reducido timeout y mejor manejo de errores
    */
   async exchangeCodeForTokens(code, redirectUri) {
-    return retryWithBackoff(async () => {
-      try {
-        if (process.env.NODE_ENV === 'development') {
-          console.log('🔄 DEBUG: Intentando intercambiar código por tokens...');
-        }
-        const response = await axios.post(GOOGLE_TOKEN_URL, {
-          client_id: this.clientId,
-          client_secret: this.clientSecret,
-          code,
-          grant_type: 'authorization_code',
-          redirect_uri: redirectUri
-        }, {
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded'
-          },
-          timeout: 30000 // 30 segundos timeout
-        });
+    console.log('🔄 DEBUG: Iniciando intercambio de código por tokens...');
+    console.log('🔄 DEBUG: Código recibido (primeros 20 chars):', code.substring(0, 20) + '...');
+    console.log('🔄 DEBUG: Redirect URI:', redirectUri);
+    
+    try {
+      // 🚨 OPTIMIZACIÓN: Timeout reducido para evitar expiración de código
+      const response = await axios.post(GOOGLE_TOKEN_URL, {
+        client_id: this.clientId,
+        client_secret: this.clientSecret,
+        code,
+        grant_type: 'authorization_code',
+        redirect_uri: redirectUri
+      }, {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        timeout: 15000 // 🔧 REDUCIDO: 15 segundos en lugar de 30
+      });
 
-        if (process.env.NODE_ENV === 'development') {
-          console.log('✅ DEBUG: Tokens obtenidos exitosamente');
-        }
-        return response.data;
-      } catch (error) {
-        console.error('❌ Error intercambiando código por tokens:', {
-          status: error.response?.status,
-          statusText: error.response?.statusText,
-          data: error.response?.data,
-          message: error.message
-        });
+      console.log('✅ DEBUG: Tokens obtenidos exitosamente');
+      console.log('✅ DEBUG: Access token length:', response.data.access_token?.length || 0);
+      console.log('✅ DEBUG: Refresh token available:', !!response.data.refresh_token);
+      console.log('✅ DEBUG: Expires in:', response.data.expires_in, 'seconds');
+      
+      return response.data;
+    } catch (error) {
+      console.error('❌ Error intercambiando código por tokens:', {
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data,
+        message: error.message,
+        code: error.code
+      });
+      
+      // 🔧 MANEJO MEJORADO de errores específicos
+      if (error.response?.status === 400) {
+        const errorData = error.response.data;
+        console.log('🔍 DEBUG: Error 400 details:', errorData);
         
-        // Manejo específico de errores comunes
-        if (error.response?.status === 503) {
-          throw new Error('Servicio de Google temporalmente no disponible. Por favor, intenta nuevamente en unos minutos.');
-        } else if (error.response?.status === 400) {
-          throw new Error('Código de autorización inválido o expirado. Por favor, intenta conectar nuevamente.');
-        } else if (error.code === 'ECONNABORTED') {
-          throw new Error('La conexión está tardando demasiado. Por favor, verifica tu conexión e intenta nuevamente.');
+        // Detectar específicamente códigos expirados
+        if (errorData.error === 'invalid_grant' || 
+            errorData.error_description?.includes('expired') ||
+            errorData.error_description?.includes('invalid') ||
+            error.message.includes('expired')) {
+          throw new Error('Código de autorización expirado. Esto puede deberse a demoras en el procesamiento. Por favor, intenta conectar nuevamente de forma más rápida.');
         } else {
-          throw new Error(`Error al intercambiar código por tokens: ${error.response?.data?.error_description || error.message}`);
+          throw new Error(`Código de autorización inválido: ${errorData.error_description || error.message}`);
         }
+      } else if (error.response?.status === 503) {
+        throw new Error('Servicio de Google temporalmente no disponible. Por favor, intenta nuevamente en unos minutos.');
+      } else if (error.code === 'ECONNABORTED') {
+        throw new Error('La conexión está tardando demasiado. Por favor, verifica tu conexión e intenta nuevamente.');
+      } else if (error.code === 'ENOTFOUND' || error.code === 'ECONNREFUSED') {
+        throw new Error('No se puede conectar con Google. Verifica tu conexión a internet.');
+      } else {
+        throw new Error(`Error al intercambiar código por tokens: ${error.response?.data?.error_description || error.message}`);
       }
-    }, 3, 2000); // 3 reintentos con 2 segundos de espera inicial
+    }
   }
 
   /**
