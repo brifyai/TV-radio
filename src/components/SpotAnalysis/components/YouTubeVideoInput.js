@@ -101,15 +101,8 @@ const YouTubeVideoInput = ({
         animate={{ opacity: 1, y: 0 }}
         className="bg-white rounded-xl shadow-lg p-6 border border-gray-100"
       >
-        <div className="flex items-center space-x-3 mb-4">
-          <div className="p-2 bg-gradient-to-r from-red-500 to-pink-600 rounded-lg">
-            <Youtube className="h-6 w-6 text-white" />
-          </div>
-          <div>
-            <h3 className="text-xl font-bold text-gray-900">
-              Video del Spot con IA (YouTube)
-            </h3>
-          </div>
+        <div className="mb-4">
+          {/* Título eliminado según solicitud del usuario */}
         </div>
 
         {/* Campo de URL */}
