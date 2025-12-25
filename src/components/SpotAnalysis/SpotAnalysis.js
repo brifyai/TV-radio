@@ -708,19 +708,6 @@ const SpotAnalysis = () => {
               )}
             </div>
 
-            {/* Video del Spot con IA */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Video del Spot con IA
-              </label>
-              <div className="relative">
-                <YouTubeVideoInput
-                  analysisResults={analysisData?.impactAnalysis?.analysisResults}
-                  isAnalyzing={loading}
-                  onAnalysisComplete={(data) => setYoutubeAnalysis(data)}
-                />
-              </div>
-            </div>
           </div>
 
           {!isConnected && (
@@ -733,6 +720,21 @@ const SpotAnalysis = () => {
               </div>
             </div>
           )}
+        </motion.div>
+      </div>
+
+      {/* Sección de Video del Spot con IA - SEPARADA */}
+      <div className="p-6 pt-0">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-white rounded-xl shadow-lg border border-gray-100"
+        >
+          <YouTubeVideoInput
+            analysisResults={analysisData?.impactAnalysis?.analysisResults}
+            isAnalyzing={loading}
+            onAnalysisComplete={(data) => setYoutubeAnalysis(data)}
+          />
         </motion.div>
       </div>
 
