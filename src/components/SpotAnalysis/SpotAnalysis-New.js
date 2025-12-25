@@ -28,7 +28,6 @@ import { showError, showWarning, showSuccess } from '../../utils/swal';
 // Componentes modernos
 import LoadingSpinner from '../UI/LoadingSpinner';
 import SimpleExportButton from '../UI/SimpleExportButton';
-import YouTubeVideoInput from './components/YouTubeVideoInput';
 
 // Servicio de análisis de spots mejorado
 import { EnhancedSpotAnalysisService } from '../../services/enhancedSpotAnalysisService';
@@ -42,11 +41,9 @@ const SpotAnalysisNew = () => {
   const [selectedProperty, setSelectedProperty] = useState('');
   const [spotsFile, setSpotsFile] = useState(null);
   const [spotsData, setSpotsData] = useState([]);
-  const [videoFile, setVideoFile] = useState(null);
   const [analysisResults, setAnalysisResults] = useState(null);
   const [analyzing, setAnalyzing] = useState(false);
   const [analysisProgress, setAnalysisProgress] = useState(0);
-  const [youtubeAnalysis, setYoutubeAnalysis] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
 
@@ -305,12 +302,11 @@ const SpotAnalysisNew = () => {
       setAnalysisProgress(90);
       console.log('💡 Generating final insights...');
       const finalInsights = await spotAnalysisService.generateFinalInsights(
-        spotsData,
-        analyticsData,
-        aiAnalysis,
-        patternAnalysis,
-        impactAnalysis,
-        youtubeAnalysis // Incluir análisis de YouTube si está disponible
+        spotsData, 
+        analyticsData, 
+        aiAnalysis, 
+        patternAnalysis, 
+        impactAnalysis
       );
       
       // Compilar resultados
@@ -321,7 +317,6 @@ const SpotAnalysisNew = () => {
         impactAnalysis,
         finalInsights,
         analyticsData,
-        youtubeAnalysis, // Incluir análisis de YouTube
         timestamp: new Date().toISOString(),
         propertyId: selectedProperty,
         accountId: selectedAccount
@@ -479,41 +474,6 @@ const SpotAnalysisNew = () => {
                 <AlertCircle className="h-5 w-5 text-yellow-600 mr-2" />
                 <span className="text-sm text-yellow-800">
                   Conecta tu cuenta de Google Analytics para acceder a datos reales
-                </span>
-              </div>
-            </div>
-          )}
-        </motion.div>
-      </div>
-
-      {/* Sección de Análisis de Videos de YouTube */}
-      <div className="p-6 pt-0">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-white rounded-xl shadow-lg p-6 border border-gray-100 mb-6"
-        >
-          <div className="flex items-center mb-6">
-            <div className="p-2 bg-red-500 rounded-lg mr-3">
-              <Eye className="h-5 w-5 text-white" />
-            </div>
-            <div>
-              <h2 className="text-xl font-bold text-gray-900">Análisis de Videos de YouTube</h2>
-              <p className="text-gray-600">Analiza videos de YouTube para detectar contenido y patrones</p>
-            </div>
-          </div>
-
-          <YouTubeVideoInput
-            onAnalysisComplete={setYoutubeAnalysis}
-            spotsData={spotsData}
-          />
-
-          {youtubeAnalysis && (
-            <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
-              <div className="flex items-center">
-                <CheckCircle className="h-5 w-5 text-green-600 mr-2" />
-                <span className="text-sm text-green-800">
-                  Análisis de video completado - {youtubeAnalysis.videoTitle || 'Video procesado'}
                 </span>
               </div>
             </div>
@@ -724,55 +684,6 @@ const SpotAnalysisNew = () => {
                 </div>
               </div>
             </div>
-
-            {/* Análisis de YouTube */}
-            {analysisResults.youtubeAnalysis && (
-              <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-xl font-bold text-gray-900">Análisis de Video de YouTube</h3>
-                  <SimpleExportButton exportType="youtube-analysis" className="z-10" />
-                </div>
-                
-                <div className="space-y-4">
-                  <div className="bg-red-50 rounded-lg p-4">
-                    <div className="flex items-center mb-2">
-                      <Eye className="h-5 w-5 text-red-600 mr-2" />
-                      <h4 className="font-semibold text-red-900">Video Analizado</h4>
-                    </div>
-                    <p className="text-red-800 text-sm">
-                      {analysisResults.youtubeAnalysis.videoTitle || 'Video de YouTube procesado'}
-                    </p>
-                    {analysisResults.youtubeAnalysis.videoUrl && (
-                      <a
-                        href={analysisResults.youtubeAnalysis.videoUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-red-600 text-xs underline mt-1 inline-block"
-                      >
-                        Ver video en YouTube
-                      </a>
-                    )}
-                  </div>
-                  
-                  {analysisResults.youtubeAnalysis.contentAnalysis && (
-                    <div className="bg-gray-50 rounded-lg p-4">
-                      <h4 className="font-semibold text-gray-900 mb-2">Análisis de Contenido</h4>
-                      <p className="text-gray-700 text-sm">
-                        {analysisResults.youtubeAnalysis.contentAnalysis.description || 'Contenido analizado'}
-                      </p>
-                      {analysisResults.youtubeAnalysis.contentAnalysis.tags && (
-                        <div className="mt-2">
-                          <span className="text-xs text-gray-500">Tags: </span>
-                          <span className="text-sm text-gray-700">
-                            {analysisResults.youtubeAnalysis.contentAnalysis.tags.join(', ')}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
 
             {/* Insights Finales */}
             <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
