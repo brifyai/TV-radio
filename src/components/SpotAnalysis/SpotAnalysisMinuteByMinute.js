@@ -34,6 +34,7 @@ import MinuteByMinuteAnalysisService from '../../services/minuteByMinuteAnalysis
 
 // Componentes
 import LoadingSpinner from '../UI/LoadingSpinner';
+import YouTubeVideoInput from './components/YouTubeVideoInput';
 
 const SpotAnalysisMinuteByMinute = () => {
   const { user } = useAuth();
@@ -48,6 +49,7 @@ const SpotAnalysisMinuteByMinute = () => {
   const [analysisResults, setAnalysisResults] = useState(null);
   const [analyzing, setAnalyzing] = useState(false);
   const [analysisStage, setAnalysisStage] = useState('');
+  const [youtubeAnalysis, setYoutubeAnalysis] = useState(null);
   const [error, setError] = useState(null);
   const [setupComplete, setSetupComplete] = useState(false);
   const [analysisWindow, setAnalysisWindow] = useState(30); // minutos
@@ -590,6 +592,41 @@ const SpotAnalysisMinuteByMinute = () => {
         </motion.div>
       </div>
 
+      {/* Sección de Análisis de Videos de YouTube */}
+      <div className="p-6 pt-0">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-white rounded-xl shadow-lg p-6 border border-gray-100 mb-6"
+        >
+          <div className="flex items-center mb-6">
+            <div className="p-2 bg-red-500 rounded-lg mr-3">
+              <Eye className="h-5 w-5 text-white" />
+            </div>
+            <div>
+              <h2 className="text-xl font-bold text-gray-900">Análisis de Videos de YouTube</h2>
+              <p className="text-gray-600">Analiza videos de YouTube para detectar contenido y patrones</p>
+            </div>
+          </div>
+
+          <YouTubeVideoInput
+            onAnalysisComplete={setYoutubeAnalysis}
+            spotsData={spotsData}
+          />
+
+          {youtubeAnalysis && (
+            <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+              <div className="flex items-center">
+                <CheckCircle className="h-5 w-5 text-green-600 mr-2" />
+                <span className="text-sm text-green-800">
+                  Análisis de video completado - {youtubeAnalysis.videoTitle || 'Video procesado'}
+                </span>
+              </div>
+            </div>
+          )}
+        </motion.div>
+      </div>
+
       {/* Botón de Análisis */}
       <div className="p-6 pt-0">
         <div className="flex justify-center mb-8">
@@ -697,6 +734,54 @@ const SpotAnalysisMinuteByMinute = () => {
 
             {/* Insights */}
             {renderInsights()}
+
+            {/* Análisis de YouTube */}
+            {youtubeAnalysis && (
+              <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-xl font-bold text-gray-900">Análisis de Video de YouTube</h3>
+                </div>
+                
+                <div className="space-y-4">
+                  <div className="bg-red-50 rounded-lg p-4">
+                    <div className="flex items-center mb-2">
+                      <Eye className="h-5 w-5 text-red-600 mr-2" />
+                      <h4 className="font-semibold text-red-900">Video Analizado</h4>
+                    </div>
+                    <p className="text-red-800 text-sm">
+                      {youtubeAnalysis.videoTitle || 'Video de YouTube procesado'}
+                    </p>
+                    {youtubeAnalysis.videoUrl && (
+                      <a
+                        href={youtubeAnalysis.videoUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-red-600 text-xs underline mt-1 inline-block"
+                      >
+                        Ver video en YouTube
+                      </a>
+                    )}
+                  </div>
+                  
+                  {youtubeAnalysis.contentAnalysis && (
+                    <div className="bg-gray-50 rounded-lg p-4">
+                      <h4 className="font-semibold text-gray-900 mb-2">Análisis de Contenido</h4>
+                      <p className="text-gray-700 text-sm">
+                        {youtubeAnalysis.contentAnalysis.description || 'Contenido analizado'}
+                      </p>
+                      {youtubeAnalysis.contentAnalysis.tags && (
+                        <div className="mt-2">
+                          <span className="text-xs text-gray-500">Tags: </span>
+                          <span className="text-sm text-gray-700">
+                            {youtubeAnalysis.contentAnalysis.tags.join(', ')}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </motion.div>
         )}
 
