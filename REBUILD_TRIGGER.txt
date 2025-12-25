@@ -1,2 +1,1 @@
-# REBUILD TRIGGER - 1766587986015
-# Este archivo fuerza a Netlify a hacer un rebuild completo
+# REBUILD TRIGGER - 1766701787
