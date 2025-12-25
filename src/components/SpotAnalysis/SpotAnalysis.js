@@ -699,7 +699,7 @@ const SpotAnalysis = () => {
             {/* Nivel de Confianza - ancho completo debajo del análisis de impacto */}
             <div className="lg:col-span-3" data-export="confidence" id="confidence-level-card">
               <ConfidenceLevelCard
-                confidence={analysisData?.confidenceLevel}
+                confidence={analysisData?.confidenceLevel?.score || 0}
                 exportButton={<SimpleExportButton exportType="confidence" className="z-10" />}
               />
             </div>
