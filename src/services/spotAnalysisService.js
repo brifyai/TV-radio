@@ -1,5 +1,4 @@
 import { TemporalAnalysisService } from './temporalAnalysisService';
-import ChutesVideoAnalysisService from './chutesVideoAnalysisService';
 import { googleAnalyticsService } from './googleAnalyticsService';
 
 /**
@@ -42,8 +41,8 @@ export const getSpotAnalysisData = async (accessToken, propertyId) => {
       // Verificar si tenemos datos válidos
       if (!analyticsData || !analyticsData.rows || analyticsData.rows.length === 0) {
         console.warn('⚠️ No hay datos disponibles de Google Analytics');
-        // Retornar datos de ejemplo para evitar errores
-        return getEmptyAnalysisData();
+        // NO usar datos simulados - retornar error para que el usuario sepa que necesita GA
+        throw new Error('No hay datos disponibles en Google Analytics. Verifica que la propiedad tenga datos en los últimos 7 días.');
       }
       
       // Obtener análisis temporal con datos reales de GA
@@ -81,13 +80,13 @@ export const getSpotAnalysisData = async (accessToken, propertyId) => {
         throw analyticsError;
       }
       
-      // Para otros errores, retornar datos vacíos en lugar de fallar
+      // Para otros errores, NO usar datos simulados - re-lanzar el error
       console.error('❌ Error obteniendo datos de Analytics:', analyticsError);
-      return getEmptyAnalysisData();
+      throw new Error(`Error al obtener datos de Google Analytics: ${analyticsError.message}`);
     }
   } catch (error) {
     console.error('Error en spotAnalysisService:', error);
-    // No re-lanzar el error para permitir fallback a datos alternativos
+    // Re-lanzar el error para que el usuario sepa que necesita datos reales
     throw error;
   }
 };
@@ -165,45 +164,4 @@ const calculateConfidenceLevel = (temporalAnalysis, videoAnalysis) => {
   if (videoAnalysis && videoAnalysis.confidence === 'high') confidence += 10;
   
   return Math.min(confidence, 100);
-};
-
-/**
- * Retorna datos de análisis vacíos o por defecto para evitar errores
- */
-const getEmptyAnalysisData = () => {
-  const temporalAnalysisService = new TemporalAnalysisService();
-  
-  // Crear análisis temporal real basado en datos vacíos de GA
-  const temporalImpact = temporalAnalysisService.analyzeTemporalImpact(
-    null, // Sin spot específico
-    { rows: [], totals: [] }, // Datos vacíos de GA
-    temporalAnalysisService.calculateRobustReference(new Date(), [])
-  );
-  
-  // Generar insights por defecto basados en datos reales (vacíos)
-  const smartInsights = [
-    {
-      category: 'Estado del Sistema',
-      value: 'Sin datos disponibles',
-      icon: '⚠️',
-      text: 'No hay datos disponibles de Google Analytics. Verifica tu conexión y configuración.',
-      color: 'bg-gray-100',
-      border: 'border-gray-300'
-    },
-    {
-      category: 'Recomendación',
-      value: 'Configuración requerida',
-      icon: '🔧',
-      text: 'Conecta tu cuenta de Google Analytics, selecciona una propiedad válida y carga un archivo de spots.',
-      color: 'bg-blue-100',
-      border: 'border-blue-300'
-    }
-  ];
-  
-  return {
-    impactAnalysis: temporalImpact,
-    confidenceLevel: 0, // Sin confianza sin datos
-    smartInsights,
-    trafficData: { rows: [], totals: [] }
-  };
 };

@@ -123,6 +123,41 @@ const SpotAnalysis = () => {
     }).filter(spot => spot.fecha || spot.hora_inicio); // Filtrar filas vacías
   }, []);
 
+  // Calcular impacto agregado de múltiples spots
+  const calculateAggregatedImpact = useCallback((spotResults) => {
+    if (spotResults.length === 0) {
+      return {
+        immediate: { comparison: { activeUsers: { percentageChange: 0 } } },
+        shortTerm: { comparison: { activeUsers: { percentageChange: 0 } } },
+        mediumTerm: { comparison: { activeUsers: { percentageChange: 0 } } },
+        longTerm: { comparison: { activeUsers: { percentageChange: 0 } } }
+      };
+    }
+
+    // Calcular promedios de impacto para cada ventana temporal
+    const windows = ['immediate', 'shortTerm', 'mediumTerm', 'longTerm'];
+    const aggregated = {};
+
+    windows.forEach(window => {
+      const impacts = spotResults.map(result =>
+        result.impact[window]?.comparison?.activeUsers?.percentageChange || 0
+      );
+      
+      const avgImpact = impacts.reduce((sum, impact) => sum + impact, 0) / impacts.length;
+      
+      aggregated[window] = {
+        comparison: {
+          activeUsers: {
+            percentageChange: Math.round(avgImpact * 10) / 10 // Redondear a 1 decimal
+          }
+        },
+        confidence: 75 + (spotResults.length * 2) // Aumentar confianza con más spots
+      };
+    });
+
+    return aggregated;
+  }, []);
+
   // Parsear datos de Excel - LEE fecha, hora inicio, Canal, Titulo Programa, inversion
   const parseExcelData = useCallback((jsonData) => {
     console.log('🔍 DEBUG: parseExcelData called with', jsonData.length, 'rows');
@@ -518,13 +553,59 @@ const SpotAnalysis = () => {
         console.log(`📊 ${step.message} (${step.progress}%)`);
       }
 
-      // Ejecutar análisis temporal
-      console.log('📈 Ejecutando análisis temporal...');
-      const temporalResults = await temporalAnalysisService.analyzeTemporalImpact(
-        spotsData[0], // Usar el primer spot para análisis temporal
-        analysisData?.trafficData || {},
-        {} // referencia vacía por ahora
-      );
+      // Ejecutar análisis temporal para TODOS los spots
+      console.log('📈 Ejecutando análisis temporal para', spotsData.length, 'spots...');
+      
+      // Procesar cada spot individualmente
+      const spotResults = [];
+      const batchSize = 5; // Procesar en lotes para evitar sobrecarga
+      
+      for (let i = 0; i < Math.min(spotsData.length, 100); i++) { // Limitar a 100 spots para performance
+        const spot = spotsData[i];
+        
+        // Parsear fecha y hora del spot
+        const spotDateTime = parseDateTimeFlexible(spot.fecha, spot.hora_inicio);
+        
+        if (isNaN(spotDateTime.getTime())) {
+          console.warn(`⚠️ Spot ${i + 1}: Fecha inválida`, spot);
+          continue;
+        }
+        
+        // Calcular referencia robusta para este spot
+        const referencia = temporalAnalysisService.calculateRobustReference(
+          spotDateTime,
+          analysisData?.trafficData?.rows || []
+        );
+        
+        // Analizar impacto temporal para este spot
+        const spotImpact = temporalAnalysisService.analyzeTemporalImpact(
+          { dateTime: spotDateTime.toISOString() },
+          analysisData?.trafficData || {},
+          referencia
+        );
+        
+        spotResults.push({
+          spot: spot,
+          index: i,
+          impact: spotImpact,
+          dateTime: spotDateTime
+        });
+        
+        console.log(`📊 Spot ${i + 1} analizado:`, spot.titulo_programa, 'Impacto promedio:',
+          Math.round((spotImpact.immediate?.comparison?.activeUsers?.percentageChange || 0) +
+          (spotImpact.shortTerm?.comparison?.activeUsers?.percentageChange || 0) +
+          (spotImpact.mediumTerm?.comparison?.activeUsers?.percentageChange || 0) +
+          (spotImpact.longTerm?.comparison?.activeUsers?.percentageChange || 0)) / 4 + '%');
+      }
+      
+      // Calcular métricas agregadas de todos los spots
+      const aggregatedResults = calculateAggregatedImpact(spotResults);
+      
+      const temporalResults = {
+        ...aggregatedResults,
+        individualSpots: spotResults,
+        totalSpotsAnalyzed: spotResults.length
+      };
 
       // Generar análisis con IA si hay datos
       let aiResults = null;
@@ -573,7 +654,7 @@ const SpotAnalysis = () => {
       setAnalyzing(false);
       setAnalysisProgress(0);
     }
-  }, [selectedProperty, spotsData, isConnected, analysisData, youtubeAnalysis, temporalAnalysisService]);
+  }, [selectedProperty, spotsData, isConnected, analysisData, youtubeAnalysis, temporalAnalysisService, calculateAggregatedImpact, parseDateTimeFlexible]);
 
   if (loading) {
     return (
