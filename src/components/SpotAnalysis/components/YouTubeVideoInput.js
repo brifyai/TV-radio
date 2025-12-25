@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Youtube, Link, Play, BarChart3, Brain, AlertCircle, CheckCircle } from 'lucide-react';
-import { youtubeService } from '../../../services/youtubeService';
+import GoogleGeminiVideoService from '../../../services/googleGeminiVideoService';
 import YouTubeAnalysisDashboard from './YouTubeAnalysisDashboard';
 
 const YouTubeVideoInput = ({ 
@@ -16,10 +16,13 @@ const YouTubeVideoInput = ({
   const [analysisData, setAnalysisData] = useState(null);
   const [error, setError] = useState(null);
 
+  // Instancia del servicio de Gemini
+  const geminiService = new GoogleGeminiVideoService();
+
   // Validar URL en tiempo real
   useEffect(() => {
     if (youtubeUrl.trim()) {
-      const valid = youtubeService.isValidYouTubeUrl(youtubeUrl);
+      const valid = geminiService.extractYouTubeVideoId(youtubeUrl) !== null;
       setIsValid(valid);
       setShowValidation(true);
     } else {
@@ -37,39 +40,51 @@ const YouTubeVideoInput = ({
 
   // Análisis automático cuando se ingresa URL válida
   useEffect(() => {
-    if (isValid && analysisResults?.length > 0) {
+    if (isValid) {
       console.log('🔄 URL válida detectada, iniciando análisis automático...');
       performAnalysis();
     }
-  }, [isValid, analysisResults]);
+  }, [isValid]);
 
   const performAnalysis = async () => {
-    if (!isValid || !analysisResults?.length) return;
+    if (!isValid) return;
 
     setIsAnalyzingVideo(true);
     setError(null);
 
     try {
-      console.log('🎬 Iniciando análisis completo de YouTube...');
+      console.log('🎬 Iniciando análisis completo de YouTube con Gemini...');
       
-      // Extraer metadata de YouTube
-      const youtubeData = await youtubeService.analyzeVideo(youtubeUrl);
-      console.log('✅ Metadata de YouTube obtenida');
+      // Usar el servicio de Google Gemini para análisis completo
+      const analysisResult = await geminiService.analyzeYouTubeVideo(
+        youtubeUrl,
+        analysisResults,
+        null // analyticsData puede ser null por ahora
+      );
 
-      // Notificar al componente padre
-      if (onAnalysisComplete) {
-        onAnalysisComplete({
+      if (analysisResult.success) {
+        console.log('✅ Análisis de Gemini completado');
+        
+        // Notificar al componente padre
+        if (onAnalysisComplete) {
+          onAnalysisComplete({
+            videoTitle: analysisResult.youtubeData.title,
+            videoUrl: youtubeUrl,
+            youtubeData: analysisResult.youtubeData,
+            geminiAnalysis: analysisResult.geminiAnalysis,
+            analysisResults: analysisResults
+          });
+        }
+
+        setAnalysisData({
           youtubeUrl,
-          youtubeData,
+          youtubeData: analysisResult.youtubeData,
+          geminiAnalysis: analysisResult.geminiAnalysis,
           analysisResults
         });
+      } else {
+        throw new Error(analysisResult.error || 'Error en el análisis');
       }
-
-      setAnalysisData({
-        youtubeUrl,
-        youtubeData,
-        analysisResults
-      });
 
     } catch (err) {
       console.error('❌ Error en análisis:', err);
