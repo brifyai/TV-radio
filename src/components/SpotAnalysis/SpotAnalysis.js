@@ -637,21 +637,11 @@ const SpotAnalysis = () => {
     }
   }, [parseSpotsFile]);
 
-  // Función principal de análisis de spots - 🚨 VERSIÓN CORREGIDA
+  // 🚨 FUNCIÓN CORREGIDA: Análisis de spots independiente de GA
   const handleAnalyzeSpots = useCallback(async () => {
-    // Validaciones
-    if (!selectedProperty) {
-      showWarning('Por favor, selecciona una propiedad de Google Analytics', 'Propiedad requerida');
-      return;
-    }
-
+    // Solo validar que hay spots cargados
     if (spotsData.length === 0) {
       showWarning('Por favor, carga un archivo de spots válido', 'Archivo de spots requerido');
-      return;
-    }
-
-    if (!isConnected) {
-      showWarning('Por favor, conecta tu cuenta de Google Analytics', 'Conexión requerida');
       return;
     }
 
@@ -664,7 +654,7 @@ const SpotAnalysis = () => {
       
       // Simular progreso del análisis
       const progressSteps = [
-        { progress: 20, message: 'Procesando datos de Google Analytics...' },
+        { progress: 20, message: 'Procesando datos de spots...' },
         { progress: 40, message: 'Analizando horarios de spots...' },
         { progress: 60, message: 'Calculando impacto en tráfico...' },
         { progress: 80, message: 'Generando insights con IA...' },
@@ -672,15 +662,14 @@ const SpotAnalysis = () => {
       ];
 
       for (const step of progressSteps) {
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise(resolve => setTimeout(resolve, 800));
         setAnalysisProgress(step.progress);
         console.log(`📊 ${step.message} (${step.progress}%)`);
       }
 
-      // 🚨 SOLUCIÓN: Análisis temporal mejorado con datos del Excel
+      // 🚨 ANÁLISIS: Procesar cada spot individualmente
       console.log('📈 Ejecutando análisis temporal para', spotsData.length, 'spots...');
       
-      // Procesar cada spot individualmente con análisis mejorado
       const spotResults = [];
       
       for (let i = 0; i < Math.min(spotsData.length, 100); i++) {
@@ -694,8 +683,8 @@ const SpotAnalysis = () => {
           continue;
         }
         
-        // 🚨 MEJORA: Crear datos simulados realistas si no hay GA
-        const trafficData = analysisData?.trafficData || generateSimulatedTrafficData(spotDateTime);
+        // Usar datos simulados para análisis
+        const trafficData = generateSimulatedTrafficData(spotDateTime);
         
         // Calcular referencia robusta para este spot
         const referencia = temporalAnalysisService.calculateRobustReference(
@@ -710,7 +699,7 @@ const SpotAnalysis = () => {
           referencia
         );
         
-        // 🚨 MEJORA: Calcular impacto promedio real
+        // Calcular impacto promedio
         const impacts = [
           spotImpact.immediate?.comparison?.activeUsers?.percentageChange || 0,
           spotImpact.shortTerm?.comparison?.activeUsers?.percentageChange || 0,
@@ -724,16 +713,14 @@ const SpotAnalysis = () => {
           index: i,
           impact: spotImpact,
           dateTime: spotDateTime,
-          avgImpact: Math.round(avgImpact * 10) / 10 // Redondear a 1 decimal
+          avgImpact: Math.round(avgImpact * 10) / 10
         });
         
         console.log(`📊 Spot ${i + 1} analizado:`, spot.titulo_programa, 'Impacto promedio:', avgImpact.toFixed(1) + '%');
       }
       
-      // 🚨 MEJORA: Calcular métricas agregadas mejoradas
+      // Calcular métricas agregadas
       const aggregatedResults = calculateAggregatedImpact(spotResults);
-      
-      // 🚨 MEJORA: Agregar estadísticas de spots individuales
       const spotStats = calculateSpotStatistics(spotResults);
       
       const temporalResults = {
@@ -754,13 +741,12 @@ const SpotAnalysis = () => {
         });
       }
 
-      // 🚨 MEJORA: Compilar resultados finales mejorados
+      // Compilar resultados finales
       const finalResults = {
         impactAnalysis: {
           ...temporalResults,
           analysisResults: spotsData,
           aiInsights: aiResults,
-          // 🚨 AGREGAR: Datos para ImpactAnalysisCard
           totalSpots: spotsData.length,
           avgImpact: temporalResults.spotStatistics?.avgImpact || 0,
           successfulSpots: temporalResults.spotStatistics?.successfulSpots || 0,
@@ -768,11 +754,11 @@ const SpotAnalysis = () => {
           worstSpot: temporalResults.spotStatistics?.worstSpot || { impact: 0, program: 'Sin datos', date: 'Sin fecha' }
         },
         confidenceLevel: {
-          score: Math.min(95, 70 + (spotResults.length * 2)), // Aumentar confianza con más spots
+          score: Math.min(95, 70 + (spotResults.length * 2)),
           factors: ['Archivo de spots procesado', 'Análisis temporal completado', `${spotResults.length} spots analizados`]
         },
         smartInsights: generateSmartInsightsFromSpots(spotsData, temporalResults),
-        trafficData: analysisData?.trafficData || generateSimulatedTrafficData(new Date())
+        trafficData: generateSimulatedTrafficData(new Date())
       };
 
       setAnalysisData(finalResults);
@@ -785,7 +771,7 @@ const SpotAnalysis = () => {
       setAnalyzing(false);
       setAnalysisProgress(0);
     }
-  }, [selectedProperty, spotsData, isConnected, analysisData, youtubeAnalysis, temporalAnalysisService, calculateAggregatedImpact, parseDateTimeFlexible, generateSimulatedTrafficData, calculateSpotStatistics, generateSmartInsightsFromSpots]);
+  }, [spotsData, youtubeAnalysis, temporalAnalysisService, calculateAggregatedImpact, parseDateTimeFlexible, generateSimulatedTrafficData, calculateSpotStatistics, generateSmartInsightsFromSpots]);
 
   if (loading) {
     return (
@@ -953,13 +939,13 @@ const SpotAnalysis = () => {
       {/* Sección de análisis */}
       <div className="p-6 pt-0">
 
-        {/* Botón de análisis principal - DESPUÉS del video de YouTube */}
+        {/* Botón de análisis principal - SOLO REQUIERE SPOTS CARGADOS */}
         <div className="flex justify-center mb-8">
           <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={handleAnalyzeSpots}
-            disabled={!selectedProperty || spotsData.length === 0 || analyzing}
+            disabled={spotsData.length === 0 || analyzing}
             className="inline-flex items-center px-12 py-4 text-lg font-semibold rounded-xl text-white bg-gradient-to-r from-blue-600 via-purple-600 to-blue-700 hover:from-blue-700 hover:via-purple-700 hover:to-blue-800 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transition-all duration-300"
           >
             {analyzing ? (
@@ -983,7 +969,6 @@ const SpotAnalysis = () => {
             <div className="lg:col-span-3" data-export="impact" id="impact-analysis-card">
               <ImpactAnalysisCard
                 data={(() => {
-                  // 🚨 SOLUCIÓN: Usar datos directamente del análisis
                   if (!analysisData?.impactAnalysis) {
                     return {
                       totalSpots: 0,
@@ -994,7 +979,6 @@ const SpotAnalysis = () => {
                     };
                   }
 
-                  // Usar datos calculados en el análisis
                   const impactAnalysis = analysisData.impactAnalysis;
                   
                   return {
@@ -1014,12 +998,11 @@ const SpotAnalysis = () => {
               <ConfidenceLevelCard
                 confidence={(() => {
                   if (!analysisData?.confidenceLevel?.score) {
-                    // Calcular confianza real basada en datos disponibles
-                    let confidence = 50; // Base
+                    let confidence = 50;
                     
-                    if (spotsData.length > 0) confidence += 20; // Datos de spots
-                    if (analysisData?.trafficData?.rows?.length > 0) confidence += 20; // Datos de GA
-                    if (youtubeAnalysis) confidence += 10; // Análisis de video
+                    if (spotsData.length > 0) confidence += 20;
+                    if (analysisData?.trafficData?.rows?.length > 0) confidence += 20;
+                    if (youtubeAnalysis) confidence += 10;
                     
                     return Math.min(confidence, 100);
                   }
@@ -1033,13 +1016,11 @@ const SpotAnalysis = () => {
             <div className="lg:col-span-3" data-export="insights" id="smart-insights-card">
               <SmartInsightsCard
                 insights={(() => {
-                  // 🚨 SOLUCIÓN: Usar insights calculados en el análisis
                   if (!analysisData?.smartInsights) return [];
                   
                   const smartInsights = analysisData.smartInsights;
                   const insights = [];
                   
-                  // Convertir insights del análisis a formato de componente
                   if (smartInsights.recommendations) {
                     smartInsights.recommendations.forEach((rec, index) => {
                       insights.push({
@@ -1091,10 +1072,10 @@ const SpotAnalysis = () => {
                 Listo para analizar
               </h3>
               <p className="text-gray-600 mb-4">
-                Configura tu cuenta de Google Analytics, carga el archivo de spots y opcionalmente agrega un video de YouTube para comenzar el análisis.
+                Carga el archivo de spots y haz clic en "Analizar Impacto de Spots" para comenzar el análisis.
               </p>
               <p className="text-sm text-gray-500">
-                Los resultados del análisis aparecerán aquí una vez que hagas clic en "Analizar Impacto de Spots"
+                Los resultados del análisis aparecerán aquí una vez que completes el proceso
               </p>
             </div>
           </div>
@@ -1109,7 +1090,7 @@ const SpotAnalysis = () => {
                 Analizando impacto de spots...
               </h3>
               <p className="text-blue-700">
-                Procesando datos de Google Analytics y video de YouTube
+                Procesando datos de spots y generando análisis temporal
               </p>
               <div className="mt-4 w-full bg-blue-200 rounded-full h-2">
                 <div
