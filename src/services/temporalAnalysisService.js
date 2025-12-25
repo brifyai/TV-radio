@@ -225,6 +225,23 @@ export class TemporalAnalysisService {
   compareWithReference(windowMetrics, referencia) {
     const comparison = {};
     
+    // Validar que referencia existe
+    if (!referencia) {
+      console.warn('⚠️ TemporalAnalysis: Referencia no disponible, usando valores por defecto');
+      Object.keys(windowMetrics).forEach(metric => {
+        const windowValue = windowMetrics[metric];
+        comparison[metric] = {
+          windowValue,
+          referenciaValue: 0,
+          absoluteChange: windowValue,
+          percentageChange: 0,
+          isSignificant: false,
+          effectSize: 0
+        };
+      });
+      return comparison;
+    }
+    
     Object.keys(windowMetrics).forEach(metric => {
       const windowValue = windowMetrics[metric];
       const referenciaValue = referencia[metric]?.mean || 0;
