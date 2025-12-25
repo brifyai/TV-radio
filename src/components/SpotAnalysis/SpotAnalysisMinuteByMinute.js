@@ -135,8 +135,8 @@ const SpotAnalysisMinuteByMinute = () => {
     }
   }, [spotAnalysisService]);
 
-  // ANÁLISIS MINUTO A MINUTO
-  const performMinuteByMinuteAnalysis = useCallback(async () => {
+  // ANÁLISIS INTEGRADO (Google Analytics + Excel + YouTube)
+  const performIntegratedAnalysis = useCallback(async () => {
     if (!selectedSpot) {
       showWarning('Por favor, selecciona un spot para analizar', 'Spot requerido');
       return;
@@ -147,34 +147,138 @@ const SpotAnalysisMinuteByMinute = () => {
       return;
     }
 
+    if (spotsData.length === 0) {
+      showWarning('Por favor, sube un archivo Excel con datos de spots', 'Archivo Excel requerido');
+      return;
+    }
+
     setAnalyzing(true);
     setError(null);
-    setAnalysisStage('Iniciando análisis minuto a minuto...');
+    setAnalysisStage('Iniciando análisis integrado (Analytics + Excel + YouTube)...');
 
     try {
-      console.log('🔍 Starting minute-by-minute analysis...');
+      console.log('🔍 Starting integrated analysis (Analytics + Excel + YouTube)...');
       
-      // Ejecutar análisis minuto a minuto
-      setAnalysisStage('🔍 Obteniendo datos de Google Analytics...');
-      const results = await minuteAnalysisService.performMinuteByMinuteAnalysis(
+      // Fase 1: Análisis de Google Analytics
+      setAnalysisStage('📊 Obteniendo datos de Google Analytics...');
+      const analyticsResults = await minuteAnalysisService.performMinuteByMinuteAnalysis(
         selectedSpot,
         selectedProperty,
         analysisWindow
       );
+
+      // Fase 2: Análisis del archivo Excel
+      setAnalysisStage('📋 Analizando datos del archivo Excel...');
+      const excelAnalysis = await spotAnalysisService.analyzeSpotsData(spotsData, selectedSpot);
+
+      // Fase 3: Análisis de YouTube (si hay video)
+      let youtubeResults = null;
+      if (youtubeAnalysis) {
+        setAnalysisStage('🎥 Analizando video de YouTube...');
+        youtubeResults = youtubeAnalysis;
+      }
+
+      // Fase 4: Combinar todos los análisis
+      setAnalysisStage('🧠 Combinando análisis de todas las fuentes...');
+      const integratedResults = {
+        // Resultados de Google Analytics
+        analyticsData: analyticsResults,
+        
+        // Resultados del análisis Excel
+        excelAnalysis: excelAnalysis,
+        
+        // Resultados de YouTube
+        youtubeAnalysis: youtubeResults,
+        
+        // Análisis integrado
+        integratedInsights: {
+          trafficImpact: analyticsResults?.impactMetrics || null,
+          spotPerformance: excelAnalysis?.spotAnalysis || null,
+          videoCorrelation: youtubeResults ? {
+            hasVideo: true,
+            videoTitle: youtubeResults.videoTitle,
+            contentAnalysis: youtubeResults.contentAnalysis
+          } : { hasVideo: false },
+          
+          // Insights combinados
+          combinedInsights: [
+            ...(analyticsResults?.insights?.insights || []),
+            ...(excelAnalysis?.insights || []),
+            ...(youtubeResults ? [{
+              severity: 'medium',
+              message: `Video de YouTube analizado: ${youtubeResults.videoTitle || 'Contenido relacionado con el spot'}`,
+              type: 'youtube'
+            }] : [])
+          ],
+          
+          // Resumen ejecutivo integrado
+          executiveSummary: generateExecutiveSummary(analyticsResults, excelAnalysis, youtubeResults),
+          
+          // Recomendaciones integradas
+          integratedRecommendations: generateIntegratedRecommendations(analyticsResults, excelAnalysis, youtubeResults)
+        },
+        
+        // Metadatos del análisis
+        analysisMetadata: {
+          timestamp: new Date().toISOString(),
+          sources: ['Google Analytics', 'Excel Data', ...(youtubeResults ? ['YouTube'] : [])],
+          spotInfo: selectedSpot,
+          analysisWindow: analysisWindow
+        }
+      };
       
-      setAnalysisResults(results);
-      console.log('✅ Minute-by-minute analysis completed');
-      showSuccess('Análisis minuto a minuto completado exitosamente', 'Análisis terminado');
+      setAnalysisResults(integratedResults);
+      console.log('✅ Integrated analysis completed');
+      showSuccess('Análisis integrado completado exitosamente', 'Análisis terminado');
       
     } catch (error) {
-      console.error('❌ Error in minute-by-minute analysis:', error);
+      console.error('❌ Error in integrated analysis:', error);
       setError(error.message);
-      showError(`Error durante el análisis: ${error.message}`, 'Error de análisis');
+      showError(`Error durante el análisis integrado: ${error.message}`, 'Error de análisis');
     } finally {
       setAnalyzing(false);
       setAnalysisStage('');
     }
-  }, [selectedSpot, selectedProperty, analysisWindow, minuteAnalysisService]);
+  }, [selectedSpot, selectedProperty, analysisWindow, minuteAnalysisService, spotAnalysisService, spotsData, youtubeAnalysis]);
+
+  // Función auxiliar para generar resumen ejecutivo
+  const generateExecutiveSummary = (analyticsResults, excelAnalysis, youtubeResults) => {
+    const parts = [];
+    
+    if (analyticsResults?.impactMetrics) {
+      const impact = analyticsResults.impactMetrics.totalImpact;
+      parts.push(`El spot generó un impacto del ${impact.users.percentage.toFixed(1)}% en usuarios web`);
+    }
+    
+    if (excelAnalysis?.spotAnalysis) {
+      parts.push(`Análisis del archivo Excel muestra patrones específicos del spot`);
+    }
+    
+    if (youtubeResults) {
+      parts.push(`Video de YouTube relacionado: ${youtubeResults.videoTitle || 'contenido analizado'}`);
+    }
+    
+    return parts.join('. ') + '.';
+  };
+
+  // Función auxiliar para generar recomendaciones integradas
+  const generateIntegratedRecommendations = (analyticsResults, excelAnalysis, youtubeResults) => {
+    const recommendations = [];
+    
+    if (analyticsResults?.impactMetrics?.totalImpact.users.percentage < 5) {
+      recommendations.push('Considera optimizar el timing del spot para mayor impacto web');
+    }
+    
+    if (excelAnalysis?.spotAnalysis?.recommendations) {
+      recommendations.push(...excelAnalysis.spotAnalysis.recommendations);
+    }
+    
+    if (youtubeResults) {
+      recommendations.push('Aprovecha el contenido de YouTube para reforzar la campaña TV');
+    }
+    
+    return recommendations;
+  };
 
   // Renderizar timeline minuto a minuto
   const renderMinuteByMinuteTimeline = () => {
@@ -634,7 +738,7 @@ const SpotAnalysisMinuteByMinute = () => {
           <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
-            onClick={performMinuteByMinuteAnalysis}
+            onClick={performIntegratedAnalysis}
             disabled={!selectedSpot || !selectedProperty || analyzing}
             className="inline-flex items-center px-12 py-4 text-lg font-semibold rounded-xl text-white bg-gradient-to-r from-green-600 via-blue-600 to-green-700 hover:from-green-700 hover:via-blue-700 hover:to-green-800 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transition-all duration-300"
           >
@@ -646,7 +750,7 @@ const SpotAnalysisMinuteByMinute = () => {
             ) : (
               <>
                 <Play className="h-6 w-6 mr-3" />
-                Ejecutar Análisis Minuto a Minuto
+                Ejecutar Análisis Integrado (Analytics + Excel + YouTube)
               </>
             )}
           </motion.button>
@@ -658,7 +762,7 @@ const SpotAnalysisMinuteByMinute = () => {
             <div className="bg-green-50 rounded-xl p-6 border border-green-200 max-w-md mx-auto">
               <RefreshCw className="h-8 w-8 text-green-600 mx-auto mb-4 animate-spin" />
               <h3 className="text-lg font-medium text-green-900 mb-2">
-                Análisis Minuto a Minuto en Progreso
+                Análisis Integrado en Progreso (Analytics + Excel + YouTube)
               </h3>
               <p className="text-green-700 text-sm mb-4">
                 {analysisStage}
@@ -792,14 +896,13 @@ const SpotAnalysisMinuteByMinute = () => {
             <div className="bg-gray-50 rounded-xl p-8 border border-gray-200">
               <Clock className="h-12 w-12 text-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">
-                Listo para análisis minuto a minuto
+                Listo para análisis integrado
               </h3>
               <p className="text-gray-600 mb-4">
-                Selecciona un spot, configura la propiedad de Google Analytics y ejecuta el análisis
+                Selecciona un spot, sube un archivo Excel, agrega un video de YouTube y ejecuta el análisis integrado
               </p>
               <div className="text-sm text-gray-500">
-                El sistema comparará el tráfico minuto a minuto del spot con baselines robustos:
-                ayer, semana pasada, 2 semanas atrás y 3 semanas atrás
+                El sistema analizará Google Analytics, datos del Excel y contenido de YouTube para determinar el impacto del spot TV en el tráfico web
               </div>
             </div>
           </div>
