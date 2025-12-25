@@ -454,7 +454,7 @@ const SpotAnalysis = () => {
       </motion.div>
 
       {/* Sección integrada: Configuración de Analytics + Archivo de Spots */}
-      <div className="p-6 mb-6">
+      <div className="p-6 -mb-5">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}

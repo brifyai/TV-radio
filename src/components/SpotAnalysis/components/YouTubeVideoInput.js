@@ -109,9 +109,6 @@ const YouTubeVideoInput = ({
             <h3 className="text-xl font-bold text-gray-900">
               Video del Spot con IA (YouTube)
             </h3>
-            <p className="text-sm text-gray-600">
-              Análisis automático con YouTube Data API v3 + Google Gemini AI
-            </p>
           </div>
         </div>
 
