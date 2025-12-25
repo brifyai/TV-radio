@@ -49,23 +49,13 @@ export const getSpotAnalysisData = async (accessToken, propertyId) => {
       // Obtener análisis temporal con datos reales de GA
       const temporalAnalysisService = new TemporalAnalysisService();
       
-      // Crear datos de spot ficticios para análisis temporal (ya que GA no tiene datos de spots específicos)
-      const mockSpotData = {
-        dateTime: new Date(), // Fecha actual como fallback
-        canal: 'TV',
-        titulo_programa: 'Análisis de Google Analytics',
-        tipo_comercial: 'General',
-        version: '1.0',
-        duracion: 30,
-        inversion: 0
-      };
-      
+      // Usar datos reales de GA para análisis temporal
       const temporalImpact = temporalAnalysisService.analyzeTemporalImpact(
-        mockSpotData,
+        null, // Sin spot específico, análisis general de GA
         analyticsData, // Usar los datos reales de GA como trafficMetrics
         temporalAnalysisService.calculateRobustReference(
           new Date(analyticsData.rows[0]?.dimensionValues?.[0]?.value || new Date()),
-          [] // Sin datos históricos por ahora
+          analyticsData.rows || [] // Usar datos históricos reales de GA
         )
       );
       
@@ -183,28 +173,18 @@ const calculateConfidenceLevel = (temporalAnalysis, videoAnalysis) => {
 const getEmptyAnalysisData = () => {
   const temporalAnalysisService = new TemporalAnalysisService();
   
-  // Crear datos de análisis temporal por defecto
-  const defaultSpotData = {
-    dateTime: new Date(),
-    canal: 'TV',
-    titulo_programa: 'Análisis de Google Analytics',
-    tipo_comercial: 'General',
-    version: '1.0',
-    duracion: 30,
-    inversion: 0
-  };
-  
+  // Crear análisis temporal real basado en datos vacíos de GA
   const temporalImpact = temporalAnalysisService.analyzeTemporalImpact(
-    defaultSpotData,
+    null, // Sin spot específico
     { rows: [], totals: [] }, // Datos vacíos de GA
     temporalAnalysisService.calculateRobustReference(new Date(), [])
   );
   
-  // Generar insights por defecto
+  // Generar insights por defecto basados en datos reales (vacíos)
   const smartInsights = [
     {
       category: 'Estado del Sistema',
-      value: 'Sin datos',
+      value: 'Sin datos disponibles',
       icon: '⚠️',
       text: 'No hay datos disponibles de Google Analytics. Verifica tu conexión y configuración.',
       color: 'bg-gray-100',
@@ -212,9 +192,9 @@ const getEmptyAnalysisData = () => {
     },
     {
       category: 'Recomendación',
-      value: 'Configuración',
+      value: 'Configuración requerida',
       icon: '🔧',
-      text: 'Conecta tu cuenta de Google Analytics y selecciona una propiedad válida.',
+      text: 'Conecta tu cuenta de Google Analytics, selecciona una propiedad válida y carga un archivo de spots.',
       color: 'bg-blue-100',
       border: 'border-blue-300'
     }
