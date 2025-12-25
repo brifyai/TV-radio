@@ -34,7 +34,7 @@ import MinuteByMinuteAnalysisService from '../../services/minuteByMinuteAnalysis
 
 // Componentes
 import LoadingSpinner from '../UI/LoadingSpinner';
-import YouTubeVideoInput from './components/YouTubeVideoInput';
+import YouTubeVideoInputSimple from './components/YouTubeVideoInputSimple';
 
 const SpotAnalysisMinuteByMinute = () => {
   const { user } = useAuth();
@@ -609,7 +609,7 @@ const SpotAnalysisMinuteByMinute = () => {
             </div>
           </div>
 
-          <YouTubeVideoInput
+          <YouTubeVideoInputSimple
             onAnalysisComplete={setYoutubeAnalysis}
             analysisResults={spotsData}
             isAnalyzing={analyzing}
