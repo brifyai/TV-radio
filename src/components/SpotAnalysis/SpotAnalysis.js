@@ -730,56 +730,83 @@ const SpotAnalysis = () => {
             {/* Smart Insights - ancho completo */}
             <div className="lg:col-span-3" data-export="insights" id="smart-insights-card">
               <SmartInsightsCard
-                insights={analysisData?.smartInsights ? [
-                  {
-                    category: 'Horarios Prime',
-                    value: 85,
-                    icon: '🕐',
-                    text: 'Los spots en horario prime (20:00-22:00) muestran mayor impacto',
-                    color: 'bg-blue-50 border-blue-200',
-                    border: 'border-l-4 border-blue-500'
-                  },
-                  {
-                    category: 'Frecuencia Óptima',
-                    value: 72,
-                    icon: '📈',
-                    text: 'Considera aumentar frecuencia en días de mayor tráfico web',
-                    color: 'bg-green-50 border-green-200',
-                    border: 'border-l-4 border-green-500'
-                  },
-                  {
-                    category: 'Duración Ideal',
-                    value: 68,
-                    icon: '⏱️',
-                    text: 'El análisis sugiere optimizar spots de 30 segundos para mejor conversión',
-                    color: 'bg-purple-50 border-purple-200',
-                    border: 'border-l-4 border-purple-500'
-                  },
-                  {
-                    category: 'Tendencia de Tráfico',
-                    value: 91,
-                    icon: '📊',
-                    text: 'Incremento del 15% en tráfico durante horarios de spots',
-                    color: 'bg-yellow-50 border-yellow-200',
-                    border: 'border-l-4 border-yellow-500'
-                  },
-                  {
-                    category: 'Dispositivos Móviles',
-                    value: 78,
-                    icon: '📱',
-                    text: 'Mayor engagement en dispositivos móviles',
-                    color: 'bg-indigo-50 border-indigo-200',
-                    border: 'border-l-4 border-indigo-500'
-                  },
-                  {
-                    category: 'Conversiones Weekend',
-                    value: 65,
-                    icon: '🎯',
-                    text: 'Picos de conversión en fines de semana',
-                    color: 'bg-pink-50 border-pink-200',
-                    border: 'border-l-4 border-pink-500'
-                  }
-                ] : []}
+                insights={(() => {
+                  // Calcular insights reales basados en datos del análisis temporal
+                  if (!analysisData?.impactAnalysis) return [];
+                  
+                  const temporalData = analysisData.impactAnalysis;
+                  const immediate = temporalData.immediate?.comparison?.activeUsers?.percentageChange || 0;
+                  const shortTerm = temporalData.shortTerm?.comparison?.activeUsers?.percentageChange || 0;
+                  const mediumTerm = temporalData.mediumTerm?.comparison?.activeUsers?.percentageChange || 0;
+                  const longTerm = temporalData.longTerm?.comparison?.activeUsers?.percentageChange || 0;
+                  
+                  // Calcular métricas reales
+                  const avgImpact = Math.round((immediate + shortTerm + mediumTerm + longTerm) / 4);
+                  const maxImpact = Math.max(immediate, shortTerm, mediumTerm, longTerm);
+                  const minImpact = Math.min(immediate, shortTerm, mediumTerm, longTerm);
+                  const positiveSpots = [immediate, shortTerm, mediumTerm, longTerm].filter(x => x > 0).length;
+                  const successRate = Math.round((positiveSpots / 4) * 100);
+                  
+                  // Análisis de horarios basado en datos reales
+                  const primeHoursImpact = immediate > avgImpact ? immediate : avgImpact * 0.8;
+                  const weekendSpots = spotsData.filter(spot => {
+                    if (!spot.fecha) return false;
+                    const date = new Date(spot.fecha);
+                    const dayOfWeek = date.getDay();
+                    return dayOfWeek === 0 || dayOfWeek === 6; // Domingo o Sábado
+                  }).length;
+                  
+                  return [
+                    {
+                      category: 'Impacto Temporal',
+                      value: Math.abs(avgImpact),
+                      icon: '🕐',
+                      text: `Impacto promedio del ${avgImpact >= 0 ? '+' : ''}${avgImpact}% en usuarios activos durante las 4 ventanas temporales`,
+                      color: avgImpact >= 0 ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200',
+                      border: avgImpact >= 0 ? 'border-l-4 border-green-500' : 'border-l-4 border-red-500'
+                    },
+                    {
+                      category: 'Pico de Impacto',
+                      value: Math.abs(maxImpact),
+                      icon: '📈',
+                      text: `Máximo impacto detectado: ${maxImpact >= 0 ? '+' : ''}${maxImpact}% en una de las ventanas temporales`,
+                      color: 'bg-blue-50 border-blue-200',
+                      border: 'border-l-4 border-blue-500'
+                    },
+                    {
+                      category: 'Tasa de Éxito',
+                      value: successRate,
+                      icon: '🎯',
+                      text: `${positiveSpots} de 4 ventanas temporales mostraron impacto positivo (${successRate}% de efectividad)`,
+                      color: successRate >= 50 ? 'bg-green-50 border-green-200' : 'bg-yellow-50 border-yellow-200',
+                      border: successRate >= 50 ? 'border-l-4 border-green-500' : 'border-l-4 border-yellow-500'
+                    },
+                    {
+                      category: 'Spots Analizados',
+                      value: spotsData.length,
+                      icon: '📊',
+                      text: `Se analizaron ${spotsData.length} spots de TV con datos de ${spotsData[0]?.fecha || 'fecha no disponible'} a ${spotsData[spotsData.length-1]?.fecha || 'fecha no disponible'}`,
+                      color: 'bg-purple-50 border-purple-200',
+                      border: 'border-l-4 border-purple-500'
+                    },
+                    {
+                      category: 'Consistencia',
+                      value: Math.round(100 - (Math.abs(maxImpact - minImpact) * 2)),
+                      icon: '📱',
+                      text: `Variabilidad del ${Math.abs(maxImpact - minImpact)}% entre ventanas indica ${Math.abs(maxImpact - minImpact) < 20 ? 'alta' : 'media'} consistencia`,
+                      color: Math.abs(maxImpact - minImpact) < 20 ? 'bg-green-50 border-green-200' : 'bg-yellow-50 border-yellow-200',
+                      border: Math.abs(maxImpact - minImpact) < 20 ? 'border-l-4 border-green-500' : 'border-l-4 border-yellow-500'
+                    },
+                    {
+                      category: 'Weekend Analysis',
+                      value: weekendSpots,
+                      icon: '🎯',
+                      text: `${weekendSpots} spots transmitidos en fines de semana de un total de ${spotsData.length} spots`,
+                      color: weekendSpots > 0 ? 'bg-indigo-50 border-indigo-200' : 'bg-gray-50 border-gray-200',
+                      border: weekendSpots > 0 ? 'border-l-4 border-indigo-500' : 'border-l-4 border-gray-500'
+                    }
+                  ];
+                })()}
                 exportButton={<SimpleExportButton exportType="insights" className="z-10" />}
               />
             </div>
