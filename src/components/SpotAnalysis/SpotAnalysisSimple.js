@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useGoogleAnalytics } from '../../contexts/GoogleAnalyticsContext';
 import { motion } from 'framer-motion';
@@ -37,9 +37,9 @@ const SpotAnalysisSimple = () => {
   const [error, setError] = useState(null);
   const [setupComplete, setSetupComplete] = useState(false);
 
-  // Instancias de servicios
-  const spotAnalysisService = new SimpleSpotAnalysisService();
-  const databaseService = new DatabaseSetupService();
+  // Instancias de servicios con useMemo para evitar re-renders
+  const spotAnalysisService = useMemo(() => new SimpleSpotAnalysisService(), []);
+  const databaseService = useMemo(() => new DatabaseSetupService(), []);
 
   // Filtrar propiedades basadas en la cuenta seleccionada
   const filteredProperties = selectedAccount
@@ -68,7 +68,7 @@ const SpotAnalysisSimple = () => {
       console.error('❌ Error configurando base de datos:', error);
       setSetupComplete(true); // Continuar para no bloquear la UI
     }
-  }, []);
+  }, [databaseService]);
 
   // Configurar BD al montar el componente
   React.useEffect(() => {
@@ -124,10 +124,11 @@ const SpotAnalysisSimple = () => {
       return;
     }
 
-    if (!selectedProperty) {
-      showWarning('Por favor, selecciona una propiedad de Google Analytics', 'Propiedad requerida');
-      return;
-    }
+    // ✅ CORRECCIÓN: No requerir Google Analytics para el análisis básico
+    // if (!selectedProperty) {
+    //   showWarning('Por favor, selecciona una propiedad de Google Analytics', 'Propiedad requerida');
+    //   return;
+    // }
 
     setAnalyzing(true);
     setError(null);
@@ -159,8 +160,9 @@ const SpotAnalysisSimple = () => {
         impact,
         recommendations,
         timestamp: new Date().toISOString(),
-        propertyId: selectedProperty,
-        accountId: selectedAccount
+        propertyId: selectedProperty || 'offline-analysis',
+        accountId: selectedAccount || 'offline-analysis',
+        mode: 'offline' // Indicar que es análisis offline
       };
       
       setAnalysisResults(results);
@@ -204,6 +206,9 @@ const SpotAnalysisSimple = () => {
             <p className="text-blue-100">
               Plataforma simplificada para analizar el impacto de spots en el tráfico web
             </p>
+            <div className="mt-2 px-3 py-1 bg-blue-600 rounded-full text-xs inline-block">
+              ✅ Análisis Offline - Sin dependencias externas
+            </div>
           </div>
           <div className="text-right">
             <div className="text-2xl font-bold">{spotsData.length}</div>
