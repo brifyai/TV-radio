@@ -148,21 +148,25 @@ const SpotAnalysisMinuteByMinute = () => {
   // Funciones para selección múltiple de spots
   const toggleSpotSelection = (spot) => {
     const spotId = `${spot.fecha}-${spot.hora_inicio}-${spot.canal}`;
+    console.log('🔄 Toggling spot selection:', spotId, 'Current selectedSpots:', selectedSpots.length);
     setSelectedSpots(prev => {
       const isSelected = prev.some(s => `${s.fecha}-${s.hora_inicio}-${s.canal}` === spotId);
-      if (isSelected) {
-        return prev.filter(s => `${s.fecha}-${s.hora_inicio}-${s.canal}` !== spotId);
-      } else {
-        return [...prev, spot];
-      }
+      const newSelection = isSelected
+        ? prev.filter(s => `${s.fecha}-${s.hora_inicio}-${s.canal}` !== spotId)
+        : [...prev, spot];
+      console.log('✅ Spot selection updated:', newSelection.length, 'spots selected');
+      return newSelection;
     });
   };
 
   const selectAllSpots = () => {
+    console.log('🔄 Selecting all spots. Current spotsData length:', spotsData.length);
+    console.log('📊 Spots data sample:', spotsData.slice(0, 3));
     setSelectedSpots([...spotsData]);
   };
 
   const deselectAllSpots = () => {
+    console.log('🔄 Deselecting all spots');
     setSelectedSpots([]);
   };
 
@@ -945,7 +949,7 @@ const SpotAnalysisMinuteByMinute = () => {
             ) : (
               <>
                 <Play className="h-6 w-6 mr-3" />
-                Ejecutar Análisis Integrado ({selectedSpots.length} spot(s))
+                Ejecutar Análisis Integrado ({selectedSpots.length} spot{selectedSpots.length !== 1 ? 's' : ''})
               </>
             )}
           </motion.button>
