@@ -62,17 +62,37 @@ export class SimpleSpotAnalysisService {
       for (const name of possibleNames) {
         const index = headers.findIndex(h => h === name.toLowerCase());
         if (index !== -1) return index;
+        // También buscar coincidencias parciales
+        const partialIndex = headers.findIndex(h => h.includes(name.toLowerCase()));
+        if (partialIndex !== -1) return partialIndex;
       }
       return -1;
     };
     
-    const fechaIndex = findColumnIndex(['fecha', 'date']);
-    const horaIndex = findColumnIndex(['hora inicio', 'hora', 'time']);
-    const canalIndex = findColumnIndex(['canal', 'channel']);
-    const programaIndex = findColumnIndex(['titulo programa', 'programa', 'title']);
+    // Detectar columnas con nombres más flexibles
+    const fechaIndex = findColumnIndex([
+      'fecha', 'date', 'fechas', 'dates', 'día', 'dia', 'day', 'fecha_aparicion'
+    ]);
+    const horaIndex = findColumnIndex([
+      'hora inicio', 'hora', 'time', 'horas', 'hora_inicio', 'hora_megatime', 'megatime'
+    ]);
+    const canalIndex = findColumnIndex([
+      'canal', 'channel', 'canales', 'channels', 'estacion', 'station', 'tv', 'television'
+    ]);
+    const programaIndex = findColumnIndex([
+      'titulo programa', 'programa', 'title', 'titulo', 'program', 'show', 'programa_tv'
+    ]);
+    
+    console.log('📊 Column detection results:', {
+      fechaIndex,
+      horaIndex,
+      canalIndex,
+      programaIndex,
+      headers: headers
+    });
     
     if (fechaIndex === -1 || horaIndex === -1) {
-      throw new Error('El archivo debe contener las columnas "fecha" y "hora inicio"');
+      throw new Error(`El archivo debe contener las columnas "fecha" y "hora inicio". Columnas encontradas: ${headers.join(', ')}`);
     }
     
     return lines.slice(1).map((line, index) => {
