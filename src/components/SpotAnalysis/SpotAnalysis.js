@@ -443,9 +443,10 @@ const SpotAnalysis = () => {
 
       // Ejecutar análisis temporal
       console.log('📈 Ejecutando análisis temporal...');
-      const temporalResults = await temporalAnalysisService.analyzeSpots(
-        spotsData,
-        analysisData?.trafficData || {}
+      const temporalResults = await temporalAnalysisService.analyzeTemporalImpact(
+        spotsData[0], // Usar el primer spot para análisis temporal
+        analysisData?.trafficData || {},
+        {} // referencia vacía por ahora
       );
 
       // Generar análisis con IA si hay datos
