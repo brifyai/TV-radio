@@ -78,6 +78,14 @@ export class SimpleSpotAnalysisService {
     return lines.slice(1).map((line, index) => {
       const values = line.split(delimiter).map(v => v.trim());
       
+      // Filtrar líneas de total que no deben procesarse
+      const lineText = values.join(' ').toLowerCase();
+      if (lineText.includes('total') || lineText.includes('totales') ||
+          values.some(v => v.toLowerCase().includes('total'))) {
+        console.log('🚫 Skipping total line:', values);
+        return null;
+      }
+      
       return {
         fecha: values[fechaIndex] || '',
         hora_inicio: values[horaIndex] || '',
@@ -85,7 +93,7 @@ export class SimpleSpotAnalysisService {
         titulo_programa: values[programaIndex] || '',
         index: index
       };
-    }).filter(spot => spot.fecha || spot.hora_inicio);
+    }).filter(spot => spot && (spot.fecha || spot.hora_inicio));
   }
 
   /**
@@ -129,15 +137,23 @@ export class SimpleSpotAnalysisService {
       
       // Solo agregar filas que tengan al menos algunos datos válidos
       const hasValidData = rowData.some(cell => cell && cell.trim() !== '');
-      if (hasValidData) {
+      
+      // Filtrar líneas de total que no deben procesarse
+      const lineText = rowData.join(' ').toLowerCase();
+      const isTotalLine = lineText.includes('total') || lineText.includes('totales') ||
+                         rowData.some(v => v.toLowerCase().includes('total'));
+      
+      if (hasValidData && !isTotalLine) {
         jsonData.push(rowData);
+      } else if (isTotalLine) {
+        console.log('🚫 Skipping total line in Excel:', rowData);
       }
     });
     
     console.log('📊 Excel parsed - Raw data sample:', jsonData.slice(0, 3));
     
     if (jsonData.length === 0) {
-      throw new Error('El archivo Excel no contiene datos válidos');
+      throw new Error('El archivo Excel no contiene datos válidos (excluyendo líneas de total)');
     }
     
     // Usar la misma lógica de parseo que CSV
