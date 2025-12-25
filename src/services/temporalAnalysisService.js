@@ -289,6 +289,12 @@ export class TemporalAnalysisService {
    * Calcular confianza temporal
    */
   calculateTemporalConfidence(windowMetrics, referencia) {
+    // Validar que referencia existe
+    if (!referencia) {
+      console.warn('⚠️ TemporalAnalysis: Referencia no disponible para calcular confianza temporal');
+      return 50; // Confianza base cuando no hay referencia
+    }
+    
     const sampleSize = referencia.sampleSize || 0;
     const referenciaConfidence = referencia.confidence || 0;
     
