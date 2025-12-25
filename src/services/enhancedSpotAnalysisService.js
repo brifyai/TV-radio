@@ -1,4 +1,4 @@
-import { generateAIAnalysis } from './aiAnalysisService';
+import { generateGroqAnalysis } from './groqAnalysisService';
 import { TemporalAnalysisService } from './temporalAnalysisService';
 
 /**
@@ -29,8 +29,8 @@ export class EnhancedSpotAnalysisService {
       // Generar prompt para IA
       const prompt = this.generateComprehensiveAnalysisPrompt(spotAnalysisData);
       
-      // Obtener análisis de IA
-      const aiResult = await generateAIAnalysis(prompt);
+      // Obtener análisis de IA con Groq
+      const aiResult = await generateGroqAnalysis(prompt);
       
       // Procesar y estructurar resultados
       const insights = this.processAIResults(aiResult, spotAnalysisData);
