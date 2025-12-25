@@ -106,20 +106,43 @@ export class SimpleSpotAnalysisService {
       const rowData = [];
       row.eachCell((cell) => {
         let cellValue = cell.value;
-        if (cellValue && typeof cellValue === 'object' && cellValue.result !== undefined) {
-          cellValue = cellValue.result;
+        
+        // Limpiar y convertir valor de celda
+        if (cellValue !== null && cellValue !== undefined) {
+          if (typeof cellValue === 'object' && cellValue.result !== undefined) {
+            cellValue = cellValue.result;
+          }
+          
+          // Convertir a string y limpiar
+          cellValue = String(cellValue).trim();
+          
+          // Filtrar valores que parecen ser números o datos inválidos
+          if (cellValue && !/^\d+\.?\d*$/.test(cellValue) && cellValue !== 'NaN') {
+            rowData.push(cellValue);
+          } else {
+            rowData.push(''); // Reemplazar valores numéricos inválidos con string vacío
+          }
+        } else {
+          rowData.push('');
         }
-        rowData.push(cellValue);
       });
-      jsonData.push(rowData);
+      
+      // Solo agregar filas que tengan al menos algunos datos válidos
+      const hasValidData = rowData.some(cell => cell && cell.trim() !== '');
+      if (hasValidData) {
+        jsonData.push(rowData);
+      }
     });
     
+    console.log('📊 Excel parsed - Raw data sample:', jsonData.slice(0, 3));
+    
     if (jsonData.length === 0) {
-      throw new Error('El archivo Excel está vacío');
+      throw new Error('El archivo Excel no contiene datos válidos');
     }
     
     // Usar la misma lógica de parseo que CSV
     const csvContent = jsonData.map(row => row.join(',')).join('\n');
+    console.log('📋 Converted to CSV, first lines:', csvContent.split('\n').slice(0, 3));
     return this.parseCSV(csvContent);
   }
 
