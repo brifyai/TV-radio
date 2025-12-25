@@ -125,41 +125,87 @@ const SpotAnalysis = () => {
 
   // Parsear datos de Excel - LEE fecha, hora inicio, Canal, Titulo Programa, inversion
   const parseExcelData = useCallback((jsonData) => {
-    if (jsonData.length === 0) return [];
+    console.log('🔍 DEBUG: parseExcelData called with', jsonData.length, 'rows');
+    
+    if (!jsonData || jsonData.length === 0) {
+      console.log('❌ No data found in Excel file');
+      return [];
+    }
     
     // Validar máximo 100 líneas de datos (encabezado + 100 datos)
     if (jsonData.length > 101) {
       throw new Error('El archivo excede el límite máximo de 100 líneas de datos');
     }
     
-    // Primera fila como headers
-    const headers = jsonData[0].map(h => (h || '').toString().toLowerCase());
-    const fechaIndex = headers.findIndex(h => h === 'fecha');
-    const horaIndex = headers.findIndex(h => h === 'hora inicio');
-    const canalIndex = headers.findIndex(h => h === 'canal');
-    const tituloIndex = headers.findIndex(h => h === 'titulo programa');
-    const versionIndex = headers.findIndex(h => h === 'version');
-    const duracionIndex = headers.findIndex(h => h === 'duracion');
-    const tipoComercialIndex = headers.findIndex(h => h === 'tipo comercial');
-    const inversionIndex = headers.findIndex(h => h === 'inversion');
-    
-    if (fechaIndex === -1 || horaIndex === -1) {
-      throw new Error('El archivo debe contener las columnas "fecha" y "hora inicio"');
-    }
-    
-    return jsonData.slice(1).map((row, index) => {
-      // Extraer todas las columnas necesarias
-      return {
-        fecha: row[fechaIndex] || '',
-        hora_inicio: row[horaIndex] || '',
-        canal: row[canalIndex] || '',
-        titulo_programa: row[tituloIndex] || '',
-        tipo_comercial: row[tipoComercialIndex] || '',
-        version: row[versionIndex] || '',
-        duracion: row[duracionIndex] || '',
-        inversion: row[inversionIndex] || ''
+    try {
+      // Primera fila como headers
+      const headers = jsonData[0].map(h => {
+        if (h === null || h === undefined) return '';
+        return h.toString().trim().toLowerCase();
+      });
+      
+      console.log('📋 Headers found:', headers);
+      
+      // Buscar columnas con diferentes variaciones de nombres
+      const findColumnIndex = (possibleNames) => {
+        for (const name of possibleNames) {
+          const index = headers.findIndex(h => h === name.toLowerCase());
+          if (index !== -1) return index;
+        }
+        return -1;
       };
-    }).filter(spot => spot.fecha || spot.hora_inicio); // Filtrar filas vacías
+      
+      const fechaIndex = findColumnIndex(['fecha', 'date', 'fecha transmisión', 'fecha_transmision']);
+      const horaIndex = findColumnIndex(['hora inicio', 'hora', 'time', 'hora_inicio', 'hora_transmision']);
+      const canalIndex = findColumnIndex(['canal', 'channel', 'tv']);
+      const tituloIndex = findColumnIndex(['titulo programa', 'programa', 'title', 'titulo_programa']);
+      const versionIndex = findColumnIndex(['version', 'versión', 'v']);
+      const duracionIndex = findColumnIndex(['duracion', 'duración', 'duration']);
+      const tipoComercialIndex = findColumnIndex(['tipo comercial', 'tipo', 'type']);
+      const inversionIndex = findColumnIndex(['inversion', 'inversión', 'inversión', 'cost', 'precio']);
+      
+      console.log('📍 Column indices:', { fechaIndex, horaIndex, canalIndex, tituloIndex });
+      
+      if (fechaIndex === -1 || horaIndex === -1) {
+        console.error('❌ Required columns not found. Headers:', headers);
+        throw new Error(`El archivo debe contener las columnas "fecha" y "hora inicio". Columnas encontradas: ${headers.join(', ')}`);
+      }
+      
+      const results = [];
+      
+      // Procesar filas de datos (desde la fila 2 en adelante)
+      for (let i = 1; i < jsonData.length; i++) {
+        const row = jsonData[i];
+        
+        // Verificar que la fila no esté vacía
+        if (!row || row.every(cell => !cell || cell.toString().trim() === '')) {
+          continue;
+        }
+        
+        const spot = {
+          fecha: row[fechaIndex] ? row[fechaIndex].toString().trim() : '',
+          hora_inicio: row[horaIndex] ? row[horaIndex].toString().trim() : '',
+          canal: canalIndex !== -1 && row[canalIndex] ? row[canalIndex].toString().trim() : '',
+          titulo_programa: tituloIndex !== -1 && row[tituloIndex] ? row[tituloIndex].toString().trim() : '',
+          tipo_comercial: tipoComercialIndex !== -1 && row[tipoComercialIndex] ? row[tipoComercialIndex].toString().trim() : '',
+          version: versionIndex !== -1 && row[versionIndex] ? row[versionIndex].toString().trim() : '',
+          duracion: duracionIndex !== -1 && row[duracionIndex] ? row[duracionIndex].toString().trim() : '',
+          inversion: inversionIndex !== -1 && row[inversionIndex] ? row[inversionIndex].toString().trim() : ''
+        };
+        
+        // Solo agregar si tiene al menos fecha o hora
+        if (spot.fecha || spot.hora_inicio) {
+          results.push(spot);
+        }
+      }
+      
+      console.log('✅ Successfully parsed', results.length, 'spots from Excel');
+      return results;
+      
+    } catch (error) {
+      console.error('❌ Error in parseExcelData:', error);
+      throw error;
+    }
   }, []);
 
   // Parsear fecha y hora con múltiples formatos - SOPORTA FECHAS SERIAL DE EXCEL
@@ -269,46 +315,77 @@ const SpotAnalysis = () => {
 
   // Parsear archivo de spots (CSV o Excel)
   const parseSpotsFile = useCallback(async (file) => {
+    console.log('📁 Starting to parse file:', file.name, 'Type:', file.type, 'Size:', file.size);
+    
     return new Promise(async (resolve, reject) => {
       const reader = new FileReader();
       
       reader.onload = async (e) => {
         try {
           const content = e.target.result;
+          console.log('📖 File content loaded, size:', content.length);
+          
           let data;
           
           if (file.type === 'text/csv' || file.name.endsWith('.csv')) {
-            // Parsear CSV
+            console.log('🔄 Parsing as CSV...');
             data = parseCSV(content);
           } else {
-            // Parsear Excel con ExcelJS
-            const workbook = new ExcelJS.Workbook();
-            await workbook.xlsx.load(content);
-            const worksheet = workbook.worksheets[0];
-            const jsonData = [];
-            
-            worksheet.eachRow((row, rowNumber) => {
-              const rowData = [];
-              row.eachCell((cell, colNumber) => {
-                rowData.push(cell.value);
+            console.log('🔄 Parsing as Excel...');
+            try {
+              const workbook = new ExcelJS.Workbook();
+              await workbook.xlsx.load(content);
+              const worksheet = workbook.worksheets[0];
+              
+              if (!worksheet) {
+                throw new Error('No se encontró ninguna hoja de trabajo en el archivo Excel');
+              }
+              
+              console.log('📊 Excel worksheet found, processing rows...');
+              const jsonData = [];
+              
+              worksheet.eachRow((row, rowNumber) => {
+                const rowData = [];
+                row.eachCell((cell, colNumber) => {
+                  // Manejar diferentes tipos de valores de celda
+                  let cellValue = cell.value;
+                  if (cellValue && typeof cellValue === 'object' && cellValue.result !== undefined) {
+                    cellValue = cellValue.result;
+                  }
+                  rowData.push(cellValue);
+                });
+                jsonData.push(rowData);
               });
-              jsonData.push(rowData);
-            });
-            
-            data = parseExcelData(jsonData);
+              
+              console.log('📋 Excel data extracted:', jsonData.length, 'rows');
+              data = parseExcelData(jsonData);
+              
+            } catch (excelError) {
+              console.error('❌ Excel parsing error:', excelError);
+              throw new Error(`Error al procesar archivo Excel: ${excelError.message}`);
+            }
           }
           
+          console.log('✅ File parsing completed successfully. Spots found:', data.length);
           resolve(data);
+          
         } catch (error) {
-          reject(error);
+          console.error('❌ Error in parseSpotsFile:', error);
+          reject(new Error(`Error al procesar el archivo: ${error.message}`));
         }
       };
       
-      reader.onerror = () => reject(new Error('Error al leer el archivo'));
+      reader.onerror = (error) => {
+        console.error('❌ FileReader error:', error);
+        reject(new Error('Error al leer el archivo. Por favor, verifica que el archivo no esté corrupto.'));
+      };
       
+      // Determinar el método de lectura según el tipo de archivo
       if (file.type === 'text/csv' || file.name.endsWith('.csv')) {
-        reader.readAsText(file);
+        console.log('📖 Reading CSV as text...');
+        reader.readAsText(file, 'UTF-8');
       } else {
+        console.log('📖 Reading Excel as binary...');
         reader.readAsBinaryString(file);
       }
     });
