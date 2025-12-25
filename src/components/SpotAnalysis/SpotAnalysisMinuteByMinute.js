@@ -137,21 +137,35 @@ const SpotAnalysisMinuteByMinute = () => {
 
   // ANÁLISIS INTEGRADO (Google Analytics + Excel + YouTube)
   const performIntegratedAnalysis = useCallback(async () => {
+    console.log('🚀 performIntegratedAnalysis called');
+    console.log('📋 State check:', {
+      selectedSpot: !!selectedSpot,
+      selectedProperty: !!selectedProperty,
+      spotsDataLength: spotsData.length,
+      analyzing,
+      minuteAnalysisService: !!minuteAnalysisService,
+      spotAnalysisService: !!spotAnalysisService
+    });
+
     if (!selectedSpot) {
+      console.log('❌ No spot selected');
       showWarning('Por favor, selecciona un spot para analizar', 'Spot requerido');
       return;
     }
 
     if (!selectedProperty) {
+      console.log('❌ No property selected');
       showWarning('Por favor, selecciona una propiedad de Google Analytics', 'Propiedad requerida');
       return;
     }
 
     if (spotsData.length === 0) {
+      console.log('❌ No spots data');
       showWarning('Por favor, sube un archivo Excel con datos de spots', 'Archivo Excel requerido');
       return;
     }
 
+    console.log('✅ All validations passed, starting analysis...');
     setAnalyzing(true);
     setError(null);
     setAnalysisStage('Iniciando análisis integrado (Analytics + Excel + YouTube)...');
@@ -159,23 +173,38 @@ const SpotAnalysisMinuteByMinute = () => {
     try {
       console.log('🔍 Starting integrated analysis (Analytics + Excel + YouTube)...');
       
+      // Verificar servicios
+      if (!minuteAnalysisService) {
+        throw new Error('Servicio de análisis minuto a minuto no disponible');
+      }
+      if (!spotAnalysisService) {
+        throw new Error('Servicio de análisis de spots no disponible');
+      }
+      
       // Fase 1: Análisis de Google Analytics
       setAnalysisStage('📊 Obteniendo datos de Google Analytics...');
+      console.log('📊 Calling minuteAnalysisService.performMinuteByMinuteAnalysis...');
       const analyticsResults = await minuteAnalysisService.performMinuteByMinuteAnalysis(
         selectedSpot,
         selectedProperty,
         analysisWindow
       );
+      console.log('✅ Analytics results received:', !!analyticsResults);
 
       // Fase 2: Análisis del archivo Excel
       setAnalysisStage('📋 Analizando datos del archivo Excel...');
+      console.log('📋 Calling spotAnalysisService.analyzeSpotsData...');
       const excelAnalysis = await spotAnalysisService.analyzeSpotsData(spotsData, selectedSpot);
+      console.log('✅ Excel analysis received:', !!excelAnalysis);
 
       // Fase 3: Análisis de YouTube (si hay video)
       let youtubeResults = null;
       if (youtubeAnalysis) {
         setAnalysisStage('🎥 Analizando video de YouTube...');
+        console.log('🎥 YouTube analysis available');
         youtubeResults = youtubeAnalysis;
+      } else {
+        console.log('ℹ️ No YouTube analysis available');
       }
 
       // Fase 4: Combinar todos los análisis
@@ -227,12 +256,18 @@ const SpotAnalysisMinuteByMinute = () => {
         }
       };
       
+      console.log('✅ Integrated results created:', !!integratedResults);
       setAnalysisResults(integratedResults);
       console.log('✅ Integrated analysis completed');
       showSuccess('Análisis integrado completado exitosamente', 'Análisis terminado');
       
     } catch (error) {
       console.error('❌ Error in integrated analysis:', error);
+      console.error('❌ Error details:', {
+        message: error.message,
+        stack: error.stack,
+        name: error.name
+      });
       setError(error.message);
       showError(`Error durante el análisis integrado: ${error.message}`, 'Error de análisis');
     } finally {
@@ -806,25 +841,25 @@ const SpotAnalysisMinuteByMinute = () => {
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div className="text-center p-4 bg-blue-50 rounded-lg">
                   <div className="text-lg font-bold text-blue-600">
-                    {analysisResults.spotInfo.channel}
+                    {analysisResults.analysisMetadata?.spotInfo?.canal || selectedSpot?.canal || 'N/A'}
                   </div>
                   <div className="text-sm text-blue-800">Canal</div>
                 </div>
                 <div className="text-center p-4 bg-green-50 rounded-lg">
                   <div className="text-lg font-bold text-green-600">
-                    {new Date(analysisResults.spotInfo.dateTime).toLocaleDateString()}
+                    {analysisResults.analysisMetadata?.spotInfo?.fecha || selectedSpot?.fecha || 'N/A'}
                   </div>
                   <div className="text-sm text-green-800">Fecha</div>
                 </div>
                 <div className="text-center p-4 bg-purple-50 rounded-lg">
                   <div className="text-lg font-bold text-purple-600">
-                    {new Date(analysisResults.spotInfo.dateTime).toLocaleTimeString()}
+                    {analysisResults.analysisMetadata?.spotInfo?.hora_inicio || selectedSpot?.hora_inicio || 'N/A'}
                   </div>
                   <div className="text-sm text-purple-800">Hora del Spot</div>
                 </div>
                 <div className="text-center p-4 bg-orange-50 rounded-lg">
                   <div className="text-lg font-bold text-orange-600">
-                    {analysisResults.spotInfo.duration} min
+                    {analysisResults.analysisMetadata?.analysisWindow || analysisWindow} min
                   </div>
                   <div className="text-sm text-orange-800">Ventana Analizada</div>
                 </div>
