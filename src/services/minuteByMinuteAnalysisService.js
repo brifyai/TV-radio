@@ -1,4 +1,4 @@
-import { GoogleAnalyticsService } from './googleAnalyticsService';
+import { googleAnalyticsService } from './googleAnalyticsService';
 
 /**
  * Servicio de Análisis Minuto a Minuto del Impacto TV-Web
@@ -6,7 +6,7 @@ import { GoogleAnalyticsService } from './googleAnalyticsService';
  */
 export class MinuteByMinuteAnalysisService {
   constructor() {
-    this.gaService = new GoogleAnalyticsService();
+    this.gaService = googleAnalyticsService;
     this.timeZone = 'America/Santiago'; // Ajustar según necesidad
   }
 

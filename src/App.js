@@ -14,7 +14,7 @@ import Dashboard from './components/Dashboard/Dashboard';
 import Accounts from './components/Accounts/Accounts';
 import Properties from './components/Properties/Properties';
 import Analytics from './components/Analytics/Analytics';
-import SpotAnalysis from './components/SpotAnalysis/SpotAnalysisSimple';
+import SpotAnalysis from './components/SpotAnalysis/SpotAnalysisMinuteByMinute';
 import FrasesRadio from './components/FrasesRadio/FrasesRadio';
 import Settings from './components/Settings/Settings';
 import Layout from './components/Layout/Layout';

@@ -316,7 +316,7 @@ const SpotAnalysisMinuteByMinute = () => {
             <div className="flex items-center">
               <CheckCircle className="h-5 w-5 text-green-600 mr-2" />
               <span className="text-sm font-medium text-green-800">
-                Impacto estadísticamente significativo (p < {impact.significance.pValue})
+                Impacto estadísticamente significativo (p {'<'} {impact.significance.pValue})
               </span>
             </div>
           </div>
