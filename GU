@@ -1,67 +1,313 @@
-# 🎯 GUÍA PASO A PASO: PANTALLA ACTUAL DE CLOUDFLARE
+# 🚀 GUÍA COMPLETA: CONFIGURAR TRAEFIK EN COOLIFY
 
-## ✅ ESTÁS EN LA PANTALLA CORRECTA
+## 🎯 OBJETIVO:
+Configurar Traefik como reverse proxy en Coolify para:
+- ✅ HTTPS automático con certificados SSL
+- ✅ Redirección HTTP → HTTPS
+- ✅ Gestión automática de certificados
+- ✅ Load balancing y seguridad
 
-Has llegado a la pantalla de configuración DNS de Cloudflare para `147.93.182.94.sslip.io`.
+## 📋 PRERREQUISITOS:
+- Coolify instalado y funcionando
+- Acceso al servidor Coolify
+- Dominio o subdominio apuntando al servidor
 
-## 📋 ACCIONES REQUERIDAS:
+## 🔧 PASO 1: INSTALAR TRAEFIK EN COOLIFY
 
-### PASO 1: BÚSQUEDA RÁPIDA DE REGISTROS DNS
-1. **Hacer clic en "Búsqueda rápida de registros DNS"** ✅
-2. **Esperar** a que Cloudflare detecte los registros existentes
-3. **Revisar** si aparece algún registro automáticamente
+### OPCIÓN A: INSTALACIÓN COMO SERVICIO EN COOLIFY
 
-### PASO 2: CONFIGURAR DNS MANUALMENTE
-Si no aparece el registro automáticamente, hacer clic en **"Introduzca manualmente registros DNS"** y agregar:
+1. **Ir al Dashboard de Coolify:**
+   - https://tu-coolify-ip:3000
 
+2. **Crear nuevo proyecto:**
+   - Clic en "New Project"
+   - Seleccionar "Docker Compose"
+
+3. **Configurar Docker Compose para Traefik:**
+
+```yaml
+version: '3.8'
+
+services:
+  traefik:
+    image: traefik:v3.0
+    container_name: traefik
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"  # Dashboard de Traefik
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./traefik.yml:/traefik.yml:ro
+      - ./dynamic.yml:/dynamic.yml:ro
+      - ./letsencrypt:/letsencrypt
+    networks:
+      - traefik
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.traefik.rule=Host(`traefik.tudominio.com`)"
+      - "traefik.http.routers.traefik.entrypoints=websecure"
+      - "traefik.http.routers.traefik.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.traefik.service=api@internal"
+
+networks:
+  traefik:
+    external: false
 ```
-Type: CNAME
+
+### OPCIÓN B: INSTALACIÓN MANUAL EN EL SERVIDOR
+
+1. **Conectar al servidor Coolify:**
+```bash
+ssh usuario@servidor-coolify
+```
+
+2. **Crear directorio para Traefik:**
+```bash
+mkdir -p /opt/traefik
+cd /opt/traefik
+```
+
+3. **Crear archivo de configuración principal:**
+```bash
+nano traefik.yml
+```
+
+## 🔧 PASO 2: CONFIGURAR TRAEFIK.YML
+
+Crear archivo `/opt/traefik/traefik.yml`:
+
+```yaml
+api:
+  dashboard: true
+  insecure: false
+
+entryPoints:
+  web:
+    address: ":80"
+    http:
+      redirections:
+        entrypoint:
+          to: websecure
+          scheme: https
+  websecure:
+    address: ":443"
+
+certificatesResolvers:
+  letsencrypt:
+    acme:
+      email: tu-email@ejemplo.com
+      storage: /letsencrypt/acme.json
+      httpChallenge:
+        entryPoint: web
+
+providers:
+  docker:
+    endpoint: "unix:///var/run/docker.sock"
+    exposedByDefault: false
+  file:
+    filename: /dynamic.yml
+    watch: true
+
+log:
+  level: INFO
+
+accessLog: {}
+
+metrics:
+  prometheus:
+    addEntryPointsLabels: true
+    addServicesLabels: true
+```
+
+## 🔧 PASO 3: CONFIGURAR DYNAMIC.YML
+
+Crear archivo `/opt/traefik/dynamic.yml`:
+
+```yaml
+http:
+  middlewares:
+    security-headers:
+      headers:
+        accessControlAllowMethods:
+          - GET
+          - POST
+          - PUT
+          - DELETE
+        accessControlAllowOriginList:
+          - "*"
+        accessControlMaxAge: 100
+        hostsProxyHeaders:
+          - "X-Forwarded-Host"
+        referrerPolicy: "strict-origin-when-cross-origin"
+        stsSeconds: 63072000
+        stsIncludeSubdomains: true
+        stsPreload: true
+    redirect-https:
+      redirectScheme:
+        scheme: https
+        permanent: true
+
+  routers:
+    tv-radio:
+      rule: "Host(`v8g48ggkk8wko4480s8kk4ok.147.93.182.94.sslip.io`)"
+      entrypoints:
+        - websecure
+      tls:
+        certresolver: letsencrypt
+      service: tv-radio
+      middlewares:
+        - security-headers
+
+  services:
+    tv-radio:
+      loadBalancer:
+        servers:
+          - url: "http://localhost:3000"
+        healthCheck:
+          path: "/"
+          interval: "30s"
+          timeout: "3s"
+```
+
+## 🔧 PASO 4: CONFIGURAR TU APLICACIÓN TV-RADIO
+
+### MODIFICAR DOCKER COMPOSE DE TV-RADIO
+
+En el proyecto TV-radio en Coolify, agregar labels a tu servicio:
+
+```yaml
+services:
+  tv-radio:
+    image: tu-imagen-tv-radio
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.tv-radio.rule=Host(`v8g48ggkk8wko4480s8kk4ok.147.93.182.94.sslip.io`)"
+      - "traefik.http.routers.tv-radio.entrypoints=websecure"
+      - "traefik.http.routers.tv-radio.tls.certresolver=letsencrypt"
+      - "traefik.http.services.tv-radio.loadbalancer.server.port=3000"
+      - "traefik.http.middlewares.security-headers.headers.accessControlAllowOriginList=*"
+```
+
+## 🔧 PASO 5: CONFIGURAR DNS
+
+### CONFIGURAR DNS PARA TU DOMINIO
+
+**Opción A: Usar subdominio de dominio existente**
+```
+Type: A
+Name: tv-radio (o el subdominio que prefieras)
+Value: IP_DEL_SERVIDOR_COOLIFY
+TTL: 300
+```
+
+**Opción B: Si usas el dominio .sslip.io**
+```
+Type: A
 Name: v8g48ggkk8wko4480s8kk4ok
-Target: v8g48ggkk8wko4480s8kk4ok.147.93.182.94.sslip.io
-TTL: Auto
-Proxy status: Enabled (naranja ☁️)
+Value: IP_DEL_SERVIDOR_COOLIFY
+TTL: 300
 ```
 
-### PASO 3: CONTROL DE BOTS DE IA
-**Seleccionar: "No bloquear (permitir rastreadores)"** ✅
+## 🔧 PASO 6: INICIAR TRAEFIK
 
-**¿Por qué?**
-- Google Analytics necesita acceso para OAuth
-- Los bots de IA no interfieren con la funcionalidad
-- Evita problemas con Google Services
+### INICIAR CON DOCKER COMPOSE
 
-### PASO 4: CONTINUAR
-1. Hacer clic en "Continue"
-2. Seleccionar plan "Free"
-3. Continuar con el proceso
-
-## 🎯 CONFIGURACIÓN ESPERADA:
-
-**DNS Records:**
-```
-CNAME v8g48ggkk8wko4480s8kk4ok → v8g48ggkk8wko4480s8kk4ok.147.93.182.94.sslip.io (Proxied)
+```bash
+cd /opt/traefik
+docker-compose up -d
 ```
 
-**AI Bots Control:**
+### VERIFICAR QUE ESTÁ FUNCIONANDO
+
+```bash
+docker ps
+curl http://localhost:8080  # Dashboard de Traefik
 ```
-✅ No bloquear (permitir rastreadores)
+
+## 🔧 PASO 7: CONFIGURAR FIREWALL
+
+### ABRIR PUERTOS NECESARIOS
+
+```bash
+# Ubuntu/Debian
+sudo ufw allow 80
+sudo ufw allow 443
+sudo ufw allow 8080  # Dashboard (opcional)
+
+# CentOS/RHEL
+sudo firewall-cmd --permanent --add-port=80/tcp
+sudo firewall-cmd --permanent --add-port=443/tcp
+sudo firewall-cmd --permanent --add-port=8080/tcp
+sudo firewall-cmd --reload
 ```
 
-## ⏰ PRÓXIMOS PASOS:
+## 🔧 PASO 8: VERIFICAR CONFIGURACIÓN
 
-Después de esta pantalla:
-1. **Plan Selection:** Free
-2. **Overview:** Ver configuración
-3. **DNS:** Verificar registros
-4. **SSL/TLS:** Configurar Full (strict)
-5. **Always Use HTTPS:** Activar
+### VERIFICAR HTTPS
 
-## 🚀 RESULTADO:
+```bash
+curl -I https://v8g48ggkk8wko4480s8kk4ok.147.93.182.94.sslip.io
+```
 
-Una vez completado:
-- ✅ DNS configurado
-- ✅ SSL automático
-- ✅ HTTPS funcionando
-- ✅ OAuth sin errores
+### VERIFICAR REDIRECCIÓN HTTP → HTTPS
 
-**¿Ya hiciste la búsqueda rápida de DNS?**
+```bash
+curl -I http://v8g48ggkk8wko4480s8kk4ok.147.93.182.94.sslip.io
+# Debe redirigir a HTTPS
+```
+
+### VERIFICAR CERTIFICADO SSL
+
+```bash
+openssl s_client -connect v8g48ggkk8wko4480s8kk4ok.147.93.182.94.sslip.io:443 -servername v8g48ggkk8wko4480s8kk4ok.147.93.182.94.sslip.io
+```
+
+## 🎯 RESULTADO ESPERADO:
+
+Después de la configuración:
+- ✅ **HTTPS automático** con certificados Let's Encrypt
+- ✅ **Redirección HTTP → HTTPS** automática
+- ✅ **Certificados SSL** renovados automáticamente
+- ✅ **Dashboard Traefik** en puerto 8080
+- ✅ **Seguridad** con headers de seguridad
+- ✅ **OAuth funcionando** sin errores
+
+## 🔑 URLs PARA GOOGLE CLOUD:
+
+```
+https://v8g48ggkk8wko4480s8kk4ok.147.93.182.94.sslip.io/callback
+https://v8g48ggkk8wko4480s8kk4ok.147.93.182.94.sslip.io/auth/callback
+https://v8g48ggkk8wko4480s8kk4ok.147.93.182.94.sslip.io/oauth/callback
+https://v8g48ggkk8wko4480s8kk4ok.147.93.182.94.sslip.io/auth/google/callback
+```
+
+## 🛠️ TROUBLESHOOTING:
+
+### VER LOGS DE TRAEFIK
+```bash
+docker logs traefik
+```
+
+### VERIFICAR CONFIGURACIÓN
+```bash
+docker exec traefik cat /traefik.yml
+```
+
+### REINICIAR TRAEFIK
+```bash
+docker-compose restart traefik
+```
+
+## ⚡ VENTAJAS DE TRAEFIK:
+
+- ✅ **Certificados automáticos** Let's Encrypt
+- ✅ **Renovación automática** de certificados
+- ✅ **Dashboard web** para monitoreo
+- ✅ **Load balancing** integrado
+- ✅ **Middleware** de seguridad
+- ✅ **Métricas** Prometheus
+- ✅ **Health checks** automáticos
+
+**¿Necesitas ayuda con algún paso específico de la configuración de Traefik?**
