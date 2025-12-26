@@ -70,10 +70,14 @@ export const getRedirectUri = () => {
     // Usar siempre la URL HTTPS hardcodeada para Coolify
     const httpsUri = 'https://v8g48ggkk8wko4480s8kk4ok.147.93.182.94.sslip.io/callback';
     console.log('🔒 CRITICAL: Usando URL HTTPS hardcodeada para Coolify:', httpsUri);
+    console.log('🔒 CRITICAL: window.location.origin:', window.location.origin);
+    console.log('🔒 CRITICAL: window.location.protocol:', window.location.protocol);
     return httpsUri;
   }
   
   // Para otros entornos, usar la configuración normal
+  console.log('🔒 INFO: Usando configuración normal para entorno:', config === OAUTH_CONFIG.LOCAL ? 'LOCAL' : 'NETLIFY');
+  console.log('🔒 INFO: URL configurada:', config.redirectUri);
   return config.redirectUri;
 };
 
