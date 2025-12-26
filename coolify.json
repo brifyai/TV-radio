@@ -7,7 +7,7 @@
       ]
     },
     "environment": {
-      "NODE_VERSION": "18",
+      "NODE_VERSION": "22",
       "NPM_CONFIG_LEGACY_PEER_DEPS": "true",
       "GENERATE_SOURCEMAP": "false",
       "REACT_APP_BUILD_VERSION": "1.0.0"
