@@ -6,10 +6,10 @@ const GOOGLE_AUTH_BASE_URL = 'https://accounts.google.com/o/oauth2/auth';
 const GOOGLE_TOKEN_URL = 'https://oauth2.googleapis.com/token';
 const GOOGLE_USERINFO_URL = 'https://www.googleapis.com/oauth2/v2/userinfo';
 
-// URL del backend proxy - configuración forzada para producción
+// URL del backend proxy - configuración para Coolify
 const isProduction = process.env.NODE_ENV === 'production';
 const API_BASE_URL = isProduction
-  ? '/.netlify/functions/analytics-proxy'  // Función de Netlify en producción (siempre)
+  ? (process.env.REACT_APP_API_URL || '/api')  // ✅ Servidor Express en producción (Coolify)
   : (process.env.REACT_APP_API_URL || 'http://localhost:3001');  // Servidor local en desarrollo
 
 const GOOGLE_SCOPES = [
