@@ -36,7 +36,9 @@
   "scripts": {
     "start": "react-scripts start",
     "server": "node server.js",
-    "start:production": "concurrently \"node server-production.js\" \"npx serve -s build -l 3000\"",
+    "server:unified": "node server-unified.js",
+    "server:coolify": "node server-coolify.js",
+    "start:production": "node server-unified.js",
     "build": "node scripts/build.js",
     "build-html": "node scripts/build-html.js",
     "test": "react-scripts test",

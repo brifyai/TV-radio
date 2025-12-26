@@ -14,10 +14,10 @@
     }
   },
   "deploy": {
-    "startCommand": "npm run start:production",
+    "startCommand": "concurrently \"npm run server:coolify\" \"npx serve -s build -l 3000\"",
     "healthCheck": {
-      "path": "/",
-      "port": 3000
+      "path": "/health",
+      "port": 3001
     }
   }
 }
