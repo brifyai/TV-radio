@@ -1,42 +1,38 @@
-# 🔑 CONFIGURACIÓN EXACTA PARA TOKEN CLOUDFLARE
+# 🔑 CONFIGURACIÓN CORREGIDA TOKEN CLOUDFLARE
 
-## 📋 CONFIGURACIÓN PASO A PASO:
+## 📋 CONFIGURACIÓN REAL (OPCIONES DISPONIBLES):
 
 ### 1. **NOMBRE DEL TOKEN:**
 ```
 TV-radio HTTPS Setup
 ```
 
-### 2. **PERMISOS:**
-Seleccionar estos permisos uno por uno:
+### 2. **PERMISOS DISPONIBLES:**
 
 **Account:**
 - Ninguno necesario
 
 **Zone:**
-- Zone:Zone:Read ✅
-- Zone:Zone:Edit ✅
+- `Zone:Zone:Read` ✅
+- `Zone:Zone:Edit` ✅
 
 **DNS:**
-- DNS:DNS:Read ✅
-- DNS:DNS:Edit ✅
-
-**SSL/TLS:**
-- SSL/TLS:SSL:Read ✅
-- SSL/TLS:SSL:Edit ✅
+- `DNS:DNS:Read` ✅
+- `DNS:DNS:Edit` ✅
 
 ### 3. **RECURSOS:**
-En la sección "Account":
-- Seleccionar "Include - All accounts" ✅
+En la sección "Zone":
+- Seleccionar `Include - All zones` ✅
+- O seleccionar específicamente `147.93.182.94.sslip.io`
 
 ### 4. **FILTRO DE DIRECCIONES IP:**
 **Dejar vacío** (sin restricciones de IP)
 
 ### 5. **TTL:**
 - **Start Date:** Hoy (fecha actual)
-- **End Date:** 1 año desde hoy (o la fecha máxima disponible)
+- **End Date:** 1 año desde hoy
 
-## 🎯 CONFIGURACIÓN COMPLETA:
+## 🎯 CONFIGURACIÓN CORREGIDA:
 
 ```
 Nombre del token: TV-radio HTTPS Setup
@@ -46,11 +42,10 @@ Permisos:
 ✅ Zone:Zone:Edit
 ✅ DNS:DNS:Read
 ✅ DNS:DNS:Edit
-✅ SSL/TLS:SSL:Read
-✅ SSL/TLS:SSL:Edit
 
 Recursos:
-✅ Include - All accounts
+✅ Include - All zones
+(o seleccionar específicamente: 147.93.182.94.sslip.io)
 
 Filtro IP: (vacío)
 
@@ -59,21 +54,22 @@ Start: Hoy
 End: 1 año
 ```
 
+## ⚠️ NOTA IMPORTANTE:
+
+**Los permisos SSL/TLS se configuran automáticamente** cuando seleccionas:
+- `Zone:Zone:Read` y `Zone:Zone:Edit`
+
+Esto le da acceso completo a todas las configuraciones de la zona, incluyendo SSL/TLS.
+
 ## 🔄 PASOS PARA COMPLETAR:
 
 1. **Nombre:** `TV-radio HTTPS Setup`
-2. **Permisos:** Seleccionar cada uno de la lista arriba
-3. **Recursos:** "Include - All accounts"
+2. **Permisos:** Seleccionar solo los 4 permisos de arriba
+3. **Recursos:** "Include - All zones"
 4. **IP Filter:** Dejar vacío
 5. **TTL:** Fechas como se indica
 6. **Crear Token**
 7. **Copiar el token generado**
-
-## ⚠️ IMPORTANTE:
-
-- **Copiar el token inmediatamente** (no se mostrará de nuevo)
-- El token se ve así: `xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx`
-- Guardarlo de forma segura
 
 ## 🚀 DESPUÉS DE CREAR EL TOKEN:
 
@@ -83,4 +79,11 @@ export CLOUDFLARE_TOKEN="tu_token_aqui"
 node cloudflare-quick-setup.js
 ```
 
-¡Y listo! Tu HTTPS estará configurado automáticamente.
+## ✅ ESTO CONFIGURARÁ AUTOMÁTICAMENTE:
+
+- DNS: CNAME proxied
+- SSL: Full (strict)
+- Always Use HTTPS: ON
+- HSTS: Configurado
+
+¡Listo! Con estos permisos es suficiente para toda la configuración HTTPS.
