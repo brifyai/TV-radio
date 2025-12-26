@@ -240,8 +240,8 @@ const SpotAnalysisMinuteByMinute = () => {
 
       // Fase 2: Análisis del archivo Excel
       setAnalysisStage('📋 Analizando datos del archivo Excel...');
-      console.log('📋 Calling spotAnalysisService.analyzeSpotsData...');
-      const excelAnalysis = await spotAnalysisService.analyzeSpotsData(spotsData, selectedSpots);
+      console.log('📋 Calling spotAnalysisService.analyzeSpotsWithAI...');
+      const excelAnalysis = await spotAnalysisService.analyzeSpotsWithAI(spotsData);
       console.log('✅ Excel analysis received:', !!excelAnalysis);
 
       // Fase 3: Análisis de YouTube (si hay video)

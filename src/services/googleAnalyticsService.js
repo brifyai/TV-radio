@@ -445,6 +445,60 @@ class GoogleAnalyticsService {
   }
 
   /**
+   * Alias para compatibilidad con minuteByMinuteAnalysisService
+   * Convierte el formato de request de GA4 API al formato esperado por el backend
+   */
+  async runReport(request) {
+    try {
+      console.log('🔍 DEBUG: runReport called with request:', request);
+      
+      // Extraer datos del request
+      const property = request.property;
+      const dateRanges = request.dateRanges || [];
+      const dimensions = request.dimensions || [];
+      const metrics = request.metrics || [];
+      
+      // Extraer propertyId del formato "properties/123456789"
+      const propertyId = property.replace('properties/', '');
+      
+      // Convertir dateRanges al formato esperado
+      const dateRange = dateRanges.length > 0 ? {
+        startDate: dateRanges[0].startDate,
+        endDate: dateRanges[0].endDate
+      } : null;
+      
+      if (!dateRange) {
+        throw new Error('No date range provided in request');
+      }
+      
+      // Convertir dimensions y metrics al formato esperado
+      const dimensionsArray = dimensions.map(dim => dim.name);
+      const metricsArray = metrics.map(metric => metric.name);
+      
+      // Obtener accessToken del contexto o storage
+      const accessToken = localStorage.getItem('google_access_token') || sessionStorage.getItem('google_access_token');
+      
+      if (!accessToken) {
+        throw new Error('No access token available. Please authenticate with Google Analytics.');
+      }
+      
+      console.log('🔍 DEBUG: Converting request to backend format:', {
+        propertyId,
+        dateRange,
+        dimensions: dimensionsArray,
+        metrics: metricsArray
+      });
+      
+      // Llamar al método getAnalyticsData
+      return await this.getAnalyticsData(accessToken, propertyId, metricsArray, dimensionsArray, dateRange);
+      
+    } catch (error) {
+      console.error('❌ Error in runReport:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Validate if the access token is still valid
    */
   async validateAccessToken(accessToken) {
