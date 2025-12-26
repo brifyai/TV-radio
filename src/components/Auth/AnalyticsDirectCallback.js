@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useGoogleAnalytics } from '../../contexts/GoogleAnalyticsContext';
 import { supabase } from '../../config/supabase-new';
+import { getRedirectUri } from '../../config/oauthConfig';
 import LoadingSpinner from '../UI/LoadingSpinner';
 
 const AnalyticsDirectCallback = () => {
@@ -101,8 +102,8 @@ const AnalyticsDirectCallback = () => {
         // CRITICAL: Exchange code for tokens DIRECTAMENTE con Google (sin Supabase)
         console.log('🔒 CRITICAL: Intercambiando código por tokens directamente con Google...');
         const tokens = await googleAnalyticsService.exchangeCodeForTokens(
-          code, 
-          `${window.location.origin}/analytics-callback`
+          code,
+          getRedirectUri()
         );
 
         console.log('✅ CRITICAL: Tokens obtenidos exitosamente de Google');

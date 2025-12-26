@@ -206,7 +206,7 @@ export const AuthProvider = ({ children }) => {
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${getRedirectUri()}`,
+        redirectTo: getRedirectUri(),
         scopes: 'email profile https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.send'
       }
     });
@@ -222,7 +222,7 @@ export const AuthProvider = ({ children }) => {
 
   const resetPassword = async (email) => {
     const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${getRedirectUri().replace('/callback', '/reset-password')}`
+      redirectTo: getRedirectUri().replace('/callback', '/reset-password')
     });
 
     if (error) throw error;

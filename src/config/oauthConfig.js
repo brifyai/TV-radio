@@ -63,6 +63,16 @@ export const getOAuthConfig = () => {
  */
 export const getRedirectUri = () => {
   const config = getOAuthConfig();
+  
+  // 🚨 SOLUCIÓN CRÍTICA: Forzar HTTPS para entornos Coolify con sslip.io
+  // Esto resuelve el error "redirect_uri_mismatch" de Google OAuth
+  if (config === OAUTH_CONFIG.COOLIFY) {
+    // Reemplazar http:// con https:// para sslip.io
+    const httpsUri = config.redirectUri.replace('http://', 'https://');
+    console.log('🔒 CRITICAL: Forzando HTTPS para Coolify:', httpsUri);
+    return httpsUri;
+  }
+  
   return config.redirectUri;
 };
 

@@ -1,0 +1,336 @@
+const express = require('express');
+const cors = require('cors');
+const axios = require('axios');
+const https = require('https');
+const http = require('http');
+require('dotenv').config();
+
+const app = express();
+const PORT = process.env.PORT || 3001;
+
+// Configuración HTTPS
+const HTTPS_ENABLED = process.env.HTTPS_ENABLED === 'true';
+const SSL_KEY_PATH = process.env.SSL_KEY_PATH || '/etc/ssl/private/ssl-cert-snakeoil.key';
+const SSL_CERT_PATH = process.env.SSL_CERT_PATH || '/etc/ssl/certs/ssl-cert-snakeoil.pem';
+
+// Middlewares
+app.use(cors());
+app.use(express.json());
+
+// Configuración de Google Analytics API
+const GOOGLE_ANALYTICS_API_BASE = 'https://analyticsdata.googleapis.com';
+const GOOGLE_ANALYTICS_ADMIN_API_BASE = 'https://analyticsadmin.googleapis.com';
+
+// Middleware para logging de solicitudes
+app.use((req, res, next) => {
+  console.log(`🔍 ${req.method} ${req.path} - ${new Date().toISOString()} - Protocol: ${req.protocol}`);
+  next();
+});
+
+// Middleware para verificar el token de autorización
+const verifyAuthToken = (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ 
+      error: 'Token de autorización no proporcionado o inválido' 
+    });
+  }
+  
+  req.accessToken = authHeader.substring(7);
+  next();
+};
+
+// Endpoint para obtener cuentas de Google Analytics
+app.get('/api/analytics/accounts', verifyAuthToken, async (req, res) => {
+  try {
+    console.log('🔍 Obteniendo cuentas de Google Analytics...');
+    
+    const response = await axios.get(
+      `${GOOGLE_ANALYTICS_ADMIN_API_BASE}/v1beta/accounts`,
+      {
+        headers: {
+          'Authorization': `Bearer ${req.accessToken}`,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+
+    console.log(`✅ Cuentas encontradas: ${response.data.accounts?.length || 0}`);
+    
+    res.json(response.data.accounts || []);
+    
+  } catch (error) {
+    console.error('❌ Error al obtener cuentas:', error.response?.data || error.message);
+    
+    const status = error.response?.status || 500;
+    const message = error.response?.data?.error?.message || error.message;
+    
+    res.status(status).json({ 
+      error: message,
+      details: error.response?.data
+    });
+  }
+});
+
+// Endpoint para obtener propiedades de una cuenta específica
+app.get('/api/analytics/properties/:accountId', verifyAuthToken, async (req, res) => {
+  try {
+    const { accountId } = req.params;
+    console.log(`🔍 Obteniendo propiedades para la cuenta: ${accountId}`);
+    
+    // Validar que accountId no sea undefined o vacío
+    if (!accountId || accountId === 'undefined') {
+      return res.status(400).json({
+        error: 'ID de cuenta inválido',
+        details: 'El accountId no puede ser undefined o vacío'
+      });
+    }
+    
+    // Construir el filtro correctamente según la especificación de la API de Google Analytics
+    const filter = `parent:accounts/${accountId}`;
+    console.log(`🔍 Usando filtro: ${filter}`);
+    
+    const response = await axios.get(
+      `${GOOGLE_ANALYTICS_ADMIN_API_BASE}/v1beta/properties?filter=${encodeURIComponent(filter)}`,
+      {
+        headers: {
+          'Authorization': `Bearer ${req.accessToken}`,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+
+    console.log(`✅ Propiedades encontradas: ${response.data.properties?.length || 0}`);
+    
+    res.json(response.data.properties || []);
+    
+  } catch (error) {
+    console.error('❌ Error al obtener propiedades:', error.response?.data || error.message);
+    
+    const status = error.response?.status || 500;
+    const message = error.response?.data?.error?.message || error.message;
+    
+    res.status({
+      error: message,
+      details: error.response?.data
+    });
+  }
+});
+
+// Endpoint para obtener datos de analytics de una propiedad
+app.post('/api/analytics/data/:propertyId', verifyAuthToken, async (req, res) => {
+  try {
+    const { propertyId } = req.params;
+    const { metrics, dimensions, dateRange } = req.body;
+    
+    console.log(`🔍 Obteniendo datos de analytics para propiedad: ${propertyId}`);
+    console.log(`🔍 Métricas solicitadas:`, metrics);
+    console.log(`🔍 Dimensiones solicitadas:`, dimensions);
+    console.log(`🔍 Rango de fechas:`, dateRange);
+    
+    // Mapeo de dimensiones a nombres correctos de GA4 API
+    const dimensionMapping = {
+      'date': 'date',
+      'minute': 'minute',
+      'hour': 'hour',
+      'dateHour': 'dateHour',
+      'dateMinute': 'nthMinute',  // Corregido: dateMinute no existe, usar nthMinute
+      'country': 'country',
+      'city': 'city',
+      'deviceCategory': 'deviceCategory',
+      'browser': 'browser',
+      'operatingSystem': 'operatingSystem',
+      'source': 'source',
+      'medium': 'medium',
+      'campaign': 'campaign',
+      'pagePath': 'pagePath',
+      'pageTitle': 'pageTitle',
+      'sessionSource': 'sessionSource',
+      'sessionMedium': 'sessionMedium',
+      'sessionCampaign': 'sessionCampaign',
+      'landingPage': 'landingPagePlusQueryString',
+      'exitPage': 'exitPagePath',
+      'pageLocation': 'pageLocation'
+    };
+    
+    // Mapeo de métricas a nombres correctos de GA4 API
+    const metricMapping = {
+      'activeUsers': 'activeUsers',
+      'sessions': 'sessions',
+      'pageviews': 'screenPageViews',
+      'bounceRate': 'bounceRate',
+      'sessionDuration': 'averageSessionDuration',
+      'eventCount': 'eventCount',
+      'conversions': 'conversions',
+      'users': 'totalUsers',
+      'newUsers': 'newUsers',
+      'engagementRate': 'engagementRate',
+      'engagedSessions': 'engagedSessions',
+      'engagementDuration': 'userEngagementDuration'
+    };
+    
+    // Mapear dimensiones a los nombres correctos de la API
+    const apiDimensions = dimensions?.map(dim => dimensionMapping[dim] || dim) || [];
+    
+    // Mapear métricas a los nombres correctos de la API
+    const apiMetrics = metrics?.map(metric => metricMapping[metric] || metric) || [];
+    
+    console.log(`🔍 Dimensiones mapeadas para API:`, apiDimensions);
+    console.log(`🔍 Métricas mapeadas para API:`, apiMetrics);
+    
+    // Construir la solicitud para la API de Google Analytics Data
+    const requestBody = {
+      metrics: apiMetrics.map(metric => ({ name: metric })),
+      dimensions: apiDimensions.map(dimension => ({ name: dimension })),
+      dateRanges: [{
+        startDate: dateRange?.startDate || '30daysAgo',
+        endDate: dateRange?.endDate || 'today'
+      }]
+    };
+
+    console.log(`🔍 Enviando solicitud a Google Analytics API:`, JSON.stringify(requestBody, null, 2));
+
+    const response = await axios.post(
+      `${GOOGLE_ANALYTICS_API_BASE}/v1beta/properties/${propertyId}:runReport`,
+      requestBody,
+      {
+        headers: {
+          'Authorization': `Bearer ${req.accessToken}`,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+
+    console.log('✅ Datos de analytics obtenidos exitosamente');
+    console.log(`🔍 Estructura de respuesta:`, {
+      hasRows: !!response.data.rows,
+      rowsCount: response.data.rows?.length || 0,
+      hasTotals: !!response.data.totals,
+      totalsCount: response.data.totals?.length || 0,
+      hasMaximums: !!response.data.maximums,
+      hasMinimums: !!response.data.minimums,
+      hasRowCountTotal: !!response.data.rowCount,
+      metadata: response.data.metadata
+    });
+    
+    // Si hay datos, mostrar una muestra
+    if (response.data.rows && response.data.rows.length > 0) {
+      console.log(`🔍 Muestra de datos (primeras 3 filas):`, response.data.rows.slice(0, 3));
+    }
+    
+    if (response.data.totals && response.data.totals.length > 0) {
+      console.log(`🔍 Datos de totales:`, response.data.totals);
+    }
+    
+    res.json(response.data);
+    
+  } catch (error) {
+    console.error('❌ Error al obtener datos de analytics:', error.response?.data || error.message);
+    console.error('❌ Detalles del error:', {
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      code: error.response?.data?.error?.code,
+      message: error.response?.data?.error?.message,
+      details: error.response?.data?.error?.details,
+      stack: error.stack
+    });
+    
+    const status = error.response?.status || 500;
+    const message = error.response?.data?.error?.message || error.message;
+    
+    res.status(status).json({
+      error: message,
+      details: error.response?.data
+    });
+  }
+});
+
+// Endpoint de health check
+app.get('/api/health', (req, res) => {
+  res.json({ 
+    status: 'OK', 
+    timestamp: new Date().toISOString(),
+    version: '1.0.0',
+    protocol: req.protocol,
+    httpsEnabled: HTTPS_ENABLED
+  });
+});
+
+// Manejo de errores 404
+app.use((req, res) => {
+  res.status(404).json({
+    error: 'Endpoint no encontrado',
+    path: req.originalUrl,
+    protocol: req.protocol
+  });
+});
+
+// Manejo de errores globales
+app.use((error, req, res, next) => {
+  console.error('❌ Error no manejado:', error);
+  
+  res.status(500).json({ 
+    error: 'Error interno del servidor',
+    message: error.message,
+    protocol: req.protocol
+  });
+});
+
+// Función para iniciar servidor HTTPS
+function startHttpsServer() {
+  const fs = require('fs');
+  
+  try {
+    const httpsOptions = {
+      key: fs.readFileSync(SSL_KEY_PATH),
+      cert: fs.readFileSync(SSL_CERT_PATH)
+    };
+    
+    const httpsServer = https.createServer(httpsOptions, app);
+    
+    httpsServer.listen(PORT, () => {
+      console.log(`🚀 Servidor proxy HTTPS de Google Analytics iniciado en puerto ${PORT}`);
+      console.log(`📊 Endpoints disponibles:`);
+      console.log(`   GET  /api/analytics/accounts - Obtener cuentas`);
+      console.log(`   GET  /api/analytics/properties/:accountId - Obtener propiedades`);
+      console.log(`   POST /api/analytics/data/:propertyId - Obtener datos de analytics`);
+      console.log(`   GET  /api/health - Health check`);
+      console.log(`🔗 URL base: https://localhost:${PORT}`);
+      console.log(`🔒 HTTPS habilitado: ${HTTPS_ENABLED}`);
+    });
+    
+    return httpsServer;
+  } catch (error) {
+    console.error('❌ Error al iniciar servidor HTTPS:', error.message);
+    console.log('🔄 Cambiando a servidor HTTP...');
+    startHttpServer();
+  }
+}
+
+// Función para iniciar servidor HTTP
+function startHttpServer() {
+  const httpServer = http.createServer(app);
+  
+  httpServer.listen(PORT, () => {
+    console.log(`🚀 Servidor proxy HTTP de Google Analytics iniciado en puerto ${PORT}`);
+    console.log(`📊 Endpoints disponibles:`);
+    console.log(`   GET  /api/analytics/accounts - Obtener cuentas`);
+    console.log(`   GET  /api/analytics/properties/:accountId - Obtener propiedades`);
+    console.log(`   POST /api/analytics/data/:propertyId - Obtener datos de analytics`);
+    console.log(`   GET  /api/health - Health check`);
+    console.log(`🔗 URL base: http://localhost:${PORT}`);
+    console.log(`🔒 HTTPS habilitado: ${HTTPS_ENABLED}`);
+  });
+  
+  return httpServer;
+}
+
+// Iniciar servidor (HTTPS si está habilitado, sino HTTP)
+if (HTTPS_ENABLED) {
+  startHttpsServer();
+} else {
+  startHttpServer();
+}
+
+module.exports = app;

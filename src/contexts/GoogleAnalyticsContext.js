@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
 import { googleAnalyticsService } from '../services/googleAnalyticsService';
 import { supabase } from '../config/supabase-new';
+import { getRedirectUri } from '../config/oauthConfig';
 
 const GoogleAnalyticsContext = createContext();
 
@@ -230,7 +231,7 @@ export const GoogleAnalyticsProvider = ({ children }) => {
       // SOLUCIÓN REAL: Usar OAuth directo de Google SIN Supabase signInWithOAuth
       // Esto evita completamente que Supabase cambie la sesión del usuario
       // Usamos el callback original que ya está configurado en Google Cloud Console
-      const authUrl = googleAnalyticsService.generateAuthUrl(`${window.location.origin}/callback`);
+      const authUrl = googleAnalyticsService.generateAuthUrl(getRedirectUri());
       
       console.log('🔒 CRITICAL: Redirigiendo a OAuth directo de Google (sin Supabase)');
       
@@ -293,7 +294,7 @@ export const GoogleAnalyticsProvider = ({ children }) => {
       }
 
       // Exchange authorization code for tokens WITHOUT affecting the main session
-      const tokens = await googleAnalyticsService.exchangeCodeForTokens(code, `${window.location.origin}/callback`);
+      const tokens = await googleAnalyticsService.exchangeCodeForTokens(code, getRedirectUri());
 
       // Get user info from Google (but don't use it to update user session)
       const userInfo = await googleAnalyticsService.getUserInfo(tokens.access_token);
