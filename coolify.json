@@ -1,0 +1,23 @@
+{
+  "build": {
+    "commands": {
+      "build": [
+        "npm install --legacy-peer-deps",
+        "npm run build"
+      ]
+    },
+    "environment": {
+      "NODE_VERSION": "18",
+      "NPM_CONFIG_LEGACY_PEER_DEPS": "true",
+      "GENERATE_SOURCEMAP": "false",
+      "REACT_APP_BUILD_VERSION": "1.0.0"
+    }
+  },
+  "deploy": {
+    "startCommand": "npx serve -s build -l $PORT",
+    "healthCheck": {
+      "path": "/",
+      "port": 3000
+    }
+  }
+}

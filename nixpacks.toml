@@ -1,0 +1,17 @@
+[phases.install]
+cmds = [
+  "npm install --legacy-peer-deps --no-audit --no-fund"
+]
+
+[phases.build]
+cmds = [
+  "npm run build"
+]
+
+[start]
+cmd = "npx serve -s build -l $PORT"
+
+[variables]
+NODE_VERSION = "18"
+NPM_CONFIG_LEGACY_PEER_DEPS = "true"
+GENERATE_SOURCEMAP = "false"
