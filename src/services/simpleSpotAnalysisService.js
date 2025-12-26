@@ -49,126 +49,187 @@ export class SimpleSpotAnalysisService {
   }
 
   /**
-   * Parsear CSV
+   * Parsear CSV con detección inteligente de columnas usando IA
    */
   parseCSV(content) {
     const lines = content.split('\n').filter(line => line.trim());
     if (lines.length === 0) return [];
     
     const delimiter = lines[0].includes(';') ? ';' : ',';
-    const firstLine = lines[0].split(delimiter).map(h => h.trim().toLowerCase());
+    const allRows = lines.map(line => line.split(delimiter).map(v => v.trim()));
     
-    // Detectar si la primera línea son headers o datos
-    const isHeaderRow = this.detectHeaderRow(firstLine);
+    // Detectar estructura y usar IA para identificar columnas
+    const columnMapping = this.detectColumnsWithAI(allRows);
     
-    let headers = [];
-    let dataStartIndex = 0;
+    console.log('🤖 AI Column Detection Results:', columnMapping);
     
-    if (isHeaderRow) {
-      headers = firstLine;
-      dataStartIndex = 1;
-    } else {
-      // No hay headers, asumir estructura por posición
-      console.log('📋 No headers detected, using positional mapping');
-      headers = ['fecha', 'canal', 'hora', 'dia_semana', 'duracion', 'tipo', 'marca', 'producto', 'slogan', 'categoria', 'subcategoria', 'advertiser', 'grupo', 'subgrupo', 'descripcion', 'posicion', 'semana', 'mes', 'trimestre', 'semestre'];
-      dataStartIndex = 0;
+    if (columnMapping.fechaIndex === -1 || columnMapping.horaIndex === -1) {
+      throw new Error(`No se pudieron identificar las columnas de fecha y hora usando IA. Mapeo detectado: ${JSON.stringify(columnMapping)}`);
     }
     
-    const findColumnIndex = (possibleNames) => {
-      for (const name of possibleNames) {
-        const index = headers.findIndex(h => h === name.toLowerCase());
-        if (index !== -1) return index;
-        // También buscar coincidencias parciales
-        const partialIndex = headers.findIndex(h => h.includes(name.toLowerCase()));
-        if (partialIndex !== -1) return partialIndex;
-      }
-      return -1;
-    };
-    
-    // Detectar columnas con nombres más flexibles
-    const fechaIndex = findColumnIndex([
-      'fecha', 'date', 'fechas', 'dates', 'día', 'dia', 'day', 'fecha_aparicion'
-    ]);
-    const horaIndex = findColumnIndex([
-      'hora inicio', 'hora', 'time', 'horas', 'hora_inicio', 'hora_megatime', 'megatime'
-    ]);
-    const canalIndex = findColumnIndex([
-      'canal', 'channel', 'canales', 'channels', 'estacion', 'station', 'tv', 'television'
-    ]);
-    const programaIndex = findColumnIndex([
-      'titulo programa', 'programa', 'title', 'titulo', 'program', 'show', 'programa_tv'
-    ]);
-    
-    console.log('📊 Column detection results:', {
-      isHeaderRow,
-      fechaIndex,
-      horaIndex,
-      canalIndex,
-      programaIndex,
-      headers: headers
-    });
-    
-    // Si no se detectaron headers y no hay índices por nombre, usar mapeo por posición
-    let finalFechaIndex = fechaIndex;
-    let finalHoraIndex = horaIndex;
-    let finalCanalIndex = canalIndex;
-    let finalProgramaIndex = programaIndex;
-    
-    if (!isHeaderRow && (fechaIndex === -1 || horaIndex === -1)) {
-      console.log('🔧 Using positional mapping for data without headers');
-      // Asumir estructura: fecha, canal, hora, dia_semana, duracion, etc.
-      finalFechaIndex = 0;  // Primera columna: fecha
-      finalHoraIndex = 2;   // Tercera columna: hora
-      finalCanalIndex = 1;  // Segunda columna: canal
-      finalProgramaIndex = 13; // Columna 13: descripción/programa
-    }
-    
-    if (finalFechaIndex === -1 || finalHoraIndex === -1) {
-      throw new Error(`No se pudieron identificar las columnas de fecha y hora. Headers: ${headers.join(', ')}`);
-    }
-    
-    return lines.slice(dataStartIndex).map((line, index) => {
-      const values = line.split(delimiter).map(v => v.trim());
-      
+    return allRows.map((values, index) => {
       // Filtrar líneas de total que no deben procesarse
       const lineText = values.join(' ').toLowerCase();
-      if (lineText.includes('total') || lineText.includes('totales') ||
-          values.some(v => v.toLowerCase().includes('total'))) {
+      if ((lineText.includes('total') || lineText.includes('totales')) ||
+          (values.some(v => v.toLowerCase().includes('total')))) {
         console.log('🚫 Skipping total line:', values);
         return null;
       }
       
       return {
-        fecha: values[finalFechaIndex] || '',
-        hora_inicio: values[finalHoraIndex] || '',
-        canal: values[finalCanalIndex] || '',
-        titulo_programa: values[finalProgramaIndex] || '',
+        fecha: values[columnMapping.fechaIndex] || '',
+        hora_inicio: values[columnMapping.horaIndex] || '',
+        canal: values[columnMapping.canalIndex] || '',
+        titulo_programa: values[columnMapping.programaIndex] || '',
         index: index
       };
     }).filter(spot => spot && (spot.fecha || spot.hora_inicio));
   }
   
   /**
-   * Detectar si la primera fila son headers o datos
+   * Usar IA para detectar automáticamente qué columna contiene qué tipo de datos
    */
-  detectHeaderRow(firstLine) {
-    // Si la primera línea contiene fechas, horas o números, probablemente son datos
-    const hasDatePattern = firstLine.some(cell => /\d{1,2}\/\d{1,2}\/\d{4}/.test(cell));
-    const hasTimePattern = firstLine.some(cell => /\d{1,2}:\d{2}:\d{2}/.test(cell));
-    const hasNumbers = firstLine.some(cell => /^\d+$/.test(cell.trim()));
-    
-    // Si tiene patrones de fecha/hora/números, probablemente son datos, no headers
-    if (hasDatePattern || hasTimePattern || hasNumbers) {
-      return false;
+  detectColumnsWithAI(allRows) {
+    if (allRows.length === 0) {
+      return { fechaIndex: -1, horaIndex: -1, canalIndex: -1, programaIndex: -1 };
     }
     
-    // Si contiene palabras típicas de headers, probablemente son headers
-    const headerKeywords = ['fecha', 'hora', 'canal', 'programa', 'titulo', 'title', 'date', 'time', 'channel'];
-    const hasHeaderKeywords = firstLine.some(cell =>
-      headerKeywords.some(keyword => cell.toLowerCase().includes(keyword))
-    );
+    // Analizar las primeras filas para entender la estructura
+    const sampleRows = allRows.slice(0, Math.min(10, allRows.length));
+    const columnCount = Math.max(...sampleRows.map(row => row.length));
     
-    return hasHeaderKeywords;
+    const columnAnalysis = [];
+    
+    // Analizar cada columna
+    for (let colIndex = 0; colIndex < columnCount; colIndex++) {
+      const columnData = sampleRows.map(row => row[colIndex] || '').filter(val => val.trim() !== '');
+      
+      if (columnData.length === 0) continue;
+      
+      const analysis = this.analyzeColumnContent(columnData, colIndex);
+      columnAnalysis.push(analysis);
+    }
+    
+    // Encontrar las mejores columnas para cada tipo de dato
+    const fechaColumn = columnAnalysis.find(col => col.type === 'fecha' && col.confidence > 0.7);
+    const horaColumn = columnAnalysis.find(col => col.type === 'hora' && col.confidence > 0.7);
+    const canalColumn = columnAnalysis.find(col => col.type === 'canal' && col.confidence > 0.6);
+    const programaColumn = columnAnalysis.find(col => col.type === 'programa' && col.confidence > 0.5);
+    
+    return {
+      fechaIndex: fechaColumn ? fechaColumn.index : -1,
+      horaIndex: horaColumn ? horaColumn.index : -1,
+      canalIndex: canalColumn ? canalColumn.index : -1,
+      programaIndex: programaColumn ? programaColumn.index : -1
+    };
+  }
+  
+  /**
+   * Analizar el contenido de una columna para determinar qué tipo de datos contiene
+   */
+  analyzeColumnContent(columnData, columnIndex) {
+    let scores = {
+      fecha: 0,
+      hora: 0,
+      canal: 0,
+      programa: 0,
+      otros: 0
+    };
+    
+    const totalValues = columnData.length;
+    
+    columnData.forEach(value => {
+      const lowerValue = value.toLowerCase().trim();
+      
+      // Detectar fechas
+      if (this.isDateValue(lowerValue)) {
+        scores.fecha += 1;
+      }
+      
+      // Detectar horas
+      if (this.isTimeValue(lowerValue)) {
+        scores.hora += 1;
+      }
+      
+      // Detectar canales
+      if (this.isChannelValue(lowerValue)) {
+        scores.canal += 1;
+      }
+      
+      // Detectar programas/títulos
+      if (this.isProgramValue(lowerValue)) {
+        scores.programa += 1;
+      }
+    });
+    
+    // Normalizar scores
+    Object.keys(scores).forEach(key => {
+      scores[key] = scores[key] / totalValues;
+    });
+    
+    // Determinar el tipo más probable
+    const maxScore = Math.max(...Object.values(scores));
+    const detectedType = Object.keys(scores).find(key => scores[key] === maxScore);
+    
+    return {
+      index: columnIndex,
+      type: detectedType,
+      confidence: maxScore,
+      scores: scores,
+      sampleValues: columnData.slice(0, 3)
+    };
+  }
+  
+  /**
+   * Detectar si un valor es una fecha
+   */
+  isDateValue(value) {
+    const datePatterns = [
+      /^\d{1,2}\/\d{1,2}\/\d{4}$/, // 01/12/2025
+      /^\d{4}-\d{1,2}-\d{1,2}$/, // 2025-12-01
+      /^\d{1,2}-\d{1,2}-\d{4}$/, // 01-12-2025
+      /^\d{1,2}\/\d{1,2}\/\d{2}$/, // 01/12/25
+    ];
+    
+    return datePatterns.some(pattern => pattern.test(value)) ||
+           value.includes('enero') || value.includes('febrero') || value.includes('marzo') ||
+           value.includes('abril') || value.includes('mayo') || value.includes('junio') ||
+           value.includes('julio') || value.includes('agosto') || value.includes('septiembre') ||
+           value.includes('octubre') || value.includes('noviembre') || value.includes('diciembre');
+  }
+  
+  /**
+   * Detectar si un valor es una hora
+   */
+  isTimeValue(value) {
+    const timePatterns = [
+      /^\d{1,2}:\d{2}:\d{2}$/, // 18:56:40
+      /^\d{1,2}:\d{2}$/, // 18:56
+      /^\d{4}:\d{2}$/, // 0000:05
+    ];
+    
+    return timePatterns.some(pattern => pattern.test(value));
+  }
+  
+  /**
+   * Detectar si un valor es un canal
+   */
+  isChannelValue(value) {
+    return value.includes('canal') ||
+           value.includes('channel') ||
+           (value.match(/^\d+$/) && parseInt(value) < 1000); // Números pequeños pueden ser canales
+  }
+  
+  /**
+   * Detectar si un valor es un programa/título
+   */
+  isProgramValue(value) {
+    // Programas suelen tener texto descriptivo, no solo números o fechas
+    return value.length > 3 &&
+           !this.isDateValue(value) &&
+           !this.isTimeValue(value) &&
+           !this.isChannelValue(value) &&
+           /[a-zA-Z]/.test(value); // Contiene letras
   }
 
   /**
@@ -215,8 +276,8 @@ export class SimpleSpotAnalysisService {
       
       // Filtrar líneas de total que no deben procesarse
       const lineText = rowData.join(' ').toLowerCase();
-      const isTotalLine = lineText.includes('total') || lineText.includes('totales') ||
-                         rowData.some(v => v.toLowerCase().includes('total'));
+      const isTotalLine = (lineText.includes('total') || lineText.includes('totales')) ||
+                         (rowData.some(v => v.toLowerCase().includes('total')));
       
       if (hasValidData && !isTotalLine) {
         jsonData.push(rowData);
