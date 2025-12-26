@@ -17,7 +17,7 @@ export const OAUTH_CONFIG = {
     clientId: process.env.REACT_APP_GOOGLE_CLIENT_ID || 'tu_client_id_aqui'
   },
   
-  // URLs de Netlify
+  // URLs de Netlify (descontinuado)
   NETLIFY: {
     redirectUri: process.env.REACT_APP_REDIRECT_URI_NETLIFY || 'https://tvradio2.netlify.app/callback',
     clientId: process.env.REACT_APP_GOOGLE_CLIENT_ID || 'tu_client_id_aqui'

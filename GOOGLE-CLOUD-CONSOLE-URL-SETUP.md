@@ -9,7 +9,6 @@
 # URLs existentes (mantener)
 http://localhost:3000
 https://localhost:3000
-https://tvradio2.netlify.app
 
 # ✅ AGREGAR ESTA URL DE COOLIFY:
 https://v8g48ggkk8wko4480s8kk4ok.147.93.182.94.sslip.io
@@ -22,7 +21,6 @@ https://v8g48ggkk8wko4480s8kk4ok.147.93.182.94.sslip.io
 # URLs existentes (mantener)
 https://uwbxyaszdqwypbebogvw.supabase.co/auth/v1/callback
 http://localhost:3000/analytics-callback
-https://tvradio2.netlify.app/callback
 
 # ✅ AGREGAR ESTAS URLS DE COOLIFY:
 https://v8g48ggkk8wko4480s8kk4ok.147.93.182.94.sslip.io/callback
@@ -62,7 +60,6 @@ https://v8g48ggkk8wko4480s8kk4ok.147.93.182.94.sslip.io/analytics-callback
 ```
 http://localhost:3000
 https://localhost:3000
-https://tvradio2.netlify.app
 https://v8g48ggkk8wko4480s8kk4ok.147.93.182.94.sslip.io
 ```
 
@@ -70,7 +67,6 @@ https://v8g48ggkk8wko4480s8kk4ok.147.93.182.94.sslip.io
 ```
 https://uwbxyaszdqwypbebogvw.supabase.co/auth/v1/callback
 http://localhost:3000/analytics-callback
-https://tvradio2.netlify.app/callback
 https://v8g48ggkk8wko4480s8kk4ok.147.93.182.94.sslip.io/callback
 https://v8g48ggkk8wko4480s8kk4ok.147.93.182.94.sslip.io/analytics-callback
 ```
