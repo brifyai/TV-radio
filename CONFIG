@@ -1,125 +1,86 @@
-# 🚀 CONFIGURACIÓN AUTOMÁTICA CLOUDFLARE CON TOKEN
+# 🔑 CONFIGURACIÓN EXACTA PARA TOKEN CLOUDFLARE
 
-## ✅ SÍ, PUEDO CONFIGURARLO AUTOMÁTICAMENTE
+## 📋 CONFIGURACIÓN PASO A PASO:
 
-He creado scripts que configuran Cloudflare automáticamente usando su API.
+### 1. **NOMBRE DEL TOKEN:**
+```
+TV-radio HTTPS Setup
+```
 
-## 📋 CÓMO USAR:
+### 2. **PERMISOS:**
+Seleccionar estos permisos uno por uno:
 
-### 1. **PASARME TU TOKEN DE CLOUDFLARE**
+**Account:**
+- Ninguno necesario
 
-Simplemente compárteme tu token de Cloudflare y yo configuro todo automáticamente.
+**Zone:**
+- Zone:Zone:Read ✅
+- Zone:Zone:Edit ✅
 
-### 2. **EJECUTAR CONFIGURACIÓN AUTOMÁTICA**
+**DNS:**
+- DNS:DNS:Read ✅
+- DNS:DNS:Edit ✅
 
+**SSL/TLS:**
+- SSL/TLS:SSL:Read ✅
+- SSL/TLS:SSL:Edit ✅
+
+### 3. **RECURSOS:**
+En la sección "Account":
+- Seleccionar "Include - All accounts" ✅
+
+### 4. **FILTRO DE DIRECCIONES IP:**
+**Dejar vacío** (sin restricciones de IP)
+
+### 5. **TTL:**
+- **Start Date:** Hoy (fecha actual)
+- **End Date:** 1 año desde hoy (o la fecha máxima disponible)
+
+## 🎯 CONFIGURACIÓN COMPLETA:
+
+```
+Nombre del token: TV-radio HTTPS Setup
+
+Permisos:
+✅ Zone:Zone:Read
+✅ Zone:Zone:Edit
+✅ DNS:DNS:Read
+✅ DNS:DNS:Edit
+✅ SSL/TLS:SSL:Read
+✅ SSL/TLS:SSL:Edit
+
+Recursos:
+✅ Include - All accounts
+
+Filtro IP: (vacío)
+
+TTL:
+Start: Hoy
+End: 1 año
+```
+
+## 🔄 PASOS PARA COMPLETAR:
+
+1. **Nombre:** `TV-radio HTTPS Setup`
+2. **Permisos:** Seleccionar cada uno de la lista arriba
+3. **Recursos:** "Include - All accounts"
+4. **IP Filter:** Dejar vacío
+5. **TTL:** Fechas como se indica
+6. **Crear Token**
+7. **Copiar el token generado**
+
+## ⚠️ IMPORTANTE:
+
+- **Copiar el token inmediatamente** (no se mostrará de nuevo)
+- El token se ve así: `xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx`
+- Guardarlo de forma segura
+
+## 🚀 DESPUÉS DE CREAR EL TOKEN:
+
+Compárteme el token y yo ejecuto:
 ```bash
-# Configuración rápida (recomendada)
 export CLOUDFLARE_TOKEN="tu_token_aqui"
 node cloudflare-quick-setup.js
 ```
 
-### 3. **RESULTADO AUTOMÁTICO**
-
-El script configurará automáticamente:
-- ✅ **DNS:** CNAME proxied para `v8g48ggkk8wko4480s8kk4ok.147.93.182.94.sslip.io`
-- ✅ **SSL:** Full (strict) mode
-- ✅ **Always Use HTTPS:** Activado
-- ✅ **HSTS:** Configurado
-- ✅ **Verificación:** Automática
-
-## 🔑 CÓMO OBTENER TU TOKEN:
-
-### OPCIÓN A: Token API (Recomendado)
-1. Ir a: https://dash.cloudflare.com/profile/api-tokens
-2. Hacer clic en "Create Token"
-3. Seleccionar "Custom token"
-4. Configurar permisos:
-   ```
-   Zone:Zone:Read
-   Zone:Zone:Edit
-   DNS:DNS:Read
-   DNS:DNS:Edit
-   SSL/TLS:SSL:Read
-   SSL/TLS:SSL:Edit
-   ```
-5. Crear token y copiarlo
-
-### OPCIÓN B: API Key Global
-1. Ir a: https://dash.cloudflare.com/profile/api-tokens
-2. En "API Keys", hacer clic en "View" en "Global API Key"
-3. Ingresar contraseña y copiar API Key
-
-## 🎯 QUÉ CONFIGURA AUTOMÁTICAMENTE:
-
-### DNS Configuration:
-```
-Type: CNAME
-Name: v8g48ggkk8wko4480s8kk4ok
-Target: v8g48ggkk8wko4480s8kk4ok.147.93.182.94.sslip.io
-Proxy: Enabled (naranja ☁️)
-```
-
-### SSL/TLS Settings:
-- **Encryption Mode:** Full (strict)
-- **Always Use HTTPS:** ON
-- **HSTS:** Activado
-
-### Security:
-- **Security Level:** Medium
-- **Browser Integrity Check:** ON
-
-## ⏰ TIEMPO DE CONFIGURACIÓN:
-- **Script:** 30 segundos - 2 minutos
-- **Propagación DNS:** 10-30 minutos
-- **Total:** ~30 minutos para HTTPS funcionando
-
-## 🔑 URLs AUTOMÁTICAS PARA GOOGLE CLOUD:
-
-Después de la configuración, usar estas URLs:
-
-**Authorized redirect URIs:**
-```
-https://v8g48ggkk8wko4480s8kk4ok.147.93.182.94.sslip.io/callback
-https://v8g48ggkk8wko4480s8kk4ok.147.93.182.94.sslip.io/auth/callback
-https://v8g48ggkk8wko4480s8kk4ok.147.93.182.94.sslip.io/oauth/callback
-https://v8g48ggkk8wko4480s8kk4ok.147.93.182.94.sslip.io/auth/google/callback
-```
-
-**Authorized JavaScript origins:**
-```
-https://v8g48ggkk8wko4480s8kk4ok.147.93.182.94.sslip.io
-```
-
-## 🧪 VERIFICACIÓN AUTOMÁTICA:
-
-El script verifica automáticamente:
-- ✅ Token válido
-- ✅ Zona encontrada
-- ✅ DNS configurado
-- ✅ SSL configurado
-- ✅ Always Use HTTPS activado
-
-## 🎉 RESULTADO FINAL:
-
-Después de la configuración automática:
-- 🌐 **URL HTTPS:** https://v8g48ggkk8wko4480s8kk4ok.147.93.182.94.sslip.io
-- 🔒 **Certificado SSL:** Válido (Cloudflare)
-- 🔄 **Redirección:** HTTP → HTTPS automática
-- 🛡️ **Seguridad:** HSTS, WAF, DDoS protection
-- ⚡ **Velocidad:** CDN de Cloudflare
-- 🚀 **OAuth:** Funcionando sin errores
-
-## 📞 PRÓXIMOS PASOS:
-
-1. **Compárteme tu token de Cloudflare**
-2. **Ejecuto configuración automática**
-3. **Esperas 10-30 minutos**
-4. **Probar HTTPS y OAuth**
-5. **Actualizar Google Cloud Console**
-
-## 🔧 SCRIPTS DISPONIBLES:
-
-- `cloudflare-quick-setup.js` - Configuración rápida (recomendado)
-- `cloudflare-auto-setup.js` - Configuración completa con más opciones
-
-**¡Solo necesitas pasarme tu token y yo me encargo de todo!**
+¡Y listo! Tu HTTPS estará configurado automáticamente.
