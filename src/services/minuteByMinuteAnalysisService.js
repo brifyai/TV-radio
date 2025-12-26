@@ -482,19 +482,118 @@ export class MinuteByMinuteAnalysisService {
   // ==================== MÉTODOS AUXILIARES ====================
 
   /**
-   * Parsear fecha y hora del spot
+   * Parsear fecha y hora del spot con formato flexible
    */
   parseSpotDateTime(spotData) {
     try {
-      if (spotData.fecha && spotData.hora_inicio) {
-        const dateTime = new Date(`${spotData.fecha}T${spotData.hora_inicio}:00`);
-        return isNaN(dateTime.getTime()) ? null : dateTime;
+      if (!spotData.fecha || !spotData.hora_inicio) {
+        console.warn('❌ Missing fecha or hora_inicio in spot data:', spotData);
+        return null;
       }
+
+      // Limpiar y normalizar fecha
+      let fecha = spotData.fecha.trim();
+      let hora = spotData.hora_inicio.trim();
+
+      // Normalizar formato de fecha
+      fecha = this.normalizeDateFormat(fecha);
+      
+      // Normalizar formato de hora
+      hora = this.normalizeTimeFormat(hora);
+
+      // Intentar diferentes formatos de fecha y hora
+      const possibleFormats = [
+        `${fecha}T${hora}:00`,
+        `${fecha}T${hora}`,
+        `${fecha} ${hora}:00`,
+        `${fecha} ${hora}`,
+        `${fecha}T${hora}:00.000Z`,
+        `${fecha}T${hora}.000Z`
+      ];
+
+      for (const format of possibleFormats) {
+        const dateTime = new Date(format);
+        if (!isNaN(dateTime.getTime())) {
+          console.log('✅ Successfully parsed datetime:', format, '->', dateTime);
+          return dateTime;
+        }
+      }
+
+      // Si falla todo, intentar parsear por separado
+      const date = new Date(fecha);
+      if (!isNaN(date.getTime())) {
+        // Extraer hora y minutos de la cadena de hora
+        const timeMatch = hora.match(/(\d{1,2}):?(\d{2})/);
+        if (timeMatch) {
+          const hours = parseInt(timeMatch[1]);
+          const minutes = parseInt(timeMatch[2] || '0');
+          date.setHours(hours, minutes, 0, 0);
+          console.log('✅ Successfully parsed with manual time setting:', date);
+          return date;
+        }
+      }
+
+      console.error('❌ Failed to parse datetime with all formats. Original data:', { fecha, hora });
       return null;
+      
     } catch (error) {
-      console.error('Error parsing spot datetime:', error);
+      console.error('❌ Error parsing spot datetime:', error, 'Spot data:', spotData);
       return null;
     }
+  }
+
+  /**
+   * Normalizar formato de fecha
+   */
+  normalizeDateFormat(fecha) {
+    // Remover espacios extra
+    fecha = fecha.trim();
+    
+    // Si ya está en formato ISO, devolver tal como está
+    if (/^\d{4}-\d{2}-\d{2}$/.test(fecha)) {
+      return fecha;
+    }
+    
+    // Convertir DD/MM/YYYY a YYYY-MM-DD
+    if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(fecha)) {
+      const [day, month, year] = fecha.split('/');
+      return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+    }
+    
+    // Convertir DD-MM-YYYY a YYYY-MM-DD
+    if (/^\d{1,2}-\d{1,2}-\d{4}$/.test(fecha)) {
+      const [day, month, year] = fecha.split('-');
+      return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+    }
+    
+    // Si no reconoce el formato, devolver tal como está
+    return fecha;
+  }
+
+  /**
+   * Normalizar formato de hora
+   */
+  normalizeTimeFormat(hora) {
+    // Remover espacios extra
+    hora = hora.trim();
+    
+    // Si ya está en formato HH:MM, devolver tal como está
+    if (/^\d{1,2}:\d{2}$/.test(hora)) {
+      return hora;
+    }
+    
+    // Si está en formato HH:MM:SS, devolver tal como está
+    if (/^\d{1,2}:\d{2}:\d{2}$/.test(hora)) {
+      return hora;
+    }
+    
+    // Si es solo un número (hora), agregar :00
+    if (/^\d{1,2}$/.test(hora)) {
+      return `${hora.padStart(2, '0')}:00`;
+    }
+    
+    // Si no reconoce el formato, devolver tal como está
+    return hora;
   }
 
   /**
