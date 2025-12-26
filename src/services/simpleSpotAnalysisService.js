@@ -56,7 +56,23 @@ export class SimpleSpotAnalysisService {
     if (lines.length === 0) return [];
     
     const delimiter = lines[0].includes(';') ? ';' : ',';
-    const headers = lines[0].split(delimiter).map(h => h.trim().toLowerCase());
+    const firstLine = lines[0].split(delimiter).map(h => h.trim().toLowerCase());
+    
+    // Detectar si la primera línea son headers o datos
+    const isHeaderRow = this.detectHeaderRow(firstLine);
+    
+    let headers = [];
+    let dataStartIndex = 0;
+    
+    if (isHeaderRow) {
+      headers = firstLine;
+      dataStartIndex = 1;
+    } else {
+      // No hay headers, asumir estructura por posición
+      console.log('📋 No headers detected, using positional mapping');
+      headers = ['fecha', 'canal', 'hora', 'dia_semana', 'duracion', 'tipo', 'marca', 'producto', 'slogan', 'categoria', 'subcategoria', 'advertiser', 'grupo', 'subgrupo', 'descripcion', 'posicion', 'semana', 'mes', 'trimestre', 'semestre'];
+      dataStartIndex = 0;
+    }
     
     const findColumnIndex = (possibleNames) => {
       for (const name of possibleNames) {
@@ -84,6 +100,7 @@ export class SimpleSpotAnalysisService {
     ]);
     
     console.log('📊 Column detection results:', {
+      isHeaderRow,
       fechaIndex,
       horaIndex,
       canalIndex,
@@ -91,11 +108,26 @@ export class SimpleSpotAnalysisService {
       headers: headers
     });
     
-    if (fechaIndex === -1 || horaIndex === -1) {
-      throw new Error(`El archivo debe contener las columnas "fecha" y "hora inicio". Columnas encontradas: ${headers.join(', ')}`);
+    // Si no se detectaron headers y no hay índices por nombre, usar mapeo por posición
+    let finalFechaIndex = fechaIndex;
+    let finalHoraIndex = horaIndex;
+    let finalCanalIndex = canalIndex;
+    let finalProgramaIndex = programaIndex;
+    
+    if (!isHeaderRow && (fechaIndex === -1 || horaIndex === -1)) {
+      console.log('🔧 Using positional mapping for data without headers');
+      // Asumir estructura: fecha, canal, hora, dia_semana, duracion, etc.
+      finalFechaIndex = 0;  // Primera columna: fecha
+      finalHoraIndex = 2;   // Tercera columna: hora
+      finalCanalIndex = 1;  // Segunda columna: canal
+      finalProgramaIndex = 13; // Columna 13: descripción/programa
     }
     
-    return lines.slice(1).map((line, index) => {
+    if (finalFechaIndex === -1 || finalHoraIndex === -1) {
+      throw new Error(`No se pudieron identificar las columnas de fecha y hora. Headers: ${headers.join(', ')}`);
+    }
+    
+    return lines.slice(dataStartIndex).map((line, index) => {
       const values = line.split(delimiter).map(v => v.trim());
       
       // Filtrar líneas de total que no deben procesarse
@@ -107,13 +139,36 @@ export class SimpleSpotAnalysisService {
       }
       
       return {
-        fecha: values[fechaIndex] || '',
-        hora_inicio: values[horaIndex] || '',
-        canal: values[canalIndex] || '',
-        titulo_programa: values[programaIndex] || '',
+        fecha: values[finalFechaIndex] || '',
+        hora_inicio: values[finalHoraIndex] || '',
+        canal: values[finalCanalIndex] || '',
+        titulo_programa: values[finalProgramaIndex] || '',
         index: index
       };
     }).filter(spot => spot && (spot.fecha || spot.hora_inicio));
+  }
+  
+  /**
+   * Detectar si la primera fila son headers o datos
+   */
+  detectHeaderRow(firstLine) {
+    // Si la primera línea contiene fechas, horas o números, probablemente son datos
+    const hasDatePattern = firstLine.some(cell => /\d{1,2}\/\d{1,2}\/\d{4}/.test(cell));
+    const hasTimePattern = firstLine.some(cell => /\d{1,2}:\d{2}:\d{2}/.test(cell));
+    const hasNumbers = firstLine.some(cell => /^\d+$/.test(cell.trim()));
+    
+    // Si tiene patrones de fecha/hora/números, probablemente son datos, no headers
+    if (hasDatePattern || hasTimePattern || hasNumbers) {
+      return false;
+    }
+    
+    // Si contiene palabras típicas de headers, probablemente son headers
+    const headerKeywords = ['fecha', 'hora', 'canal', 'programa', 'titulo', 'title', 'date', 'time', 'channel'];
+    const hasHeaderKeywords = firstLine.some(cell =>
+      headerKeywords.some(keyword => cell.toLowerCase().includes(keyword))
+    );
+    
+    return hasHeaderKeywords;
   }
 
   /**
