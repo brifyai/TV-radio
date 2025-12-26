@@ -93,7 +93,9 @@ export const getGoogleClientId = () => {
  * Valida si la URL de redirección actual está autorizada
  */
 export const validateRedirectUri = () => {
-  const currentUri = window.location.origin + '/callback';
+  // 🚨 CORRECCIÓN: Usar getRedirectUri() en lugar de window.location.origin
+  // Esto asegura que siempre compare con la URL HTTPS correcta
+  const currentUri = getRedirectUri();
   const config = getOAuthConfig();
   const isValid = currentUri === config.redirectUri;
   
