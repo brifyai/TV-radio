@@ -14,7 +14,7 @@
     }
   },
   "deploy": {
-    "startCommand": "npx serve -s build -l $PORT",
+    "startCommand": "npm run start:production",
     "healthCheck": {
       "path": "/",
       "port": 3000
