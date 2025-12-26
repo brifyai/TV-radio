@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '../config/supabase-new';
+import { getRedirectUri } from '../config/oauthConfig';
 
 const AuthContext = createContext();
 
@@ -205,7 +206,7 @@ export const AuthProvider = ({ children }) => {
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/callback?t=${timestamp}`,
+        redirectTo: `${getRedirectUri()}`,
         scopes: 'email profile https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.send'
       }
     });
@@ -221,7 +222,7 @@ export const AuthProvider = ({ children }) => {
 
   const resetPassword = async (email) => {
     const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/reset-password`
+      redirectTo: `${getRedirectUri().replace('/callback', '/reset-password')}`
     });
 
     if (error) throw error;
