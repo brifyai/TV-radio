@@ -1,14 +1,69 @@
 const express = require('express');
 const cors = require('cors');
 const axios = require('axios');
+const path = require('path');
+const fs = require('fs');
+const helmet = require('helmet');
+const compression = require('compression');
 require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+const NODE_ENV = process.env.NODE_ENV || 'development';
 
-// Middlewares
-app.use(cors());
-app.use(express.json());
+// Middleware de seguridad
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+      fontSrc: ["'self'", "https://fonts.gstatic.com"],
+      imgSrc: ["'self'", "data:", "https:"],
+      scriptSrc: ["'self'"],
+      connectSrc: ["'self'", "https://api.supabase.co", "https://www.googleapis.com", "https://analyticsdata.googleapis.com", "https://analyticsadmin.googleapis.com"],
+    },
+  },
+}));
+
+// Middleware de compresión
+app.use(compression());
+
+// Configuración de CORS para dominio imetrics.cl
+const corsOptions = {
+  origin: function (origin, callback) {
+    const allowedOrigins = [
+      'https://imetrics.cl',
+      'https://www.imetrics.cl',
+      'http://localhost:3000',
+      'http://localhost:3001'
+    ];
+    
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('No permitido por CORS'));
+    }
+  },
+  credentials: true,
+  optionsSuccessStatus: 200
+};
+
+app.use(cors(corsOptions));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Servir archivos estáticos de React (build)
+const buildPath = path.join(__dirname, 'build');
+if (fs.existsSync(buildPath)) {
+  app.use(express.static(buildPath, {
+    maxAge: NODE_ENV === 'production' ? '1y' : '0',
+    etag: true,
+    lastModified: true
+  }));
+} else {
+  console.warn('⚠️  Directorio build no encontrado. La aplicación React no está disponible.');
+}
 
 // Configuración de Google Analytics API
 const GOOGLE_ANALYTICS_API_BASE = 'https://analyticsdata.googleapis.com';
@@ -239,42 +294,107 @@ app.post('/api/analytics/data/:propertyId', verifyAuthToken, async (req, res) =>
   }
 });
 
-// Endpoint de health check
+// Endpoint de health check mejorado
 app.get('/api/health', (req, res) => {
-  res.json({ 
-    status: 'OK', 
+  res.json({
+    status: 'ok',
     timestamp: new Date().toISOString(),
-    version: '1.0.0'
+    environment: NODE_ENV,
+    domain: process.env.REACT_APP_PUBLIC_URL || 'https://imetrics.cl',
+    version: '2.0.0',
+    features: {
+      analytics: true,
+      staticFiles: fs.existsSync(buildPath),
+      cors: true,
+      compression: true,
+      security: true
+    }
   });
 });
 
-// Manejo de errores 404
-app.use((req, res) => {
-  res.status(404).json({
-    error: 'Endpoint no encontrado',
-    path: req.originalUrl
-  });
+// Ruta de callback para OAuth (importante para React SPA)
+app.get('/callback', (req, res) => {
+  if (fs.existsSync(buildPath)) {
+    res.sendFile(path.join(buildPath, 'index.html'));
+  } else {
+    res.status(404).json({ error: 'Aplicación no encontrada' });
+  }
 });
 
-// Manejo de errores globales
-app.use((error, req, res, next) => {
-  console.error('❌ Error no manejado:', error);
+// Middleware para manejar todas las rutas no encontradas (SPA)
+app.use((req, res, next) => {
+  // Si es una ruta de API, dejar que maneje el 404
+  if (req.path.startsWith('/api/')) {
+    return res.status(404).json({
+      error: 'Endpoint de API no encontrado',
+      path: req.originalUrl
+    });
+  }
   
-  res.status(500).json({ 
-    error: 'Error interno del servidor',
-    message: error.message
+  // Para rutas de la aplicación React, servir index.html
+  if (fs.existsSync(buildPath)) {
+    res.sendFile(path.join(buildPath, 'index.html'));
+  } else {
+    res.status(404).json({
+      error: 'Aplicación no encontrada',
+      message: 'Ejecuta npm run build para generar los archivos estáticos'
+    });
+  }
+});
+
+// Middleware de manejo de errores mejorado
+app.use((err, req, res, next) => {
+  console.error('❌ Error del servidor:', err);
+  
+  if (err.message === 'No permitido por CORS') {
+    return res.status(403).json({ error: 'Origen no permitido' });
+  }
+  
+  res.status(err.status || 500).json({
+    error: NODE_ENV === 'production' ? 'Error interno del servidor' : err.message,
+    ...(NODE_ENV !== 'production' && { stack: err.stack })
   });
 });
 
-// Iniciar servidor
-app.listen(PORT, () => {
-  console.log(`🚀 Servidor proxy de Google Analytics iniciado en puerto ${PORT}`);
+// Iniciar servidor con información mejorada
+const server = app.listen(PORT, '0.0.0.0', () => {
+  console.log('🚀 Servidor iMetrics iniciado');
+  console.log(`📍 Puerto: ${PORT}`);
+  console.log(`🌍 Ambiente: ${NODE_ENV}`);
+  console.log(`🔗 Dominio: ${process.env.REACT_APP_PUBLIC_URL || 'https://imetrics.cl'}`);
+  console.log(`⏰ Hora: ${new Date().toLocaleString()}`);
   console.log(`📊 Endpoints disponibles:`);
   console.log(`   GET  /api/analytics/accounts - Obtener cuentas`);
   console.log(`   GET  /api/analytics/properties/:accountId - Obtener propiedades`);
   console.log(`   POST /api/analytics/data/:propertyId - Obtener datos de analytics`);
-  console.log(`   GET  /api/health - Health check`);
-  console.log(`🔗 URL base: http://localhost:${PORT}`);
+  console.log(`   GET  /api/health - Health check mejorado`);
+  console.log(`   GET  /callback - OAuth callback`);
+  console.log(`   GET  /* - Rutas SPA (React)`);
+  
+  // Verificar archivos estáticos
+  if (fs.existsSync(buildPath)) {
+    console.log('✅ Archivos estáticos de React encontrados');
+  } else {
+    console.log('⚠️  ADVERTENCIA: No se encontraron archivos estáticos de React');
+    console.log('💡 Ejecuta: npm run build');
+  }
+});
+
+// Manejo graceful shutdown
+process.on('SIGTERM', () => {
+  console.log('🛑 SIGTERM recibido. Cerrando servidor...');
+  server.close(() => {
+    console.log('✅ Servidor cerrado gracefully');
+    process.exit(0);
+  });
+});
+
+process.on('SIGINT', () => {
+  console.log('🛑 SIGINT recibido. Cerrando servidor...');
+  server.close(() => {
+    console.log('✅ Servidor cerrado gracefully');
+    process.exit(0);
+  });
 });
 
 module.exports = app;
