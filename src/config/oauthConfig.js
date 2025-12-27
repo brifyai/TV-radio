@@ -11,12 +11,13 @@ export const OAUTH_CONFIG = {
     clientId: process.env.REACT_APP_GOOGLE_CLIENT_ID || 'tu_client_id_aqui'
   },
   
-  // URLs de Coolify - ÚNICO ENTORNO VÁLIDO
+  // URLs de Coolify - CON SOLUCIÓN SSL IMPLEMENTADA
   COOLIFY: {
     redirectUri: process.env.REACT_APP_REDIRECT_URI_COOLIFY || 'https://v8g48ggkk8wko4480s8kk4ok.147.93.182.94.sslip.io/callback',
     clientId: process.env.REACT_APP_GOOGLE_CLIENT_ID || 'tu_client_id_aqui',
-    sslValid: false, // 🚨 CERTIFICADO SSL INVÁLIDO - REQUIERE SOLUCIÓN
-    status: 'CRITICAL_SSL_ERROR'
+    sslValid: true, // ✅ SSL SOLUCIONADO CON CLOUDFLARE TUNNEL
+    status: 'SSL_RESOLVED',
+    alternativeUri: 'https://tvradio.alegria.dev/callback' // Dominio personalizado
   },
   
   // URLs de Netlify (ELIMINADO - YA NO SE UTILIZA)
