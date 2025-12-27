@@ -1,6 +1,6 @@
 /**
  * Configuración de URLs de redirección OAuth para múltiples entornos
- * SOLUCIÓN DEFINITIVA SSL - Usar Netlify como producción principal
+ * SOLUCIÓN DEFINITIVA SSL - Con soporte para dominio propio imetrics.cl
  */
 
 // URLs de redirección autorizadas en Google Cloud Console
@@ -13,14 +13,29 @@ export const OAUTH_CONFIG = {
     environment: 'development'
   },
   
-  // URLs de Netlify - PRODUCCIÓN PRINCIPAL (SSL VÁLIDO)
+  // URLs de Dominio Propio - PRODUCCIÓN IDEAL (SSL VÁLIDO CON CLOUDFLARE)
+  DOMAIN: {
+    redirectUri: process.env.REACT_APP_REDIRECT_URI_DOMAIN || 'https://imetrics.cl/auth/callback',
+    clientId: process.env.REACT_APP_GOOGLE_CLIENT_ID || 'tu_client_id_aqui',
+    sslValid: true, // ✅ SSL VÁLIDO CON CLOUDFLARE
+    status: 'ACTIVE',
+    environment: 'production',
+    primary: true, // 🎯 PRODUCCIÓN IDEAL CON DOMINIO PROPIO
+    domain: 'imetrics.cl',
+    provider: 'Cloudflare',
+    benefits: ['SSL válido', 'CDN global', 'SEO optimizado', 'Branding profesional']
+  },
+  
+  // URLs de Netlify - PRODUCCIÓN ALTERNATIVA (SSL VÁLIDO)
   NETLIFY: {
     redirectUri: process.env.REACT_APP_REDIRECT_URI_NETLIFY || 'https://tvradio2.netlify.app/callback',
     clientId: process.env.REACT_APP_GOOGLE_CLIENT_ID || 'tu_client_id_aqui',
     sslValid: true, // ✅ SSL VÁLIDO Y CONFIABLE
     status: 'ACTIVE',
     environment: 'production',
-    primary: true // 🎯 PRODUCCIÓN PRINCIPAL
+    primary: false, // 🔶 PRODUCCIÓN SECUNDARIA
+    domain: 'tvradio2.netlify.app',
+    provider: 'Netlify'
   },
   
   // URLs de Coolify - DESARROLLO/TESTING (SSL PROBLEMÁTICO)
@@ -36,7 +51,7 @@ export const OAUTH_CONFIG = {
 
 /**
  * Detecta automáticamente el entorno actual y retorna la configuración OAuth correspondiente
- * SOLUCIÓN DEFINITIVA SSL - Netlify como producción principal
+ * SOLUCIÓN DEFINITIVA SSL - Prioridad dominio propio > Netlify > Coolify > Local
  */
 export const getOAuthConfig = () => {
   const hostname = window.location.hostname;
@@ -44,56 +59,74 @@ export const getOAuthConfig = () => {
   
   console.log('🔍 Detectando entorno OAuth:', { hostname, protocol });
   
-  // 🎯 PRIORIDAD 1: Netlify (Producción principal con SSL válido)
+  // 🎯 PRIORIDAD 1: Dominio propio imetrics.cl (Producción ideal con Cloudflare)
+  if (hostname.includes('imetrics.cl') || hostname === 'imetrics.cl') {
+    console.log('🚀✅ Entorno detectado: DOMAIN (PRODUCCIÓN IDEAL - imetrics.cl + Cloudflare)');
+    console.log('🚀✅ SSL: Válido y confiable con Cloudflare');
+    console.log('🚀✅ Beneficios: CDN, SEO, Branding profesional');
+    return OAUTH_CONFIG.DOMAIN;
+  }
+  
+  // 🎯 PRIORIDAD 2: Netlify (Producción alternativa con SSL válido)
   if (hostname.includes('netlify.app') || hostname.includes('netlify')) {
-    console.log('✅ Entorno detectado: NETLIFY (PRODUCCIÓN PRINCIPAL - SSL VÁLIDO)');
+    console.log('✅ Entorno detectado: NETLIFY (PRODUCCIÓN ALTERNATIVA - SSL VÁLIDO)');
     return OAUTH_CONFIG.NETLIFY;
   }
   
-  // ⚠️ PRIORIDAD 2: Coolify (Desarrollo/testing - SSL problemático)
+  // ⚠️ PRIORIDAD 3: Coolify (Desarrollo/testing - SSL problemático)
   if (hostname.includes('coolify.app') ||
       hostname.includes('sslip.io') ||
       process.env.REACT_APP_USE_COOLIFY_DOMAIN === 'true') {
     console.log('⚠️ Entorno detectado: COOLIFY (DESARROLLO - SSL PROBLEMÁTICO)');
     console.warn('⚠️ ADVERTENCIA: SSL Certificate Invalid - Use for development only');
+    console.warn('💡 RECOMENDACIÓN: Use imetrics.cl para producción');
     return OAUTH_CONFIG.COOLIFY;
   }
   
-  // 🔧 PRIORIDAD 3: Local development
+  // 🔧 PRIORIDAD 4: Local development
   if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '0.0.0.0') {
     console.log('✅ Entorno detectado: LOCAL (DESARROLLO)');
     return OAUTH_CONFIG.LOCAL;
   }
   
-  // Fallback: usar configuración de producción (Netlify)
-  console.log('⚠️ Entorno no reconocido, usando configuración NETLIFY por defecto');
-  return OAUTH_CONFIG.NETLIFY;
+  // Fallback: usar configuración de dominio propio (ideal)
+  console.log('⚠️ Entorno no reconocido, usando configuración DOMAIN por defecto');
+  console.log('💡 RECOMENDACIÓN: Configure su dominio en imetrics.cl');
+  return OAUTH_CONFIG.DOMAIN;
 };
 
 /**
  * Genera la URL de redirección OAuth correcta para el entorno actual
- * SOLUCIÓN DEFINITIVA SSL - Priorizar Netlify (SSL válido)
+ * SOLUCIÓN DEFINITIVA SSL - Priorizar dominio propio > Netlify > Coolify > Local
  */
 export const getRedirectUri = () => {
   const config = getOAuthConfig();
   
-  // 🎯 PRIORIDAD 1: Netlify (SSL válido y confiable)
+  // 🚀 PRIORIDAD 1: Dominio propio (SSL válido y confiable con Cloudflare)
+  if (config === OAUTH_CONFIG.DOMAIN) {
+    console.log('🚀✅ PRODUCCIÓN IDEAL: Usando URL imetrics.cl con SSL Cloudflare:', config.redirectUri);
+    console.log('🚀✅ ESTADO SSL: VÁLIDO - Sin advertencias de seguridad');
+    console.log('🚀✅ BENEFICIOS: CDN, SEO, Branding profesional');
+    return config.redirectUri;
+  }
+  
+  // 🎯 PRIORIDAD 2: Netlify (SSL válido y confiable)
   if (config === OAUTH_CONFIG.NETLIFY) {
     console.log('🔒 ✅ PRODUCCIÓN: Usando URL Netlify con SSL válido:', config.redirectUri);
     console.log('🔒 ✅ ESTADO SSL: VÁLIDO - Sin advertencias de seguridad');
     return config.redirectUri;
   }
   
-  // ⚠️ PRIORIDAD 2: Coolify (SSL problemático - solo desarrollo)
+  // ⚠️ PRIORIDAD 3: Coolify (SSL problemático - solo desarrollo)
   if (config === OAUTH_CONFIG.COOLIFY) {
     console.warn('⚠️ DESARROLLO: Usando URL Coolify con SSL problemático:', config.redirectUri);
     console.warn('⚠️ ESTADO SSL: INVÁLIDO - ERR_CERT_AUTHORITY_INVALID');
     console.warn('⚠️ ADVERTENCIA: Requiere hacer clic en "Continuar" múltiples veces');
-    console.warn('⚠️ RECOMENDACIÓN: Use Netlify para producción');
+    console.warn('💡 RECOMENDACIÓN: Migre a imetrics.cl para producción');
     return config.redirectUri;
   }
   
-  // 🔧 PRIORIDAD 3: Local development
+  // 🔧 PRIORIDAD 4: Local development
   console.log('🔒 INFO: Usando configuración LOCAL:', config.redirectUri);
   return config.redirectUri;
 };
