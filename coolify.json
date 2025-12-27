@@ -14,7 +14,7 @@
     }
   },
   "deploy": {
-    "startCommand": "concurrently \"npm run server:coolify\" \"npx serve -s build -l 3000\"",
+    "startCommand": "npm run start:production",
     "healthCheck": {
       "path": "/health",
       "port": 3001
