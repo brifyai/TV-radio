@@ -7,14 +7,20 @@ WORKDIR /app
 # Copiar archivos de configuración
 COPY package*.json ./
 
-# Instalar dependencias (incluye devDependencies)
-RUN npm ci --include=dev
+# Instalar dependencias de producción
+RUN npm ci --only=production
 
 # Copiar código fuente
 COPY . .
 
+# Instalar dependencias de desarrollo para build
+RUN npm ci --only=dev
+
 # Construir aplicación React
 RUN npm run build
+
+# Limpiar dependencias de desarrollo
+RUN npm prune --production
 
 # Exponer puerto
 EXPOSE 3001
