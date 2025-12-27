@@ -1,6 +1,3 @@
-[phases.build]
-cmds = ["echo 'Build completed'"]
-
 [phases.start]
 cmds = ["node", "server.js"]
 
