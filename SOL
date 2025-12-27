@@ -1,113 +1,54 @@
-# 🔧 SOLUCIÓN DEFINITIVA: FORZAR HTTPS EN COOLIFY
+# 🔧 SOLUCIÓN: CLOUDFLARE NO HACE PROXY CORRECTO
 
-## 🎯 PROBLEMA IDENTIFICADO:
-- **URL actual:** http://v8g48ggkk8wko4480s8kk4ok.147.93.182.94.sslip.io (HTTP)
-- **URL requerida:** https://v8g48ggkk8wko4480s8kk4ok.147.93.182.94.sslip.io (HTTPS)
-- **Causa:** Coolify no está configurado para HTTPS
-
-## 🚀 SOLUCIONES PASO A PASO:
-
-### OPCIÓN 1: CONFIGURAR HTTPS EN COOLIFY DASHBOARD (RECOMENDADO)
-
-1. **Acceder a Coolify Dashboard:**
-   - Ir a: https://coolify.your-domain.com
-   - O la IP de tu servidor Coolify
-
-2. **Configurar tu proyecto:**
-   - Seleccionar proyecto "TV-radio"
-   - Ir a "Settings" → "Advanced"
-   - Buscar sección "SSL/TLS" o "HTTPS"
-   - Activar "Force HTTPS" ✅
-   - Activar "SSL Certificate" ✅
-   - Guardar cambios
-
-3. **Redesplegar aplicación:**
-   - Hacer clic en "Deploy" o "Redeploy"
-   - Esperar a que termine el despliegue
-
-### OPCIÓN 2: CONFIGURAR CERTIFICADOS SSL MANUALMENTE
-
-1. **Configurar certificados en Coolify:**
-   - Settings → SSL Certificates
-   - Subir certificado SSL válido
-   - O usar Let's Encrypt automático
-
-2. **Configurar reverse proxy:**
-   - Instalar Traefik en Coolify
-   - Configurar certificados automáticos
-   - Redirigir tráfico HTTP → HTTPS
-
-### OPCIÓN 3: USAR CLOUDFLARE (MÁS FÁCIL)
-
-1. **Configurar Cloudflare:**
-   - Ir a Cloudflare Dashboard
-   - Agregar tu dominio
-   - Configurar DNS:
-     ```
-     Type: CNAME
-     Name: v8g48ggkk8wko4480s8kk4ok
-     Target: v8g48ggkk8wko4480s8kk4ok.147.93.182.94.sslip.io
-     Proxy: Enabled (naranja)
-     ```
-
-2. **Configurar SSL/TLS:**
-   - SSL/TLS → Overview → Full (strict)
-   - SSL/TLS → Edge Certificates → Always Use HTTPS: ON
-
-## 🔑 URLs PARA GOOGLE CLOUD CONSOLE:
-
-Una vez configurado HTTPS, autorizar estas URLs:
-
-**Authorized redirect URIs:**
+## 🚨 **PROBLEMA CONFIRMADO**
 ```
-https://v8g48ggkk8wko4480s8kk4ok.147.93.182.94.sslip.io/callback
-https://v8g48ggkk8wko4480s8kk4ok.147.93.182.94.sslip.io/auth/callback
-https://v8g48ggkk8wko4480s8kk4ok.147.93.182.94.sslip.io/oauth/callback
-https://v8g48ggkk8wko4480s8kk4ok.147.93.182.94.sslip.io/auth/google/callback
+DNS esperado: 147.93.182.94 (servidor Coolify)
+DNS actual:   172.67.139.6, 104.21.46.128 (IPs Cloudflare)
 ```
 
-**Authorized JavaScript origins:**
+## 🔧 **SOLUCIONES APLICAR**
+
+### **Solución 1: Purgar caché de Cloudflare**
+1. **Cloudflare Dashboard** → **imetrics.cl**
+2. **Purgar caché** → **Purgar todo**
+3. Esperar 5-10 minutos
+
+### **Solución 2: Verificar configuración de proxy**
+En Cloudflare DNS:
 ```
-https://v8g48ggkk8wko4480s8kk4ok.147.93.182.94.sslip.io
+✅ Tipo: A
+✅ Nombre: imetrics.cl  
+✅ Contenido: 147.93.182.94
+✅ Proxy: ACTIVADO (naranja)
 ```
 
-## 🧪 VERIFICACIÓN:
+### **Solución 3: Desactivar proxy temporalmente**
+1. Cambiar proxy a "DNS only" (gris)
+2. Verificar que resuelve a 147.93.182.94
+3. Reactivar proxy después
 
-Después de configurar HTTPS, verificar con:
-
+### **Solución 4: Forzar propagación DNS**
 ```bash
-# Verificar HTTPS
-curl -I https://v8g48ggkk8wko4480s8kk4ok.147.93.182.94.sslip.io
-
-# Debe devolver: HTTP/2 200 o HTTP/1.1 200
+# Verificar propagación global
+dig imetrics.cl @8.8.8.8
+dig imetrics.cl @1.1.1.1
 ```
 
-## ⚡ COMANDOS RÁPIDOS:
-
+## ⚡ **VERIFICACIÓN**
 ```bash
-# Verificar HTTP actual (debe funcionar)
-curl -I http://v8g48ggkk8wko4480s8kk4ok.147.93.182.94.sslip.io
+# Debe devolver 147.93.182.94
+nslookup imetrics.cl
 
-# Verificar HTTPS (debe fallar antes de la configuración)
-curl -I https://v8g48ggkk8wko4480s8kk4ok.147.93.182.94.sslip.io
-
-# Verificar redirección HTTP→HTTPS
-curl -L http://v8g48ggkk8wko4480s8kk4ok.147.93.182.94.sslip.io
+# Debe devolver HTTP/2 200 OK
+curl -I https://imetrics.cl
 ```
 
-## 🎯 RESULTADO ESPERADO:
+## 🎯 **RESULTADO ESPERADO**
+Después de aplicar la solución:
+- ✅ `nslookup imetrics.cl` → `147.93.182.94`
+- ✅ `https://imetrics.cl` → `HTTP/2 200 OK`
+- ✅ La aplicación carga correctamente
 
-Después de la configuración:
-- ✅ https://v8g48ggkk8wko4480s8kk4ok.147.93.182.94.sslip.io debe funcionar
-- ✅ Certificados SSL válidos
-- ✅ OAuth funcionará sin errores
-- ✅ Google Analytics se conectará correctamente
-
-## 📞 PRÓXIMOS PASOS:
-
-1. **Inmediato:** Configurar HTTPS en Coolify Dashboard
-2. **Verificar:** Probar URLs HTTPS
-3. **Actualizar:** Google Cloud Console con URLs HTTPS
-4. **Probar:** OAuth nuevamente
-
-¡Con HTTPS configurado, tu problema OAuth estará 100% resuelto!
+---
+**Fecha**: 2025-12-27  
+**Prioridad**: CRÍTICA - Aplicar inmediatamente
