@@ -1,5 +1,5 @@
 [phases.start]
-cmds = ["node", "server.js"]
+cmds = ["node server.js"]
 
 [variables]
 NIXPACKS_NODE_VERSION = "20"
