@@ -27,6 +27,7 @@
     "react-intersection-observer": "^10.0.0",
     "react-query": "^3.39.3",
     "react-router-dom": "^6.8.0",
+    "react-scripts": "^5.0.1",
     "react-spring": "^10.0.3",
     "recharts": "^2.15.4",
     "source-list-map": "^2.0.1",
@@ -72,7 +73,6 @@
     "buffer": "^6.0.3",
     "concurrently": "^9.2.1",
     "playwright-core": "^1.57.0",
-    "process": "^0.11.10",
-    "react-scripts": "^5.0.1"
+    "process": "^0.11.10"
   }
 }
