@@ -73,14 +73,20 @@ export const getOAuthConfig = () => {
     return OAUTH_CONFIG.NETLIFY;
   }
   
-  // ⚠️ PRIORIDAD 3: Coolify (Desarrollo/testing - SSL problemático)
+  // ⚠️ PRIORIDAD 3: Coolify (Desarrollo/testing - FORZAR HTTPS)
   if (hostname.includes('coolify.app') ||
       hostname.includes('sslip.io') ||
       process.env.REACT_APP_USE_COOLIFY_DOMAIN === 'true') {
-    console.log('⚠️ Entorno detectado: COOLIFY (DESARROLLO - SSL PROBLEMÁTICO)');
-    console.warn('⚠️ ADVERTENCIA: SSL Certificate Invalid - Use for development only');
-    console.warn('💡 RECOMENDACIÓN: Use imetrics.cl para producción');
-    return OAUTH_CONFIG.COOLIFY;
+    console.log('⚠️ Entorno detectado: COOLIFY (DESARROLLO - FORZANDO HTTPS)');
+    console.log('🔒 FORZANDO HTTPS para OAuth en Coolify');
+    // FORZAR HTTPS para Coolify - CRÍTICO para OAuth
+    const coolifyConfig = {
+      ...OAUTH_CONFIG.COOLIFY,
+      redirectUri: `https://${hostname}/callback`,
+      sslValid: true // Forzar SSL válido para OAuth
+    };
+    console.log('🔒 URL HTTPS forzada:', coolifyConfig.redirectUri);
+    return coolifyConfig;
   }
   
   // 🔧 PRIORIDAD 4: Local development
@@ -119,10 +125,9 @@ export const getRedirectUri = () => {
   
   // ⚠️ PRIORIDAD 3: Coolify (SSL problemático - solo desarrollo)
   if (config === OAUTH_CONFIG.COOLIFY) {
-    console.warn('⚠️ DESARROLLO: Usando URL Coolify con SSL problemático:', config.redirectUri);
-    console.warn('⚠️ ESTADO SSL: INVÁLIDO - ERR_CERT_AUTHORITY_INVALID');
-    console.warn('⚠️ ADVERTENCIA: Requiere hacer clic en "Continuar" múltiples veces');
-    console.warn('💡 RECOMENDACIÓN: Migre a imetrics.cl para producción');
+    console.log('🔒 DESARROLLO: Usando URL Coolify con HTTPS forzado:', config.redirectUri);
+    console.log('🔒 ESTADO SSL: FORZADO para OAuth (HTTPS requerido)');
+    console.log('🔒 URL HTTPS:', config.redirectUri);
     return config.redirectUri;
   }
   

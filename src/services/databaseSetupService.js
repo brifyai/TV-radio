@@ -79,7 +79,7 @@ export class DatabaseSetupService {
     for (const tableName of tables) {
       try {
         // Solo verificar si RLS está habilitado, no intentar configurarlo
-        const { data, error } = await supabase
+        const { error } = await supabase
           .from(tableName)
           .select('*')
           .limit(1);
@@ -122,7 +122,7 @@ export class DatabaseSetupService {
     try {
       const supabase = await this.initializeSupabase();
       
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('users')
         .select('id')
         .limit(1);

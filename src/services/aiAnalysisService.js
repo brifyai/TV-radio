@@ -139,6 +139,9 @@ class AIAnalysisService {
           case 'optimization':
             result.insights_y_recomendaciones.optimizacion = cleanLine;
             break;
+          default:
+            // No action needed for unrecognized sections
+            break;
         }
       }
     });

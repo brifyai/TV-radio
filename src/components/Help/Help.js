@@ -3,11 +3,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   X,
   HelpCircle,
-  BookOpen,
   Target,
   TrendingUp,
   Users,
-  Database,
   Zap,
   Brain,
   BarChart3,

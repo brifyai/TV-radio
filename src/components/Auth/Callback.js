@@ -21,9 +21,7 @@ const Callback = () => {
         
         // CRITICAL: Detectar flujo de OAuth directo de Analytics usando sessionStorage
         const isAnalyticsFlow = sessionStorage.getItem('analytics_oauth_flow') === 'true';
-        const originalUserId = sessionStorage.getItem('original_user_id');
         const originalUserEmail = sessionStorage.getItem('original_user_email');
-        const isAnalyticsCallback = urlParams.get('analytics') === 'true' || isAnalyticsFlow;
         
         if (error) {
           console.error('Error en callback de autenticación:', error, errorDescription);

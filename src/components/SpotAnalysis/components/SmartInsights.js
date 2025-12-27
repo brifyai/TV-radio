@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Brain, TrendingUp, Clock, Target, Zap, BarChart3, Video, Link } from 'lucide-react';
+import { Brain, TrendingUp, Clock, Target, Zap, BarChart3, Link } from 'lucide-react';
 
 const SmartInsights = ({ analysisResults, batchAIAnalysis, videoAnalysis }) => {
   // Función auxiliar para calcular confianza de manera más inteligente

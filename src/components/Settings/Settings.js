@@ -5,7 +5,6 @@ import { useGoogleAnalytics } from '../../contexts/GoogleAnalyticsContext';
 import userSettingsService from '../../services/userSettingsService';
 import { supabase } from '../../config/supabase-new';
 import Avatar from '../UI/Avatar';
-import { showSuccess, showError, showConfirm } from '../../utils/swal';
 import {
   User,
   Bell,

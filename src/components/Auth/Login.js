@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { useGoogleAnalytics } from '../../contexts/GoogleAnalyticsContext';
 import LoadingSpinner from '../UI/LoadingSpinner';
 import { Mail, Lock, AlertCircle, CheckCircle, Eye, EyeOff, BarChart3, Sparkles, ArrowRight, Shield, Zap } from 'lucide-react';
 

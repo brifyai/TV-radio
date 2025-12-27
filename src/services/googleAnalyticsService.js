@@ -36,35 +36,6 @@ const GOOGLE_SCOPES = [
   'https://www.googleapis.com/auth/analytics.manage.users.readonly'
 ];
 
-/**
- * Retry function with exponential backoff
- */
-const retryWithBackoff = async (fn, maxRetries = 3, initialDelay = 1000) => {
-  let lastError;
-  
-  for (let i = 0; i < maxRetries; i++) {
-    try {
-      return await fn();
-    } catch (error) {
-      lastError = error;
-      
-      if (i === maxRetries - 1) {
-        // Last retry, throw the error
-        throw error;
-      }
-      
-      // Calculate delay with exponential backoff
-      const delay = initialDelay * Math.pow(2, i);
-      console.log(`⏳ Reintentando en ${delay}ms (intento ${i + 1}/${maxRetries})...`);
-      
-      // Wait before retrying
-      await new Promise(resolve => setTimeout(resolve, delay));
-    }
-  }
-  
-  throw lastError;
-};
-
 class GoogleAnalyticsService {
   constructor() {
     this.clientId = GOOGLE_CLIENT_ID;

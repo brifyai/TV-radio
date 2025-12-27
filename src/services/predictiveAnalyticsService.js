@@ -260,12 +260,6 @@ export class PredictiveAnalyticsService {
    * Predice las conversiones del spot
    */
   async predictConversions(spotData, engagementPredictions, historicalPatterns) {
-    const conversionFunnel = this.conversionService.analyzeConversionFunnel(
-      spotData,
-      engagementPredictions,
-      {}
-    );
-    
     // Predicciones de conversión por etapa
     const conversionPredictions = {
       impressions: {
@@ -301,8 +295,8 @@ export class PredictiveAnalyticsService {
     for (let i = 1; i < stages.length; i++) {
       const current = stages[i];
       const previous = stages[i - 1];
-      conversionRates[`${previous}_to_${current}`] = 
-        conversionPredictions[previous].predicted > 0 
+      conversionRates[`${previous}_to_${current}`] =
+        conversionPredictions[previous].predicted > 0
           ? (conversionPredictions[current].predicted / conversionPredictions[previous].predicted) * 100
           : 0;
     }
@@ -320,11 +314,6 @@ export class PredictiveAnalyticsService {
    * Predice el timing óptimo para el spot
    */
   async predictOptimalTiming(spotData, historicalPatterns, marketData) {
-    // Análisis de horarios óptimos históricos
-    const optimalHours = this.analyzeOptimalHours(historicalPatterns);
-    const optimalDays = this.analyzeOptimalDays(historicalPatterns);
-    const optimalWeeks = this.analyzeOptimalWeeks(historicalPatterns);
-    
     // Predicciones de rendimiento por timing
     const timingPredictions = {
       hourly: this.predictHourlyPerformance(spotData, historicalPatterns),

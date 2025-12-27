@@ -19,13 +19,7 @@ import {
   Eye,
   Clock,
   Globe,
-  Play,
-  Pause,
-  SkipForward,
-  SkipBack,
-  Zap,
   Activity,
-  Timer,
   ChevronDown,
   ChevronUp,
   Search,
@@ -225,12 +219,6 @@ const Analytics = () => {
     { name: 'area', label: 'Área', icon: TrendingUp },
     { name: 'pie', label: 'Circular', icon: PieChart }
   ];
-
-  function getDateDaysAgo(days) {
-    const date = new Date();
-    date.setDate(date.getDate() - days);
-    return date.toISOString().split('T')[0];
-  }
 
   function resolveRelativeDate(dateValue) {
     const today = new Date();

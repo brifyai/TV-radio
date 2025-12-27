@@ -54,7 +54,6 @@ export class TemporalAnalysisService {
   calculateReferenceForWindow(spotDateTime, timeWindow, historicalData) {
     const spotHour = spotDateTime.getHours();
     const spotDayOfWeek = spotDateTime.getDay();
-    const spotDayOfMonth = spotDateTime.getDate();
 
     // Filtrar datos históricos del mismo día de la semana y hora similar
     const similarPeriods = historicalData.filter(data => {
@@ -63,7 +62,7 @@ export class TemporalAnalysisService {
       const dataDayOfWeek = dataDate.getDay();
       
       // Mismo día de la semana ± 1 y hora ± 2
-      return Math.abs(dataDayOfWeek - spotDayOfWeek) <= 1 && 
+      return Math.abs(dataDayOfWeek - spotDayOfWeek) <= 1 &&
              Math.abs(dataHour - spotHour) <= 2;
     });
 

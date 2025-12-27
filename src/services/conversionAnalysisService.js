@@ -81,7 +81,6 @@ export class ConversionAnalysisService extends TemporalAnalysisService {
 
   // Calcular métricas para cada etapa del embudo
   calculateFunnelStage(stage, spotData, conversionData, referenciaData, stageIndex) {
-    const baseMetrics = this.getStageBaseMetrics(stage, conversionData);
     const spotMetrics = this.getSpotStageMetrics(stage, spotData, conversionData);
     const referenciaMetrics = this.getReferenceStageMetrics(stage, referenciaData);
     

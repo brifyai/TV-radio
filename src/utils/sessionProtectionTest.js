@@ -51,7 +51,6 @@ export const runSessionProtectionTest = () => {
   // Test 3: Verificar protección en AuthContext
   const test3 = () => {
     // Simular cambio de sesión durante OAuth
-    const testEvent = 'SIGNED_IN';
     const testSession = { user: { email: 'analytics@test.com' } };
     const isAnalyticsFlow = sessionStorage.getItem('analytics_oauth_flow') === 'true';
     const originalEmail = sessionStorage.getItem('original_user_email');

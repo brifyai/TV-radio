@@ -2,7 +2,6 @@ import React, { useState, useCallback } from 'react';
 import { useGoogleAnalytics } from '../../contexts/GoogleAnalyticsContext';
 import { generateAIAnalysis, generateBatchAIAnalysis } from '../../services/aiAnalysisService';
 import { TemporalAnalysisService } from '../../services/temporalAnalysisService';
-import conversionAnalysisService from '../../services/conversionAnalysisService';
 import { predictiveAnalyticsService } from '../../services/predictiveAnalyticsService';
 import ExcelJS from 'exceljs';
 import { motion } from 'framer-motion';
@@ -18,10 +17,7 @@ import {
   Download,
   RefreshCw,
   Brain,
-  Zap,
-  Target,
-  Clock,
-  TrendingDown
+  Target
 } from 'lucide-react';
 
 // Importar componentes modernos
@@ -30,17 +26,10 @@ import ConfidenceMeter from '../SpotAnalysis/components/ConfidenceMeter';
 import SmartInsights from '../SpotAnalysis/components/SmartInsights';
 import TrafficHeatmap from '../SpotAnalysis/components/TrafficHeatmap';
 import TemporalAnalysisDashboard from '../SpotAnalysis/components/TemporalAnalysisDashboard';
-import ConversionAnalysisDashboard from '../SpotAnalysis/components/ConversionAnalysisDashboard';
 import PredictiveAnalyticsDashboard from '../SpotAnalysis/components/PredictiveAnalyticsDashboard';
-
-// Importar hooks de validación de integridad
-import { useDataIntegrity } from '../../hooks/useDataIntegrity';
 
 const FrasesRadio = () => {
   const { accounts, properties, getAnalyticsData, isConnected } = useGoogleAnalytics();
-  
-  // Hook de validación de integridad para métricas de frases radio
-  const { getIntegrityReport } = useDataIntegrity(null, 'frases_radio');
   
   // Función para validar métricas individuales
   const validateMetric = React.useCallback((metricName, value, metadata = {}) => {
@@ -72,11 +61,9 @@ const FrasesRadio = () => {
   const [analysisProgress, setAnalysisProgress] = useState(0);
   const [aiAnalysis, setAiAnalysis] = useState({});
   const [batchAIAnalysis, setBatchAIAnalysis] = useState(null);
-  const [viewMode, setViewMode] = useState('modern'); // 'modern' o 'classic'
+  const [viewMode] = useState('modern'); // 'modern' o 'classic' - solo lectura
   const [temporalAnalysis, setTemporalAnalysis] = useState(null);
   const [temporalReference, setTemporalReference] = useState(null);
-  const [conversionAnalysis, setConversionAnalysis] = useState(null);
-  const [controlGroupAnalysis, setControlGroupAnalysis] = useState(null);
   const [predictiveAnalysis, setPredictiveAnalysis] = useState(null);
 
   // Calcular confianza IA basada en datos reales disponibles
@@ -121,11 +108,7 @@ const FrasesRadio = () => {
   }, [frasesData.length, selectedProperty, analysisResults, aiAnalysis, validateMetric]);
   
   const realConfidence = React.useMemo(() => calculateRealConfidence(), [
-    frasesData.length,
-    selectedProperty,
-    analysisResults,
-    aiAnalysis,
-    validateMetric
+    calculateRealConfidence
   ]);
 
   // Filtrar y ordenar propiedades basadas en la cuenta seleccionada
@@ -141,7 +124,7 @@ const FrasesRadio = () => {
   );
 
   // Instancia del servicio de análisis temporal
-  const temporalAnalysisService = new TemporalAnalysisService();
+  const temporalAnalysisService = React.useMemo(() => new TemporalAnalysisService(), []);
 
   // Parsear CSV mejorado - SOLO LEE fecha_aparicion y hora_megatime
   const parseCSV = useCallback((content) => {
@@ -240,11 +223,11 @@ const FrasesRadio = () => {
     // Intentar diferentes formatos de fecha
     const dateFormats = [
       // Formatos latinoamericanos DD/MM/YYYY
-      /^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{4})$/,
+      /^(\d{1,2})[./-](\d{1,2})[./-](\d{4})$/,
       // Formatos ISO YYYY-MM-DD
-      /^(\d{4})[\/\-.](\d{1,2})[\/\-.](\d{1,2})$/,
+      /^(\d{4})[./-](\d{1,2})[./-](\d{1,2})$/,
       // Formatos americanos MM/DD/YYYY
-      /^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{4})$/
+      /^(\d{1,2})[./-](\d{1,2})[./-](\d{4})$/
     ];
     
     let day, month, year;
@@ -580,8 +563,6 @@ const FrasesRadio = () => {
     setBatchAIAnalysis(null);
     setTemporalAnalysis(null);
     setTemporalReference(null);
-    setConversionAnalysis(null);
-    setControlGroupAnalysis(null);
     setPredictiveAnalysis(null);
 
     try {
@@ -680,7 +661,7 @@ const FrasesRadio = () => {
       setAnalyzing(false);
       setAnalysisProgress(0);
     }
-  }, [frasesData, selectedProperty, analyzeFraseImpact, generateAutomaticAIAnalysis, temporalAnalysisService, predictiveAnalyticsService, setTemporalAnalysis, setTemporalReference, setPredictiveAnalysis]);
+  }, [frasesData, selectedProperty, analyzeFraseImpact, generateAutomaticAIAnalysis, temporalAnalysisService, setTemporalAnalysis, setTemporalReference, setPredictiveAnalysis, temporalReference]);
 
   // Exportar resultados
   const exportResults = () => {

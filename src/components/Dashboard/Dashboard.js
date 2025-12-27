@@ -17,9 +17,6 @@ import {
   Brain
 } from 'lucide-react';
 
-// Importar hooks y componentes de validación de integridad
-import { useDataIntegrity } from '../../hooks/useDataIntegrity';
-
 const Dashboard = () => {
   const { user } = useAuth();
   const {
@@ -34,9 +31,6 @@ const Dashboard = () => {
     clearError
   } = useGoogleAnalytics();
 
-  // Hook de validación de integridad para métricas del dashboard
-  const { getIntegrityReport } = useDataIntegrity(null, 'dashboard');
-  
   // Función para validar métricas individuales
   const validateMetric = React.useCallback((metricName, value, metadata = {}) => {
     // Validación básica de integridad para métricas calculadas
@@ -116,20 +110,8 @@ const Dashboard = () => {
   }, [accounts.length, properties.length, isConnected, validateMetric]);
 
   const realConfidence = React.useMemo(() => calculateRealConfidence(), [
-    accounts.length,
-    properties.length,
-    isConnected,
-    validateMetric
+    calculateRealConfidence
   ]);
-  
-  const integrityStatus = React.useMemo(() => {
-    return {
-      isValid: true,
-      violations: [],
-      warnings: [],
-      lastValidation: new Date().toISOString()
-    };
-  }, []);
 
   if (showLoading) {
     return (

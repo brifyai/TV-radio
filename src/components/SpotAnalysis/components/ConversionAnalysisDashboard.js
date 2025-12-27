@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Cell, FunnelChart, Funnel, LabelList } from 'recharts';
-import { Target, TrendingUp, DollarSign, Users, MousePointer, ShoppingCart, AlertTriangle, CheckCircle, ArrowDown, ArrowUp, TrendingDown } from 'lucide-react';
+import { BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { Target, TrendingUp, DollarSign, ShoppingCart, AlertTriangle, CheckCircle, ArrowDown, ArrowUp, TrendingDown } from 'lucide-react';
 
 const ConversionAnalysisDashboard = ({ conversionAnalysis, controlGroupAnalysis, spotData }) => {
   // Generar datos para el embudo de conversión

@@ -1,11 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useGoogleAnalytics } from '../../contexts/GoogleAnalyticsContext';
 import LoadingSpinner from '../UI/LoadingSpinner';
 import {
   Globe,
-  ExternalLink,
   RefreshCw,
   AlertCircle,
   Database,
@@ -16,10 +15,7 @@ import {
   Smartphone,
   Tv,
   Activity,
-  TrendingUp,
-  Users,
-  Eye,
-  Settings
+  TrendingUp
 } from 'lucide-react';
 
 const Properties = () => {

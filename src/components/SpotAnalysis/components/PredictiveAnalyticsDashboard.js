@@ -6,8 +6,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import {
-  LineChart,
-  Line,
   AreaChart,
   Area,
   XAxis,
@@ -16,35 +14,18 @@ import {
   Tooltip,
   ResponsiveContainer,
   BarChart,
-  Bar,
-  PieChart,
-  Pie,
-  Cell,
-  RadialBarChart,
-  RadialBar,
-  Legend
+  Bar
 } from 'recharts';
 import {
   Brain,
   TrendingUp,
-  TrendingDown,
-  AlertTriangle,
   CheckCircle,
-  Clock,
   Target,
-  Zap,
-  BarChart3,
-  PieChart as PieChartIcon,
   Activity,
   Lightbulb,
   Shield,
-  Timer,
   DollarSign,
-  Users,
-  Eye,
-  MousePointer,
-  ShoppingCart,
-  Star
+  Eye
 } from 'lucide-react';
 
 const PredictiveAnalyticsDashboard = ({ predictiveAnalysis }) => {
@@ -152,21 +133,6 @@ const PredictiveAnalyticsDashboard = ({ predictiveAnalysis }) => {
       rate: predictions.conversions.funnel.conversion.conversionRate * 100
     }
   ];
-
-  // Datos para análisis de riesgo
-  const riskData = riskAnalysis.risks.map(risk => ({
-    name: risk.type.replace('_', ' ').toUpperCase(),
-    value: risk.severity === 'critical' ? 100 : risk.severity === 'high' ? 75 : risk.severity === 'medium' ? 50 : 25,
-    severity: risk.severity
-  }));
-
-  // Colores para diferentes niveles de riesgo
-  const riskColors = {
-    critical: '#ef4444',
-    high: '#f97316',
-    medium: '#eab308',
-    low: '#22c55e'
-  };
 
   // Colores para gráficos
   const chartColors = {

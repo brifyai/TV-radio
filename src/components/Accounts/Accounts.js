@@ -11,9 +11,6 @@ import {
   RefreshCw,
   Database,
   TrendingUp,
-  Calendar,
-  BarChart3,
-  Target,
   Brain
 } from 'lucide-react';
 
