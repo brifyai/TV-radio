@@ -11,10 +11,12 @@ export const OAUTH_CONFIG = {
     clientId: process.env.REACT_APP_GOOGLE_CLIENT_ID || 'tu_client_id_aqui'
   },
   
-  // URLs de Coolify
+  // URLs de Coolify - TEMPORALMENTE DESACTIVADO POR CERTIFICADO SSL INVÁLIDO
   COOLIFY: {
-    redirectUri: process.env.REACT_APP_REDIRECT_URI_COOLIFY || 'https://v8g48ggkk8wko4480s8kk4ok.147.93.182.94.sslip.io/callback',
-    clientId: process.env.REACT_APP_GOOGLE_CLIENT_ID || 'tu_client_id_aqui'
+    redirectUri: process.env.REACT_APP_REDIRECT_URI_COOLIFY || 'https://tvradio2.netlify.app/callback', // Temporal: usar Netlify
+    clientId: process.env.REACT_APP_GOOGLE_CLIENT_ID || 'tu_client_id_aqui',
+    sslValid: false, // 🚨 CERTIFICADO SSL INVÁLIDO - HTTP 503
+    status: 'CRITICAL_SSL_ERROR'
   },
   
   // URLs de Netlify (descontinuado)
