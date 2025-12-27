@@ -42,7 +42,7 @@ const AnalyticsErrorDisplay = ({
         ],
         actions: [
           { label: 'Reintentar', onClick: onRetry, primary: true },
-          { label: 'Verificar Servidor', onClick: () => window.open('http://localhost:3001/api/health', '_blank'), primary: false }
+          { label: 'Verificar Servidor', onClick: () => window.open(`${window.location.protocol}//${window.location.hostname}:3001/api/health`, '_blank'), primary: false }
         ],
         type: 'connection'
       };

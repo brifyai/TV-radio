@@ -6,11 +6,27 @@ const GOOGLE_AUTH_BASE_URL = 'https://accounts.google.com/o/oauth2/auth';
 const GOOGLE_TOKEN_URL = 'https://oauth2.googleapis.com/token';
 const GOOGLE_USERINFO_URL = 'https://www.googleapis.com/oauth2/v2/userinfo';
 
-// URL del backend proxy - configuración para Coolify
-const isProduction = process.env.NODE_ENV === 'production';
-const API_BASE_URL = isProduction
-  ? (process.env.REACT_APP_API_URL || '/api')  // ✅ Servidor Express en producción (Coolify)
-  : (process.env.REACT_APP_API_URL || 'http://localhost:3001');  // Servidor local en desarrollo
+// URL del backend proxy - configuración dinámica
+const getApiBaseUrl = () => {
+  // Prioridad: variable de entorno > detección automática > fallback
+  if (process.env.REACT_APP_API_URL && process.env.REACT_APP_API_URL !== 'http://localhost:3001') {
+    return process.env.REACT_APP_API_URL;
+  }
+  
+  // Detección automática del dominio actual
+  const currentOrigin = window.location.origin;
+  const isLocalhost = currentOrigin.includes('localhost') || currentOrigin.includes('127.0.0.1');
+  
+  if (isLocalhost) {
+    return 'http://localhost:3001'; // Desarrollo local
+  } else {
+    // Producción: usar el mismo dominio pero puerto 3001 o el proxy
+    const url = new URL(currentOrigin);
+    return `${url.protocol}//${url.hostname}:3001`; // Producción con mismo dominio
+  }
+};
+
+const API_BASE_URL = getApiBaseUrl();
 
 const GOOGLE_SCOPES = [
   'email',
@@ -59,9 +75,9 @@ class GoogleAnalyticsService {
     if (process.env.NODE_ENV === 'development') {
       console.log('🔍 DEBUG GoogleAnalyticsService constructor:');
       console.log('  - NODE_ENV:', process.env.NODE_ENV);
-      console.log('  - isProduction:', isProduction);
       console.log('  - REACT_APP_API_URL:', process.env.REACT_APP_API_URL);
       console.log('  - API_BASE_URL final:', this.apiBaseUrl);
+      console.log('  - Current origin:', window.location.origin);
     }
   }
 
