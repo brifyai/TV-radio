@@ -1,32 +1,23 @@
-# Multi-stage build for React app
-FROM node:18-alpine AS builder
+# Usar imagen oficial de Node.js
+FROM node:20-alpine
 
-# Set working directory
+# Establecer directorio de trabajo
 WORKDIR /app
 
-# Copy package files
+# Copiar archivos de configuración
 COPY package*.json ./
 
-# Install dependencies with legacy peer deps to avoid conflicts
-RUN npm install --legacy-peer-deps --no-audit --no-fund
+# Instalar dependencias (incluye devDependencies)
+RUN npm ci --include=dev
 
-# Copy source code
+# Copiar código fuente
 COPY . .
 
-# Build the app
+# Construir aplicación React
 RUN npm run build
 
-# Production stage
-FROM nginx:alpine
+# Exponer puerto
+EXPOSE 3001
 
-# Copy built app from builder stage
-COPY --from=builder /app/build /usr/share/nginx/html
-
-# Copy nginx configuration
-COPY nginx.conf /etc/nginx/nginx.conf
-
-# Expose port
-EXPOSE 80
-
-# Start nginx
-CMD ["nginx", "-g", "daemon off;"]
+# Comando de inicio
+CMD ["node", "server.js"]
