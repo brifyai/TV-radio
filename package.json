@@ -63,6 +63,10 @@
       "last 1 safari version"
     ]
   },
+  "engines": {
+    "node": "20.x",
+    "npm": "10.x"
+  },
   "devDependencies": {
     "@craco/craco": "^7.1.0",
     "buffer": "^6.0.3",
