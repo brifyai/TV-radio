@@ -5,7 +5,7 @@ nixPkgs = ["nodejs-20_x"]
 cmds = ["echo 'Build completed'"]
 
 [phases.start]
-cmd = "node server.js"
+cmds = ["node", "server.js"]
 
 [variables]
 NODE_ENV = "development"
