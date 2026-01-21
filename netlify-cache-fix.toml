@@ -1,0 +1,43 @@
+# Configuración adicional para solucionar problemas MIME type
+# Este archivo complementa netlify.toml para casos específicos
+
+# Headers específicos para archivos JavaScript - FORZAR MIME TYPE CORRECTO
+[[headers]]
+  for = "/static/js/*.js"
+  [headers.values]
+    Content-Type = "application/javascript"
+    Cache-Control = "no-cache, no-store, must-revalidate"
+
+# Headers específicos para archivos CSS - FORZAR MIME TYPE CORRECTO  
+[[headers]]
+  for = "/static/css/*.css"
+  [headers.values]
+    Content-Type = "text/css"
+    Cache-Control = "no-cache, no-store, must-revalidate"
+
+# Headers para archivos en el directorio raíz
+[[headers]]
+  for = "/*.js"
+  [headers.values]
+    Content-Type = "application/javascript"
+    Cache-Control = "no-cache, no-store, must-revalidate"
+
+[[headers]]
+  for = "/*.css"
+  [headers.values]
+    Content-Type = "text/css"
+    Cache-Control = "no-cache, no-store, must-revalidate"
+
+# Headers para chunks de webpack
+[[headers]]
+  for = "/static/js/chunk-*.js"
+  [headers.values]
+    Content-Type = "application/javascript"
+    Cache-Control = "no-cache, no-store, must-revalidate"
+
+# Headers para assets de webpack
+[[headers]]
+  for = "/static/css/chunk-*.css"
+  [headers.values]
+    Content-Type = "text/css"
+    Cache-Control = "no-cache, no-store, must-revalidate"
