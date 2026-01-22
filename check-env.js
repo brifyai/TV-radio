@@ -90,10 +90,10 @@ if (!hasGroq) {
   console.log('   - Configurar REACT_APP_GROQ_API_KEY');
 }
 
-console.log('3. 🌐 Para Netlify:');
-console.log('   - Ir a Site Settings → Environment variables');
+console.log('3. 🌐 Para producción:');
+console.log('   - Configurar las variables de entorno en tu servidor');
 console.log('   - Agregar las variables listadas arriba');
-console.log('   - Hacer "Trigger deploy"');
+console.log('   - Reiniciar la aplicación');
 
 console.log('\n✅ La aplicación funcionará correctamente en cualquier estado.');
 console.log('   El sistema de fallback garantiza funcionalidad siempre.');

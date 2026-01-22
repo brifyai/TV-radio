@@ -19,7 +19,7 @@ Una aplicación React para analizar el impacto de los spots de televisión en la
 
 ### 🔗 Integración con Google Analytics
 - **Autenticación OAuth 2.0** con Google
-- **Conexión segura** via proxy de Netlify
+- **Conexión segura** con Google Analytics API
 - **Soporte para múltiples cuentas** y propiedades
 - **Métricas en tiempo real** de GA4
 
@@ -32,10 +32,9 @@ Una aplicación React para analizar el impacto de los spots de televisión en la
 ## 🛠️ Tecnologías Utilizadas
 
 - **Frontend**: React 18, Tailwind CSS, Lucide Icons
-- **Backend**: Netlify Functions (Node.js)
+- **Backend**: Node.js / Express
 - **APIs**: Google Analytics Data API v1beta, Groq AI API
 - **Herramientas**: XLSX.js para parseo de Excel, Axios para HTTP requests
-- **Deployment**: Netlify
 
 ## 📋 Configuración
 
@@ -53,9 +52,6 @@ REACT_APP_GOOGLE_CLIENT_ID=your-google-client-id
 
 # Configuración de Groq AI
 REACT_APP_GROQ_API_KEY=gsk_your-groq-api-key
-
-# URL de funciones de Netlify
-REACT_APP_NETLIFY_FUNCTIONS_URL=/.netlify/functions
 ```
 
 ### 2. Configuración de Google Cloud Console
@@ -70,12 +66,6 @@ REACT_APP_NETLIFY_FUNCTIONS_URL=/.netlify/functions
 1. Regístrate en [Groq](https://groq.com/)
 2. Obtén tu API key desde el dashboard
 3. La aplicación usa el modelo `llama-3.1-8b-instant`
-
-### 4. Configuración de Netlify
-
-1. Conecta tu repositorio a Netlify
-2. Configura las variables de entorno en el dashboard de Netlify
-3. El proxy de Analytics se desplegará automáticamente
 
 ## 🎯 Uso de la Aplicación
 
@@ -156,10 +146,6 @@ src/
 │   └── GoogleAnalyticsContext.js # Estado global de GA
 └── config/
     └── supabase.js           # Configuración de Supabase
-
-netlify/
-└── functions/
-    └── analytics-proxy.js    # Proxy seguro para GA API
 ```
 
 ## 🚀 Deployment
@@ -171,13 +157,7 @@ npm install
 npm start
 ```
 
-### Deploy en Netlify
-
-1. Conecta el repositorio a Netlify
-2. Configura las variables de entorno
-3. El deployment es automático en cada push
-
-### Variables de Entorno en Netlify
+### Variables de Entorno Requeridas
 
 Asegúrate de configurar:
 - `REACT_APP_GROQ_API_KEY`
@@ -216,7 +196,7 @@ Si tienes problemas o preguntas:
 
 1. Revisa la documentación
 2. Verifica las variables de entorno
-3. Consulta los logs de Netlify Functions
+3. Consulta los logs de la aplicación
 4. Abre un issue en GitHub
 
 ## 🔮 Próximas Funcionalidades
