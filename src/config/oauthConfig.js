@@ -20,8 +20,7 @@ export const OAUTH_CONFIG = {
     status: 'ACTIVE',
     environment: 'production',
     primary: true,
-    domain: 'imetrics.cl',
-    domains: ['imetrics.cl', 'www.imetrics.cl'] // Soportar ambos dominios
+    domain: 'imetrics.cl'
   }
 };
 
@@ -82,9 +81,15 @@ export const validateRedirectUri = () => {
   const normalizedCurrent = normalizeUrl(currentUri);
   const normalizedExpected = normalizeUrl(expectedUri);
   
+  // Validar con normalización
   const isValid = currentUri.includes('localhost') || 
                   normalizedCurrent === normalizedExpected ||
                   currentUri === expectedUri;
+  
+  if (!isValid) {
+    console.warn('⚠️ Redirect URI mismatch - esto es normal si accedes con www');
+    console.log('💡 Tip: Accede sin www: https://imetrics.cl');
+  }
   
   console.log('🔍 Validando redirect_uri:', {
     environment: config.environment,
@@ -105,11 +110,22 @@ export const showRedirectUriWarning = () => {
   const config = getOAuthConfig();
   
   if (!validateRedirectUri()) {
-    console.error('❌ ERROR: redirect_uri no autorizado para este entorno');
-    console.error('❌ Entorno:', config.environment);
-    console.error('❌ URL actual:', window.location.origin + '/callback');
-    console.error('❌ URL esperada:', config.redirectUri);
-    console.error('❌ ACCIÓN REQUERIDA: Configure esta URL en Google Cloud Console');
+    // Solo mostrar error si no es problema de www
+    const hasWww = window.location.hostname.startsWith('www.');
+    if (hasWww) {
+      console.warn('⚠️ Accediendo con www - redirigiendo a versión sin www');
+      // Redirigir automáticamente a versión sin www
+      const urlWithoutWww = window.location.href.replace('://www.', '://');
+      if (urlWithoutWww !== window.location.href) {
+        window.location.href = urlWithoutWww;
+      }
+    } else {
+      console.error('❌ ERROR: redirect_uri no autorizado para este entorno');
+      console.error('❌ Entorno:', config.environment);
+      console.error('❌ URL actual:', window.location.origin + '/callback');
+      console.error('❌ URL esperada:', config.redirectUri);
+      console.error('❌ ACCIÓN REQUERIDA: Configure esta URL en Google Cloud Console');
+    }
   } else {
     console.log('✅ redirect_uri válido para el entorno actual');
     

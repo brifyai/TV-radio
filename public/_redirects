@@ -1,12 +1,5 @@
-# Netlify redirects for SPA - CORREGIDO PARA MIME TYPES
-# API routes - serve directly
-/netlify/functions/*  200
-/api/*                200
+# Redirigir www a no-www
+https://www.imetrics.cl/* https://imetrics.cl/:splat 301!
 
-# OAuth callback routes - handle specifically before SPA fallback
-/callback             /index.html   200
-/analytics-callback   /index.html   200
-
-# SPA fallback - all other routes to index.html
-# IMPORTANTE: Solo redirigir rutas que no son archivos estáticos
-/*                    /index.html   200
+# SPA fallback - todas las rutas van a index.html
+/*    /index.html   200
