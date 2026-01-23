@@ -1,8 +1,8 @@
 import { createClient } from '@supabase/supabase-js';
 
 // CREDENCIALES DIRECTAS - SIN LÓGICA COMPLEJA
-const SUPABASE_URL = 'https://uwbxyaszdqwypbebogvw.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV3Ynh5YXN6ZHF3eXBiZWJvZ3Z3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU2NDIyOTgsImV4cCI6MjA4MTIxODI5OH0.F7ZKl7pYtZDWQ0g6RRKtUm_PKqT5mJ7jjpLdXB5Lxmc';
+const SUPABASE_URL = 'https://supabase.imetrics.cl';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyAgCiAgICAicm9sZSI6ICJhbm9uIiwKICAgICJpc3MiOiAic3VwYWJhc2UtZGVtbyIsCiAgICAiaWF0IjogMTY0MTc2OTIwMCwKICAgICJleHAiOiAxNzk5NTM1NjAwCn0.dc_X5iR_VP_qT0zsiyj_I_OZ2T9FtRU2BBNWN8Bu4GE';
 
 console.log('🚀 CONFIGURACIÓN SIMPLE DE SUPABASE');
 console.log('✅ URL:', SUPABASE_URL);

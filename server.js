@@ -20,7 +20,7 @@ app.use(helmet({
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
       imgSrc: ["'self'", "data:", "https:"],
       scriptSrc: ["'self'"],
-      connectSrc: ["'self'", "https://api.supabase.co", "https://www.googleapis.com", "https://analyticsdata.googleapis.com", "https://analyticsadmin.googleapis.com"],
+      connectSrc: ["'self'", "https://supabase.imetrics.cl", "https://www.googleapis.com", "https://analyticsdata.googleapis.com", "https://analyticsadmin.googleapis.com"],
     },
   },
 }));
