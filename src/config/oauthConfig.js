@@ -20,7 +20,8 @@ export const OAUTH_CONFIG = {
     status: 'ACTIVE',
     environment: 'production',
     primary: true,
-    domain: 'imetrics.cl'
+    domain: 'imetrics.cl',
+    domains: ['imetrics.cl', 'www.imetrics.cl'] // Soportar ambos dominios
   }
 };
 
@@ -33,8 +34,8 @@ export const getOAuthConfig = () => {
   
   console.log('🔍 Detectando entorno OAuth:', { hostname, protocol });
   
-  // Producción: imetrics.cl
-  if (hostname.includes('imetrics.cl') || hostname === 'imetrics.cl') {
+  // Producción: imetrics.cl (con o sin www)
+  if (hostname.includes('imetrics.cl')) {
     console.log('✅ Entorno detectado: PRODUCCIÓN (imetrics.cl)');
     return OAUTH_CONFIG.PRODUCTION;
   }
@@ -76,11 +77,20 @@ export const validateRedirectUri = () => {
   const currentOrigin = window.location.origin;
   const currentUri = `${currentOrigin}/callback`;
   
-  const isValid = currentUri.includes('localhost') || currentUri === expectedUri;
+  // Normalizar URLs para comparación (remover www si existe)
+  const normalizeUrl = (url) => url.replace('://www.', '://');
+  const normalizedCurrent = normalizeUrl(currentUri);
+  const normalizedExpected = normalizeUrl(expectedUri);
+  
+  const isValid = currentUri.includes('localhost') || 
+                  normalizedCurrent === normalizedExpected ||
+                  currentUri === expectedUri;
+  
   console.log('🔍 Validando redirect_uri:', {
     environment: config.environment,
     current: currentUri,
     expected: expectedUri,
+    normalized: { current: normalizedCurrent, expected: normalizedExpected },
     isValid,
     sslValid: config.sslValid
   });

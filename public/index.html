@@ -14,6 +14,20 @@
     <meta name="theme-color" content="#2563eb" />
     <meta name="msapplication-TileColor" content="#2563eb" />
     
+    <!-- Content Security Policy -->
+    <meta http-equiv="Content-Security-Policy" content="
+      default-src 'self';
+      script-src 'self' 'unsafe-inline' 'unsafe-eval' https://accounts.google.com https://apis.google.com https://www.google-analytics.com https://ssl.gstatic.com https://www.gstatic.com https://fonts.googleapis.com https://static.cloudflareinsights.com;
+      style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://fonts.gstatic.com;
+      font-src 'self' https://fonts.gstatic.com;
+      img-src 'self' data: https: blob:;
+      connect-src 'self' https://uwbxyaszdqwypbebogvw.supabase.co https://api.supabase.co https://www.googleapis.com https://analyticsdata.googleapis.com https://analyticsadmin.googleapis.com https://accounts.google.com https://oauth2.googleapis.com https://www.google-analytics.com https://analytics.googleapis.com https://googleapis.com https://api.groq.com;
+      frame-src 'self' https://accounts.google.com https://apis.google.com;
+      object-src 'none';
+      base-uri 'self';
+      form-action 'self' https://accounts.google.com;
+    ">
+    
     <!-- SEO Meta Tags -->
     <title>iMetrics - Análisis Inteligente de Métricas y Analytics | Chile</title>
     <meta name="description" content="iMetrics es la herramienta líder en Chile para análisis inteligente de métricas, analytics y datos. Optimiza tu estrategia digital con insights avanzados y reportes automáticos." />
