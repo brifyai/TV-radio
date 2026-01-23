@@ -45,8 +45,12 @@ COPY --from=builder /app/build /usr/share/nginx/html
 # Copiar configuración de nginx
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# Exponer puerto 3000 (Easypanel default)
-EXPOSE 3000
+# Exponer puerto 80
+EXPOSE 80
+
+# Health check más permisivo
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:80/health || exit 1
 
 # Comando de inicio
 CMD ["nginx", "-g", "daemon off;"]
