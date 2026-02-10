@@ -1,0 +1,10 @@
+version: '3.8'
+
+services:
+  analytics:
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4000/health"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+      start_period: 120s
